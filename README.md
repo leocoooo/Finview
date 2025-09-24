@@ -33,3 +33,7 @@ Ce projet vise à développer une base de données et un tableau de bord interac
     streamlit run main.py
     ```
 3. Accéder à l’interface via le navigateur.
+
+
+
+## le code ets propre
