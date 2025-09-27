@@ -1,2 +1,10 @@
 .venv
 
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+
+# Config IDE
+.idea/
+
+
