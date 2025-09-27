@@ -5,6 +5,7 @@ import json
 import plotly.express as px
 
 from portfolio_package.models import Portfolio
+
 from portfolio_package.interface_functions import (
     _add_investment_with_date,
     _update_investment_with_date,
@@ -15,6 +16,7 @@ from portfolio_package.interface_functions import (
 )
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
+
 from portfolio_package.charts import create_portfolio_pie_chart
 
 # Configuration de la page
@@ -39,7 +41,7 @@ if 'portfolio' not in st.session_state:
     if loaded_portfolio:
         st.session_state.portfolio = loaded_portfolio
     else:
-        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
+        st.session_state.portfolio = Portfolio(initial_cash=0.0)
 
 # Interface principale
 def main():
@@ -48,6 +50,12 @@ def main():
     # Sidebar pour les actions
     st.sidebar.title("Actions")
     
+    action = st.sidebar.selectbox(
+        "Choix de l'onglet",
+        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements", 
+         "💳 Crédits", "📊 Analyses", "📋 Historique"]
+    )
+
     # Boutons de sauvegarde/chargement
     st.sidebar.subheader("💾 Gestion des données")
     col1, col2 = st.sidebar.columns(2)
@@ -90,11 +98,7 @@ def main():
             mime="application/json"
         )
     
-    action = st.sidebar.selectbox(
-        "Que voulez-vous faire ?",
-        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements", 
-         "💳 Crédits", "📊 Analyses", "📋 Historique"]
-    )
+
     
     portfolio = st.session_state.portfolio
     
