@@ -8,4 +8,5 @@ __pycache__/
 # Config IDE
 .idea/
 
-
+# ne pas enregistrer les donnees que chaque utilisateur génère sur le depot distant 
+.saved_json_data 
