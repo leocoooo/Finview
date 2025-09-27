@@ -50,35 +50,41 @@ def main():
     st.title("💰 Gestionnaire de Portefeuille Financier")
     
     # Sidebar pour les actions
-    st.sidebar.title("Actions")
+    st.sidebar.title("Choix de l'onglet")
     
     action = st.sidebar.selectbox(
-        "Choix de l'onglet",
+        "Selectionnez une page",
         ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements", 
-         "💳 Crédits", "📊 Analyses", "📋 Historique"]
+        "💳 Crédits", "📊 Analyses", "📋 Historique"]
     )
 
     # Boutons de sauvegarde/chargement
-    st.sidebar.subheader("💾 Gestion des données")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Sauvegarder", help="Sauvegarde automatique à chaque modification"):
-            if save_portfolio(st.session_state.portfolio):
-                st.sidebar.success("✅ Sauvegardé!")
-    with col2:
-        uploaded_file = st.file_uploader("Importer", type="json", help="Importer un fichier de sauvegarde", label_visibility="collapsed")
-        if uploaded_file is not None:
-            try:
-                data = json.load(uploaded_file)
-                st.session_state.portfolio = Portfolio.from_dict(data)
-                st.sidebar.success("✅ Importé!")
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Erreur d'import: {e}")
+    st.sidebar.subheader("💾 Importer / exporter mon portefeuille")
+
+    # Bouton Sauvegarder
+    if st.sidebar.button("Sauvegarder", help="Sauvegarde automatique à chaque modification"):
+        if save_portfolio(st.session_state.portfolio):
+            st.sidebar.success("✅ Sauvegardé!")
+
+    # Importer un fichier JSON
+    uploaded_file = st.sidebar.file_uploader(
+        "Importer", 
+        type="json", 
+        help="Importer un fichier de sauvegarde", 
+        label_visibility="collapsed"
+    )
+    if uploaded_file is not None:
+        try:
+            data = json.load(uploaded_file)
+            st.session_state.portfolio = Portfolio.from_dict(data)
+            st.sidebar.success("✅ Importé!")
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"Erreur d'import: {e}")
     
     # Bouton pour créer des données de démonstration
     st.sidebar.subheader("🎭 Données de test")
-    if st.sidebar.button("Créer portefeuille de démonstration", help="Crée un historique simulé sur 6 mois"):
+    if st.sidebar.button("Créer un portefeuille de démonstration", help="Crée un historique simulé sur 6 mois"):
         st.session_state.portfolio = create_demo_portfolio()
         save_portfolio(st.session_state.portfolio)
         st.sidebar.success("🎉 Portefeuille de démo créé!")
