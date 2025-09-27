@@ -32,3 +32,4 @@ print(returns.head())
 # Sauvegarde en CSV
 os.makedirs("data", exist_ok=True)
 returns.to_excel("data/rendements_mensuels_indices.xlsx")
+

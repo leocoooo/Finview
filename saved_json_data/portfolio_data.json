@@ -1,5 +1,5 @@
 {
-  "cash": 4715.0,
+  "cash": 4686.899299261474,
   "investments": {
     "Actions Apple": {
       "name": "Actions Apple",
@@ -49,6 +49,20 @@
       "current_value": 45.0,
       "quantity": 50,
       "purchase_date": "2025-08-24T17:08:39.405052"
+    },
+    "APPL": {
+      "name": "APPL",
+      "initial_value": 0.01,
+      "current_value": 0.01,
+      "quantity": 0.01,
+      "purchase_date": "2025-09-27T19:32:22.944336"
+    },
+    "AAPL": {
+      "name": "AAPL",
+      "initial_value": 255.4600067138672,
+      "current_value": 255.4600067138672,
+      "quantity": 0.10999999999999999,
+      "purchase_date": "2025-09-27T19:32:49.762022"
     }
   },
   "credits": {
@@ -211,6 +225,18 @@
       "type": "INVESTMENT_UPDATE",
       "amount": 0,
       "description": "Actions Microsoft: 320.00€ → 335.00€"
+    },
+    {
+      "date": "2025-09-27 19:32:22",
+      "type": "INVESTMENT_BUY",
+      "amount": 0.0001,
+      "description": "Achat de 0.01 parts de APPL"
+    },
+    {
+      "date": "2025-09-27 19:32:49",
+      "type": "INVESTMENT_BUY",
+      "amount": 28.100600738525387,
+      "description": "Achat de 0.10999999999999999 parts de AAPL"
     }
   ]
 }
