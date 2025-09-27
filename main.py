@@ -18,6 +18,8 @@ from portfolio_package.interface_functions import (
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
 from portfolio_package.charts import create_portfolio_pie_chart
+from portfolio_package.yahoo_search import asset_search_tab
+import yfinance as yf
 
 # Configuration de la page
 st.set_page_config(
@@ -206,18 +208,19 @@ def manage_cash(portfolio):
 
 def manage_investments(portfolio):
     st.header("📈 Gestion des investissements")
-    
-    tab1, tab2, tab3 = st.tabs(["Ajouter", "Mettre à jour", "Vendre"])
-    
+
+    # Ajout du nouveau tab pour la recherche d'actifs
+    tab1, tab2, tab3, tab4 = st.tabs(["Ajouter manuellement", "🔍 Rechercher actif", "Mettre à jour", "Vendre"])
+
     with tab1:
-        st.subheader("Nouvel investissement")
+        st.subheader("Nouvel investissement manuel")
         inv_name = st.text_input("Nom de l'investissement")
         inv_price = st.number_input("Prix unitaire", min_value=0.01, step=0.01)
         inv_quantity = st.number_input("Quantité", min_value=0.01, step=0.01)
         total_cost = inv_price * inv_quantity
         st.info(f"Coût total: {total_cost:.2f}€ (Liquidités disponibles: {portfolio.cash:.2f}€)")
-        
-        if st.button("Acheter"):
+
+        if st.button("Acheter", key="manual_buy"):
             if inv_name and inv_name not in portfolio.investments:
                 if portfolio.add_investment(inv_name, inv_price, inv_quantity):
                     save_portfolio(portfolio)  # Sauvegarde automatique
@@ -227,14 +230,57 @@ def manage_investments(portfolio):
                     st.error("Fonds insuffisants!")
             else:
                 st.error("Nom invalide ou investissement déjà existant!")
-    
+
     with tab2:
+        # Utilisation de la nouvelle fonction de recherche
+        portfolio_addition = asset_search_tab()
+
+        # Si un actif a été sélectionné pour ajout au portefeuille
+        if portfolio_addition:
+            asset_name = portfolio_addition['name']
+            asset_price = portfolio_addition['price']
+            asset_quantity = portfolio_addition['quantity']
+
+            # Vérifier si l'actif existe déjà dans le portefeuille
+            if asset_name not in portfolio.investments:
+                if portfolio.add_investment(asset_name, asset_price, asset_quantity):
+                    save_portfolio(portfolio)
+                    st.success(f"🎉 Actif '{asset_name}' ajouté au portefeuille avec succès!")
+                    # Nettoyer les variables de session
+                    for key in ['searched_ticker', 'searched_price', 'add_to_portfolio']:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.rerun()
+                else:
+                    st.error("💸 Fonds insuffisants pour cet achat!")
+            else:
+                st.warning(f"⚠️ L'actif '{asset_name}' existe déjà dans votre portefeuille. Utilisez l'onglet 'Mettre à jour' pour modifier ses valeurs.")
+
+    with tab3:
         st.subheader("Mettre à jour les valeurs")
         if portfolio.investments:
             inv_to_update = st.selectbox("Investissement", list(portfolio.investments.keys()))
             current_value = portfolio.investments[inv_to_update].current_value
             new_value = st.number_input("Nouvelle valeur unitaire", value=current_value, step=0.01)
-            
+
+            # Option pour mettre à jour automatiquement depuis Yahoo Finance
+            if st.checkbox("🔄 Récupérer le prix actuel depuis Yahoo Finance"):
+                try:
+                    # Essayer de récupérer le prix actuel si le nom ressemble à un ticker
+                    ticker_test = yf.Ticker(inv_to_update)
+                    current_data = ticker_test.history(period="1d")
+                    if not current_data.empty:
+                        live_price = current_data['Close'].iloc[-1]
+                        new_value = st.number_input(
+                            "Nouvelle valeur unitaire",
+                            value=float(live_price),
+                            step=0.01,
+                            key="live_price_update"
+                        )
+                        st.info(f"💹 Prix en temps réel récupéré: {live_price:.2f}")
+                except:
+                    st.warning("⚠️ Impossible de récupérer le prix en temps réel. Utilisez la saisie manuelle.")
+
             if st.button("Mettre à jour"):
                 portfolio.update_investment_value(inv_to_update, new_value)
                 save_portfolio(portfolio)  # Sauvegarde automatique
@@ -242,8 +288,8 @@ def manage_investments(portfolio):
                 st.rerun()
         else:
             st.info("Aucun investissement à mettre à jour")
-    
-    with tab3:
+
+    with tab4:
         st.subheader("Vendre des investissements")
         if portfolio.investments:
             inv_to_sell = st.selectbox("Investissement", list(portfolio.investments.keys()), key="sell_select")
