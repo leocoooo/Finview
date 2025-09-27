@@ -1,6 +1,7 @@
 .venv
 
 # Fichiers temporaires Python
+portfolio_package\__pycache__
 __pycache__/
 *.pyc
 
