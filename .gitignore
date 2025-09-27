@@ -9,4 +9,4 @@ __pycache__/
 .idea/
 
 # ne pas enregistrer les donnees que chaque utilisateur génère sur le depot distant 
-.saved_json_data 
+saved_json_data 
