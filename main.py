@@ -3,6 +3,9 @@ import pandas as pd
 from datetime import datetime
 import json
 import plotly.express as px
+from pdf import generate_portfolio_pdf
+
+
 
 from portfolio_package.models import Portfolio
 
@@ -50,6 +53,10 @@ def main():
     st.title("💰 Gestionnaire de Portefeuille Financier")
     
     # Sidebar pour les actions
+    st.sidebar.image(
+        "/Users/pierrequintindekercadio/Desktop/MOSEF/streamlit/FullLogo.png",
+        use_column_width=True  # Ajuste automatiquement la largeur
+    )
     st.sidebar.title("Choix de l'onglet")
     
     action = st.sidebar.selectbox(
@@ -73,6 +80,7 @@ def main():
         help="Importer un fichier de sauvegarde", 
         label_visibility="collapsed"
     )
+    
     if uploaded_file is not None:
         try:
             data = json.load(uploaded_file)
@@ -95,7 +103,7 @@ def main():
         save_portfolio(st.session_state.portfolio)
         st.sidebar.success("🔄 Portefeuille réinitialisé!")
         st.rerun()
-    
+
     # Bouton d'export
     if st.sidebar.button("Télécharger sauvegarde"):
         portfolio_data = st.session_state.portfolio.to_dict()
@@ -103,8 +111,19 @@ def main():
             label="📥 Télécharger JSON",
             data=json.dumps(portfolio_data, indent=2, ensure_ascii=False),
             file_name=f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            mime="application/json"
+            mime=
+            "application/json"
         )
+        pdf_filename = f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        generate_portfolio_pdf(st.session_state.portfolio, filename=pdf_filename)
+        with open(pdf_filename, "rb") as f:
+            st.sidebar.download_button(
+        label="📄 Télécharger PDF",
+        data=f,
+        file_name=pdf_filename,
+        mime="application/pdf"
+    )
+
     
 
     
@@ -501,6 +520,9 @@ def show_history(portfolio):
     else:
         st.info("Aucune transaction enregistrée")
         st.markdown("💡 **Astuce** : Utilisez le bouton 'Créer portefeuille de démonstration' dans la sidebar pour voir un exemple d'historique complet !")
+
+
+
 
 if __name__ == "__main__":
     main()
