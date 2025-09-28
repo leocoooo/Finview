@@ -89,12 +89,15 @@ class Portfolio:
             return True
         return False
     
-    def add_financial_investment(self, name: str, initial_value: float, quantity: float = 1.0, investment_type: str = "Action"):
+    def add_financial_investment(self, name: str, initial_value: float, quantity: float = 1.0, investment_type: str = "Action", location: str = ""):
         """Ajoute un investissement financier"""
         total_cost = initial_value * quantity
         if total_cost <= self.cash:
             self.cash -= total_cost
-            self.financial_investments[name] = FinancialInvestment(name, initial_value, initial_value, quantity, investment_type)
+            financial_inv = FinancialInvestment(name, initial_value, initial_value, quantity, investment_type)
+            if location:
+                financial_inv.location = location  # Ajouter la localisation
+            self.financial_investments[name] = financial_inv
             self._log_transaction("FINANCIAL_INVESTMENT_BUY", total_cost, f"Achat de {quantity} parts de {name} ({investment_type})")
             return True
         return False

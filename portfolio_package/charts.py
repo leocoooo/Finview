@@ -1,7 +1,6 @@
 
 import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
+
 
 def create_professional_pie_chart(portfolio):
     """Crée un graphique en secteurs professionnel et lisible"""
@@ -434,6 +433,234 @@ def create_performance_chart(portfolio):
     # Rotation des labels sur l'axe X si nécessaire
     if len(financial_data) + len(real_estate_data) > 6:
         fig.update_xaxes(tickangle=45)
+
+    return fig
+
+def create_world_investment_map(portfolio):
+    """Crée une carte du monde interactive des investissements"""
+
+    # Dictionnaire de géolocalisation pour les investissements
+    location_coordinates = {
+        # Pays
+        'france': {'lat': 46.2276, 'lon': 2.2137, 'country': 'France'},
+        'paris': {'lat': 48.8566, 'lon': 2.3522, 'country': 'France'},
+        'états-unis': {'lat': 39.8283, 'lon': -98.5795, 'country': 'États-Unis'},
+        'usa': {'lat': 39.8283, 'lon': -98.5795, 'country': 'États-Unis'},
+        'états unis': {'lat': 39.8283, 'lon': -98.5795, 'country': 'États-Unis'},
+        'etats-unis': {'lat': 39.8283, 'lon': -98.5795, 'country': 'États-Unis'},
+        'allemagne': {'lat': 51.1657, 'lon': 10.4515, 'country': 'Allemagne'},
+        'royaume-uni': {'lat': 55.3781, 'lon': -3.4360, 'country': 'Royaume-Uni'},
+        'japon': {'lat': 36.2048, 'lon': 138.2529, 'country': 'Japon'},
+        'chine': {'lat': 35.8617, 'lon': 104.1954, 'country': 'Chine'},
+        'canada': {'lat': 56.1304, 'lon': -106.3468, 'country': 'Canada'},
+        'australie': {'lat': -25.2744, 'lon': 133.7751, 'country': 'Australie'},
+        'brésil': {'lat': -14.2350, 'lon': -51.9253, 'country': 'Brésil'},
+        'inde': {'lat': 20.5937, 'lon': 78.9629, 'country': 'Inde'},
+        'suisse': {'lat': 46.8182, 'lon': 8.2275, 'country': 'Suisse'},
+        'espagne': {'lat': 40.4637, 'lon': -3.7492, 'country': 'Espagne'},
+        'italie': {'lat': 41.8719, 'lon': 12.5674, 'country': 'Italie'},
+        'pays-bas': {'lat': 52.1326, 'lon': 5.2913, 'country': 'Pays-Bas'},
+        'belgique': {'lat': 50.5039, 'lon': 4.4699, 'country': 'Belgique'},
+
+        # Villes principales
+        'new york': {'lat': 40.7128, 'lon': -74.0060, 'country': 'États-Unis'},
+        'londres': {'lat': 51.5074, 'lon': -0.1278, 'country': 'Royaume-Uni'},
+        'tokyo': {'lat': 35.6762, 'lon': 139.6503, 'country': 'Japon'},
+        'hong kong': {'lat': 22.3193, 'lon': 114.1694, 'country': 'Hong Kong'},
+        'singapour': {'lat': 1.3521, 'lon': 103.8198, 'country': 'Singapour'},
+        'sydney': {'lat': -33.8688, 'lon': 151.2093, 'country': 'Australie'},
+        'toronto': {'lat': 43.6532, 'lon': -79.3832, 'country': 'Canada'},
+        'zurich': {'lat': 47.3769, 'lon': 8.5417, 'country': 'Suisse'},
+        'amsterdam': {'lat': 52.3676, 'lon': 4.9041, 'country': 'Pays-Bas'},
+        'francfort': {'lat': 50.1109, 'lon': 8.6821, 'country': 'Allemagne'},
+
+        # Régions
+        'europe': {'lat': 54.5260, 'lon': 15.2551, 'country': 'Europe'},
+        'asie': {'lat': 34.0479, 'lon': 100.6197, 'country': 'Asie'},
+        'amérique du nord': {'lat': 54.5260, 'lon': -105.2551, 'country': 'Amérique du Nord'},
+        'amérique latine': {'lat': -8.7832, 'lon': -55.4915, 'country': 'Amérique Latine'},
+    }
+
+    # Collecter les données des investissements avec localisation
+    investment_data = []
+
+    # Investissements financiers
+    for name, inv in portfolio.financial_investments.items():
+        inv_type = getattr(inv, 'investment_type', 'Financier')
+        location = getattr(inv, 'location', '')
+
+        # Tentative de géolocalisation basée sur le nom ou autres indices
+        coords = None
+        if location:
+            location_lower = location.lower().strip()
+            coords = location_coordinates.get(location_lower)
+
+        # Si pas de localisation explicite, essayer de deviner à partir du nom
+        if not coords:
+            name_lower = name.lower()
+            for loc_key, loc_data in location_coordinates.items():
+                if loc_key in name_lower:
+                    coords = loc_data
+                    break
+
+        # Localisation par défaut pour les investissements financiers globaux
+        if not coords:
+            if 'sp' in name_lower or 's&p' in name_lower or 'nasdaq' in name_lower:
+                coords = location_coordinates['états-unis']
+            elif 'europe' in name_lower or 'eur' in name_lower:
+                coords = location_coordinates['europe']
+            elif 'world' in name_lower or 'global' in name_lower or 'msci' in name_lower:
+                coords = location_coordinates['états-unis']  # Par défaut
+            else:
+                coords = location_coordinates['france']  # Défaut local
+
+        if coords:
+            investment_data.append({
+                'name': name,
+                'type': 'Financial',
+                'category': inv_type,
+                'value': inv.get_total_value(),
+                'performance': inv.get_gain_loss_percentage(),
+                'lat': coords['lat'],
+                'lon': coords['lon'],
+                'country': coords['country'],
+                'color': '#3498DB',
+                'size': max(10, min(50, inv.get_total_value() / 100))  # Taille proportionnelle
+            })
+
+    # Investissements immobiliers
+    for name, inv in portfolio.real_estate_investments.items():
+        property_type = getattr(inv, 'property_type', 'Immobilier')
+        location = getattr(inv, 'location', 'France')
+        rental_yield = getattr(inv, 'rental_yield', 0)
+
+        # Géolocalisation pour l'immobilier
+        coords = None
+        if location:
+            location_lower = location.lower().strip()
+            coords = location_coordinates.get(location_lower)
+
+        # Localisation par défaut
+        if not coords:
+            coords = location_coordinates['france']
+
+        investment_data.append({
+            'name': name,
+            'type': 'Real Estate',
+            'category': property_type,
+            'value': inv.get_total_value(),
+            'performance': inv.get_gain_loss_percentage(),
+            'rental_yield': rental_yield,
+            'lat': coords['lat'],
+            'lon': coords['lon'],
+            'country': coords['country'],
+            'location_name': location,
+            'color': '#E67E22',
+            'size': max(15, min(60, inv.get_total_value() / 80))  # Taille légèrement plus grande
+        })
+
+    if not investment_data:
+        # Carte vide
+        fig = go.Figure()
+        fig.add_annotation(
+            text="Aucun investissement localisé à afficher<br>Ajoutez des investissements avec des localisations",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, xanchor='center', yanchor='middle',
+            font=dict(size=16, color="gray"),
+            showarrow=False
+        )
+        fig.update_layout(
+            title="🌍 Carte Mondiale des Investissements",
+            height=400,
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        return fig
+
+    # Création de la carte
+    fig = go.Figure()
+
+    # Ajouter les investissements financiers
+    financial_data = [inv for inv in investment_data if inv['type'] == 'Financial']
+    if financial_data:
+        fig.add_trace(go.Scattergeo(
+            lon=[inv['lon'] for inv in financial_data],
+            lat=[inv['lat'] for inv in financial_data],
+            text=[f"<b>{inv['name']}</b><br>{inv['category']}<br>{inv['value']:.0f}€<br>{inv['performance']:+.1f}%"
+                  for inv in financial_data],
+            mode='markers',
+            name='📈 Investissements Financiers',
+            marker=dict(
+                size=[inv['size'] for inv in financial_data],
+                color='#3498DB',
+                sizemode='diameter',
+                line=dict(width=2, color='white'),
+                opacity=0.8
+            ),
+            hovertemplate='<b>%{text}</b><br>Pays: %{customdata}<extra></extra>',
+            customdata=[inv['country'] for inv in financial_data]
+        ))
+
+    # Ajouter les investissements immobiliers
+    real_estate_data = [inv for inv in investment_data if inv['type'] == 'Real Estate']
+    if real_estate_data:
+        fig.add_trace(go.Scattergeo(
+            lon=[inv['lon'] for inv in real_estate_data],
+            lat=[inv['lat'] for inv in real_estate_data],
+            text=[f"<b>{inv['name']}</b><br>{inv['category']}<br>{inv['value']:.0f}€<br>Rendement: {inv.get('rental_yield', 0):.1f}%<br>{inv['performance']:+.1f}%"
+                  for inv in real_estate_data],
+            mode='markers',
+            name='🏠 Investissements Immobiliers',
+            marker=dict(
+                size=[inv['size'] for inv in real_estate_data],
+                color='#E67E22',
+                sizemode='diameter',
+                line=dict(width=2, color='white'),
+                opacity=0.8,
+                symbol='square'  # Carré pour différencier de l'immobilier
+            ),
+            hovertemplate='<b>%{text}</b><br>Localisation: %{customdata}<extra></extra>',
+            customdata=[inv['location_name'] for inv in real_estate_data]
+        ))
+
+    # Configuration de la carte
+    fig.update_layout(
+        title={
+            'text': "🌍 Carte Mondiale des Investissements",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20, 'family': 'Arial, sans-serif', 'color': 'white'}
+        },
+        geo=dict(
+            projection_type='equirectangular',
+            showland=True,
+            landcolor='rgb(217, 217, 217)',
+            showocean=True,
+            oceancolor='rgb(230, 245, 255)',
+            showlakes=True,
+            lakecolor='rgb(230, 245, 255)',
+            showrivers=True,
+            rivercolor='rgb(230, 245, 255)',
+            showcoastlines=True,
+            coastlinecolor='rgb(204, 204, 204)',
+            showframe=False,
+            showsubunits=True,
+            subunitcolor='rgb(204, 204, 204)'
+        ),
+        height=500,
+        margin=dict(l=0, r=0, t=50, b=0),
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial, sans-serif", size=11),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.1,
+            xanchor="center",
+            x=0.5,
+            bgcolor='rgba(0,0,0,0)',
+            bordercolor='rgba(0,0,0,0)',
+            borderwidth=0
+        )
+    )
 
     return fig
 

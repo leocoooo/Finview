@@ -5,8 +5,6 @@ import json
 import plotly.express as px
 from pdf import generate_portfolio_pdf
 
-
-
 from portfolio_package.models import Portfolio
 
 from portfolio_package.interface_functions import (
@@ -20,9 +18,10 @@ from portfolio_package.interface_functions import (
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
-from portfolio_package.charts import create_portfolio_pie_chart, create_portfolio_chart, create_performance_chart
+from portfolio_package.charts import create_portfolio_pie_chart, create_portfolio_chart, create_performance_chart, create_world_investment_map
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
+
 
 # Configuration de la page
 st.set_page_config(
@@ -61,8 +60,8 @@ def main():
     
     action = st.sidebar.selectbox(
         "Selectionnez une page",
-        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements", 
-        "💳 Crédits", "📊 Analyses", "📋 Historique"]
+        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements",
+        "💳 Crédits", "🌍 Carte du monde", "📊 Analyses", "📋 Historique"]
     )
 
     # Boutons de sauvegarde/chargement
@@ -137,6 +136,8 @@ def main():
         manage_investments(portfolio)
     elif action == "💳 Crédits":
         manage_credits(portfolio)
+    elif action == "🌍 Carte du monde":
+        show_world_map(portfolio)
     elif action == "📊 Analyses":
         show_analytics(portfolio)
     elif action == "📋 Historique":
@@ -223,7 +224,7 @@ def show_dashboard(portfolio):
                     "Gain/Perte": f"{inv.get_gain_loss():+.2f}€",
                     "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
                 })
-            st.dataframe(pd.DataFrame(fin_data), width='stretch')
+            st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
         else:
             st.info("Aucun investissement financier")
 
@@ -246,7 +247,7 @@ def show_dashboard(portfolio):
                     "Revenu annuel": f"{annual_income:.2f}€" if annual_income > 0 else "N/A",
                     "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
                 })
-            st.dataframe(pd.DataFrame(re_data), width='stretch')
+            st.dataframe(pd.DataFrame(re_data), use_container_width=True)
         else:
             st.info("Aucun investissement immobilier")
 
@@ -261,7 +262,7 @@ def show_dashboard(portfolio):
                     "Taux": f"{credit.interest_rate:.1f}%",
                     "Paiement mensuel": f"{credit.monthly_payment:.2f}€"
                 })
-            st.dataframe(pd.DataFrame(credit_data), width='stretch')
+            st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
         else:
             st.info("Aucun crédit")
 
@@ -318,18 +319,33 @@ def manage_investments(portfolio):
 
         # Champs spécifiques selon le type d'investissement
         if investment_type == "💰 Financier":
-            financial_type = st.selectbox("Catégorie",
-                                        ["Action", "ETF", "Obligation", "Crypto", "Fonds", "Autre"],
-                                        key="financial_category")
+            col1, col2 = st.columns(2)
+            with col1:
+                financial_type = st.selectbox("Catégorie",
+                                            ["Action", "ETF", "Obligation", "Crypto", "Fonds", "Autre"],
+                                            key="financial_category")
+            with col2:
+                location = st.text_input("🌍 Localisation (optionnel)",
+                                       placeholder="Ex: États-Unis, Europe, Japon",
+                                       key="financial_location",
+                                       help="Permet de localiser l'investissement sur la carte du monde")
         else:  # Immobilier
-            property_type = st.selectbox("Type de bien",
-                                       ["SCPI", "REIT", "Immobilier direct", "Foncière", "Autre"],
-                                       key="property_category")
-            location = st.text_input("Localisation", placeholder="Ex: Paris, États-Unis")
+            col1, col2 = st.columns(2)
+            with col1:
+                property_type = st.selectbox("Type de bien",
+                                           ["SCPI", "REIT", "Immobilier direct", "Foncière", "Autre"],
+                                           key="property_category")
+            with col2:
+                location = st.text_input("🌍 Localisation",
+                                       placeholder="Ex: Paris, États-Unis, Londres",
+                                       key="real_estate_location",
+                                       help="Localisation géographique du bien immobilier")
+
             rental_yield = st.number_input("Rendement locatif annuel (%)",
                                          min_value=0.0, max_value=20.0,
                                          value=0.0, step=0.1,
-                                         key="rental_yield")
+                                         key="rental_yield",
+                                         help="Rendement locatif annuel estimé en %")
 
         total_cost = inv_price * inv_quantity
         st.info(f"Coût total: {total_cost:.2f}€ (Liquidités disponibles: {portfolio.cash:.2f}€)")
@@ -338,14 +354,17 @@ def manage_investments(portfolio):
             if inv_name and inv_name not in portfolio.investments:
                 success = False
                 if investment_type == "💰 Financier":
-                    success = portfolio.add_financial_investment(inv_name, inv_price, inv_quantity, financial_type)
+                    success = portfolio.add_financial_investment(inv_name, inv_price, inv_quantity, financial_type, location)
                 else:
                     success = portfolio.add_real_estate_investment(inv_name, inv_price, inv_quantity,
                                                                  property_type, location, rental_yield)
 
                 if success:
                     save_portfolio(portfolio)  # Sauvegarde automatique
-                    st.success(f"Investissement '{inv_name}' ajouté avec succès!")
+                    location_msg = f" (📍 {location})" if location else ""
+                    st.success(f"Investissement '{inv_name}' ajouté avec succès!{location_msg}")
+                    if location:
+                        st.info("🌍 Consultez l'onglet 'Carte du monde' pour voir votre investissement géolocalisé!")
                     st.rerun()
                 else:
                     st.error("Fonds insuffisants!")
@@ -480,6 +499,130 @@ def manage_credits(portfolio):
         else:
             st.info("Aucun crédit à payer")
 
+def show_world_map(portfolio):
+    """Affiche la carte du monde des investissements"""
+    st.header("🌍 Carte du Monde des Investissements")
+
+    # Métriques de géolocalisation
+    total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
+    financial_count = len(portfolio.financial_investments)
+    real_estate_count = len(portfolio.real_estate_investments)
+
+    if total_investments > 0:
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("🎯 Total Investissements", total_investments)
+        with col2:
+            st.metric("📈 Financiers", financial_count)
+        with col3:
+            st.metric("🏠 Immobiliers", real_estate_count)
+        with col4:
+            financial_value = portfolio.get_financial_investments_value()
+            real_estate_value = portfolio.get_real_estate_investments_value()
+            total_value = financial_value + real_estate_value
+            st.metric("💰 Valeur Totale", f"{total_value:.0f}€")
+
+        st.markdown("---")
+
+        # Informations sur la répartition géographique
+        st.subheader("📍 Répartition Géographique")
+
+        # Analyser les localisations
+        locations = {}
+
+        # Investissements financiers
+        for name, inv in portfolio.financial_investments.items():
+            location = getattr(inv, 'location', 'France')  # Par défaut
+            inv_type = getattr(inv, 'investment_type', 'Financier')
+            value = inv.get_total_value()
+
+            if location not in locations:
+                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
+            locations[location]['financial'] += value
+            locations[location]['count'] += 1
+
+        # Investissements immobiliers
+        for name, inv in portfolio.real_estate_investments.items():
+            location = getattr(inv, 'location', 'France')
+            value = inv.get_total_value()
+
+            if location not in locations:
+                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
+            locations[location]['real_estate'] += value
+            locations[location]['count'] += 1
+
+        # Afficher le résumé par localisation
+        if locations:
+            location_data = []
+            for loc, data in locations.items():
+                total_loc_value = data['financial'] + data['real_estate']
+                location_data.append({
+                    'Localisation': loc,
+                    'Nb. Investissements': data['count'],
+                    'Valeur Financière': f"{data['financial']:.2f}€" if data['financial'] > 0 else "-",
+                    'Valeur Immobilière': f"{data['real_estate']:.2f}€" if data['real_estate'] > 0 else "-",
+                    'Valeur Totale': f"{total_loc_value:.2f}€"
+                })
+
+            st.dataframe(pd.DataFrame(location_data), use_container_width=True)
+
+        st.markdown("---")
+
+        # Grande carte interactive
+        st.subheader("🗺️ Carte Interactive")
+        fig_map = create_world_investment_map(portfolio)
+
+        # Ajuster la taille pour une meilleure visibilité
+        fig_map.update_layout(height=700)
+
+        st.plotly_chart(fig_map, use_container_width=True, config={
+            'displayModeBar': True,
+            'displaylogo': False,
+            'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
+        })
+
+        # Légende et conseils
+        st.markdown("---")
+        st.subheader("💡 Comment lire cette carte")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("""
+            **🔵 Cercles bleus** : Investissements financiers
+            - Taille proportionnelle à la valeur
+            - Cliquer pour voir les détails
+            - Performance affichée au survol
+            """)
+
+        with col2:
+            st.markdown("""
+            **🟠 Carrés orange** : Investissements immobiliers
+            - Taille proportionnelle à la valeur
+            - Informations de rendement locatif
+            - Localisation précise affichée
+            """)
+
+        st.info("💡 **Astuce** : Zoomez et naviguez sur la carte pour explorer vos investissements par région")
+
+    else:
+        # Aucun investissement
+        st.info("🌍 Aucun investissement à localiser pour le moment")
+        st.markdown("""
+        ### Comment ajouter des investissements géolocalisés :
+
+        1. **📈 Allez dans l'onglet 'Investissements'**
+        2. **🌍 Renseignez la localisation** lors de l'ajout :
+           - Pour l'immobilier : champ obligatoire
+           - Pour le financier : optionnel mais recommandé
+        3. **🗺️ Revenez ici** pour voir vos investissements sur la carte !
+
+        ### Localisations supportées :
+        - **Pays** : France, États-Unis, Allemagne, Japon, etc.
+        - **Villes** : Paris, New York, Londres, Tokyo, etc.
+        - **Régions** : Europe, Asie, Amérique du Nord, etc.
+        """)
+
 def show_analytics(portfolio):
     st.header("📊 Analyses et statistiques")
     
@@ -592,7 +735,7 @@ def show_history(portfolio):
         st.subheader(f"📋 Transactions ({len(filtered_df)} résultats)")
         st.dataframe(
             display_df[['Date', 'Type', 'Montant', 'description']].rename(columns={'description': 'Description'}),
-            width='stretch',
+            use_container_width=True,
             height=400
         )
         
