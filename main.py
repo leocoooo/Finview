@@ -54,7 +54,7 @@ def main():
     
     # Sidebar pour les actions
     st.sidebar.image(
-        "/Users/pierrequintindekercadio/Desktop/MOSEF/streamlit/FullLogo.png",
+        "FullLogo.png",
         use_column_width=True  # Ajuste automatiquement la largeur
     )
     st.sidebar.title("Choix de l'onglet")
