@@ -12,7 +12,7 @@ text_color = hex_to_rgb("#e2e8f0")        # texte général
 border_color = hex_to_rgb("#314158")      # bordures
 header_bg_color = hex_to_rgb("#1d293d")   # fond header tableau
 
-def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="FullLogo.png"):
+def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/FullLogo.png"):
     pdf = FPDF()
     pdf.add_page()
 
