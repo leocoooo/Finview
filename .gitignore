@@ -1,4 +1,6 @@
+# nos environnements virtuels 
 .venv
+.dashboard_venv
 
 # Fichiers temporaires Python
 portfolio_package\__pycache__
