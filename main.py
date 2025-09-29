@@ -18,6 +18,7 @@ from portfolio_package.save_load_ptf_functions import save_portfolio, load_portf
 from portfolio_package.charts import create_portfolio_pie_chart
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
+from top_navigation_bar import create_horizontal_menu, create_sidebar_actions
 
 # Configuration de la page
 st.set_page_config(
@@ -45,72 +46,42 @@ if 'portfolio' not in st.session_state:
 
 # Interface principale
 def main():
-    st.title("💰 Gestionnaire de Portefeuille Financier")
-    
-    # Sidebar pour les actions
-    st.sidebar.title("Actions")
-    
-    # Boutons de sauvegarde/chargement
-    st.sidebar.subheader("💾 Gestion des données")
-    col1, col2 = st.sidebar.columns(2)
-    with col1:
-        if st.button("Sauvegarder", help="Sauvegarde automatique à chaque modification"):
-            if save_portfolio(st.session_state.portfolio):
-                st.sidebar.success("✅ Sauvegardé!")
-    with col2:
-        uploaded_file = st.file_uploader("Importer", type="json", help="Importer un fichier de sauvegarde", label_visibility="collapsed")
-        if uploaded_file is not None:
-            try:
-                data = json.load(uploaded_file)
-                st.session_state.portfolio = Portfolio.from_dict(data)
-                st.sidebar.success("✅ Importé!")
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Erreur d'import: {e}")
-    
-    # Bouton pour créer des données de démonstration
-    st.sidebar.subheader("🎭 Données de test")
-    if st.sidebar.button("Créer portefeuille de démonstration", help="Crée un historique simulé sur 6 mois"):
-        st.session_state.portfolio = create_demo_portfolio()
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🎉 Portefeuille de démo créé!")
-        st.rerun()
-    
-    if st.sidebar.button("Réinitialiser portefeuille"):
-        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🔄 Portefeuille réinitialisé!")
-        st.rerun()
-    
-    # Bouton d'export
-    if st.sidebar.button("Télécharger sauvegarde"):
-        portfolio_data = st.session_state.portfolio.to_dict()
-        st.sidebar.download_button(
-            label="📥 Télécharger JSON",
-            data=json.dumps(portfolio_data, indent=2, ensure_ascii=False),
-            file_name=f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            mime="application/json"
-        )
-    
-    action = st.sidebar.selectbox(
-        "Que voulez-vous faire ?",
-        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements", 
-         "💳 Crédits", "📊 Analyses", "📋 Historique"]
+    """
+    Fonction principale avec navigation horizontale en haut
+    """
+    # Configuration de la page
+    st.set_page_config(
+        page_title="FinView - Portfolio Manager",
+        page_icon="💰",
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
-    
+
+    # Initialiser le portfolio dans session_state si nécessaire
+    if 'portfolio' not in st.session_state:
+        st.session_state.portfolio = load_portfolio()
+
+    # Créer la navigation horizontale en haut
+    current_page = create_horizontal_menu()
+
+    # Récupérer le portfolio
     portfolio = st.session_state.portfolio
-    
-    if action == "🏠 Tableau de bord":
+
+    # Créer la sidebar avec les actions de sauvegarde/chargement
+    create_sidebar_actions(portfolio, save_portfolio)
+
+    # Router vers les différentes pages selon la sélection
+    if current_page == "🏠 Tableau de bord":
         show_dashboard(portfolio)
-    elif action == "💵 Gérer les liquidités":
+    elif current_page == "💵 Gérer les liquidités":
         manage_cash(portfolio)
-    elif action == "📈 Investissements":
+    elif current_page == "📈 Investissements":
         manage_investments(portfolio)
-    elif action == "💳 Crédits":
+    elif current_page == "💳 Crédits":
         manage_credits(portfolio)
-    elif action == "📊 Analyses":
+    elif current_page == "📊 Analyses":
         show_analytics(portfolio)
-    elif action == "📋 Historique":
+    elif current_page == "📋 Historique":
         show_history(portfolio)
 
 def show_dashboard(portfolio):
