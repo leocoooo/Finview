@@ -1,10 +1,18 @@
+# nos environnements virtuels 
 .venv
+.dashboard_venv
 
 # Fichiers temporaires Python
+portfolio_package\__pycache__
 __pycache__/
 *.pyc
 
 # Config IDE
 .idea/
 
+# ne pas enregistrer les donnees que chaque utilisateur génère sur le depot distant 
+saved_json_data 
 
+# Ne pas enregistrer les pdf générés ni les png (les graohiques du pdf généré)
+*.pdf 
+*.png

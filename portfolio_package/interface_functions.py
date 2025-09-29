@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from portfolio_package.models import Portfolio, Investment, Credit
+from portfolio_package.models import Portfolio, Investment, Credit, FinancialInvestment, RealEstateInvestment
 
 def create_demo_portfolio():
     """Crée un portefeuille de démonstration avec un historique simulé"""
@@ -12,23 +12,23 @@ def create_demo_portfolio():
     current_date = base_date
     
     # Ajout initial de fonds
-    portfolio.cash = 15000.0
+    portfolio.cash = 25000.0
     portfolio.transaction_history.append({
         'date': current_date.strftime('%Y-%m-%d %H:%M:%S'),
         'type': 'CASH_ADD',
-        'amount': 10000.0,
+        'amount': 20000.0,
         'description': 'Apport initial'
     })
     
-    # Premiers investissements
+    # Premiers investissements financiers
     current_date += timedelta(days=3)
-    portfolio._add_investment_with_date("Actions Apple", 150.0, 20, current_date)  # 3000€
-    
+    portfolio._add_financial_investment_with_date("Actions Apple", 150.0, 20, current_date, "Action")  # 3000€
+
     current_date += timedelta(days=5)
-    portfolio._add_investment_with_date("ETF S&P 500", 400.0, 10, current_date)  # 4000€
-    
+    portfolio._add_financial_investment_with_date("ETF S&P 500", 400.0, 10, current_date, "ETF")  # 4000€
+
     current_date += timedelta(days=7)
-    portfolio._add_investment_with_date("Bitcoin", 35000.0, 0.2, current_date)  # 7000€
+    portfolio._add_financial_investment_with_date("Bitcoin", 35000.0, 0.2, current_date, "Crypto")  # 7000€
     
     # === FÉVRIER - Expansion du portefeuille ===
     current_date += timedelta(days=15)
@@ -41,7 +41,7 @@ def create_demo_portfolio():
     })
     
     current_date += timedelta(days=3)
-    portfolio._add_investment_with_date("Actions Tesla", 200.0, 15, current_date)  # 3000€
+    portfolio._add_financial_investment_with_date("Actions Tesla", 200.0, 15, current_date, "Action")  # 3000€
     
     # Premier crédit
     current_date += timedelta(days=10)
@@ -65,7 +65,7 @@ def create_demo_portfolio():
     
     # Nouvel investissement défensif
     current_date += timedelta(days=10)
-    portfolio._add_investment_with_date("Obligations", 95.0, 30, current_date)  # 2850€
+    portfolio._add_financial_investment_with_date("Obligations", 95.0, 30, current_date, "Obligation")  # 2850€
     
     # === MAI - Récupération ===
     current_date += timedelta(days=20)
@@ -79,9 +79,16 @@ def create_demo_portfolio():
     
     # === JUIN - Diversification ===
     current_date += timedelta(days=15)
-    portfolio._add_investment_with_date("Actions Microsoft", 320.0, 8, current_date)  # 2560€
-    portfolio._add_investment_with_date("ETF Europe", 45.0, 50, current_date)  # 2250€
-    
+    portfolio._add_financial_investment_with_date("Actions Microsoft", 320.0, 8, current_date, "Action")  # 2560€
+    portfolio._add_financial_investment_with_date("ETF Europe", 45.0, 50, current_date, "ETF")  # 2250€
+
+    # Premiers investissements immobiliers
+    current_date += timedelta(days=5)
+    portfolio._add_real_estate_investment_with_date("SCPI Bureaux Paris", 200.0, 25, current_date, "SCPI", "Paris", 4.2)  # 5000€
+
+    current_date += timedelta(days=10)
+    portfolio._add_real_estate_investment_with_date("REIT Résidentiel US", 85.0, 35, current_date, "REIT", "États-Unis", 3.8)  # 2975€
+
     # Paiement supplémentaire sur le crédit
     current_date += timedelta(days=10)
     portfolio._pay_credit_with_date("Prêt Auto", 1000.0, current_date)
@@ -91,23 +98,49 @@ def create_demo_portfolio():
     portfolio._update_investment_with_date("Actions Tesla", 220.0, current_date)  # +22.2%
     portfolio._update_investment_with_date("Bitcoin", 52000.0, current_date)  # Reprise
     portfolio._update_investment_with_date("Actions Microsoft", 335.0, current_date)  # +4.7%
+
+    # Évolution des investissements immobiliers
+    portfolio._update_investment_with_date("SCPI Bureaux Paris", 205.0, current_date)  # +2.5%
+    portfolio._update_investment_with_date("REIT Résidentiel US", 88.0, current_date)  # +3.5%
     
     return portfolio
 
-def _add_investment_with_date(self, name: str, initial_value: float, quantity: float, date: datetime):
-    """Ajoute un investissement avec une date spécifique"""
+# Méthodes helper pour Portfolio avec dates spécifiques
+def _add_financial_investment_with_date(self, name: str, initial_value: float, quantity: float, date: datetime, investment_type: str = "Action"):
+    """Ajoute un investissement financier avec une date spécifique"""
     total_cost = initial_value * quantity
     if total_cost <= self.cash:
         self.cash -= total_cost
-        investment = Investment(name, initial_value, initial_value, quantity)
+        investment = FinancialInvestment(name, initial_value, initial_value, quantity, investment_type)
         investment.purchase_date = date
-        self.investments[name] = investment
+        self.financial_investments[name] = investment
         self.transaction_history.append({
             'date': date.strftime('%Y-%m-%d %H:%M:%S'),
-            'type': 'INVESTMENT_BUY',
+            'type': 'FINANCIAL_INVESTMENT_BUY',
             'amount': total_cost,
-            'description': f'Achat de {quantity} parts de {name}'
+            'description': f'Achat de {quantity} parts de {name} ({investment_type})'
         })
+
+def _add_real_estate_investment_with_date(self, name: str, initial_value: float, quantity: float, date: datetime,
+                                        property_type: str = "SCPI", location: str = "", rental_yield: float = 0.0):
+    """Ajoute un investissement immobilier avec une date spécifique"""
+    total_cost = initial_value * quantity
+    if total_cost <= self.cash:
+        self.cash -= total_cost
+        investment = RealEstateInvestment(name, initial_value, initial_value, quantity, property_type, location, rental_yield)
+        investment.purchase_date = date
+        self.real_estate_investments[name] = investment
+        self.transaction_history.append({
+            'date': date.strftime('%Y-%m-%d %H:%M:%S'),
+            'type': 'REAL_ESTATE_INVESTMENT_BUY',
+            'amount': total_cost,
+            'description': f'Achat de {quantity} parts de {name} ({property_type})'
+        })
+
+def _add_investment_with_date(self, name: str, initial_value: float, quantity: float, date: datetime):
+    """Ajoute un investissement avec une date spécifique - méthode de compatibilité"""
+    return self._add_financial_investment_with_date(name, initial_value, quantity, date)
+
 
 def _update_investment_with_date(self, name: str, new_value: float, date: datetime):
     """Met à jour la valeur d'un investissement avec une date spécifique"""
@@ -159,3 +192,12 @@ def _pay_credit_with_date(self, name: str, amount: float, date: datetime):
             'amount': amount,
             'description': f'Paiement sur {name}'
         })
+
+# Patch toutes les méthodes helper sur la classe Portfolio
+Portfolio._add_financial_investment_with_date = _add_financial_investment_with_date
+Portfolio._add_real_estate_investment_with_date = _add_real_estate_investment_with_date
+Portfolio._add_investment_with_date = _add_investment_with_date
+Portfolio._add_credit_with_date = _add_credit_with_date
+Portfolio._pay_credit_with_date = _pay_credit_with_date
+Portfolio._update_investment_with_date = _update_investment_with_date
+Portfolio._sell_investment_with_date = _sell_investment_with_date
