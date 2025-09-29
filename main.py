@@ -3,10 +3,8 @@ import pandas as pd
 from datetime import datetime
 import json
 import plotly.express as px
-from pdf import generate_portfolio_pdf
 
 from portfolio_package.models import Portfolio
-
 from portfolio_package.interface_functions import (
     _add_investment_with_date,
     _update_investment_with_date,
@@ -17,11 +15,10 @@ from portfolio_package.interface_functions import (
 )
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
-
-from portfolio_package.charts import create_portfolio_pie_chart, create_portfolio_chart, create_performance_chart, create_world_investment_map
+from portfolio_package.charts import create_portfolio_pie_chart
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
-
+from top_navigation_bar import create_horizontal_menu, create_sidebar_actions
 
 # Configuration de la page
 st.set_page_config(
@@ -45,213 +42,95 @@ if 'portfolio' not in st.session_state:
     if loaded_portfolio:
         st.session_state.portfolio = loaded_portfolio
     else:
-        st.session_state.portfolio = Portfolio(initial_cash=0.0)
+        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
 
 # Interface principale
 def main():
-    st.title("💰 Gestionnaire de Portefeuille Financier")
-    
-    # Sidebar pour les actions
-    st.sidebar.image(
-        "logo/FullLogo.png",
-        width='stretch' # Ajuste automatiquement la largeur
-    )
-    st.sidebar.title("Choix de l'onglet")
-    
-    action = st.sidebar.selectbox(
-        "Selectionnez une page",
-        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements",
-        "💳 Crédits", "🌍 Carte du monde", "📊 Analyses", "📋 Historique"]
+    """
+    Fonction principale avec navigation horizontale en haut
+    """
+    # Configuration de la page
+    st.set_page_config(
+        page_title="FinView - Portfolio Manager",
+        page_icon="💰",
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
 
-    # Boutons de sauvegarde/chargement
-    st.sidebar.subheader("💾 Importer / exporter mon portefeuille")
+    # Initialiser le portfolio dans session_state si nécessaire
+    if 'portfolio' not in st.session_state:
+        st.session_state.portfolio = load_portfolio()
 
-    # Bouton Sauvegarder
-    if st.sidebar.button("Sauvegarder", help="Sauvegarde automatique à chaque modification"):
-        if save_portfolio(st.session_state.portfolio):
-            st.sidebar.success("✅ Sauvegardé!")
+    # Créer la navigation horizontale en haut
+    current_page = create_horizontal_menu()
 
-    # Importer un fichier JSON
-    uploaded_file = st.sidebar.file_uploader(
-        "Importer", 
-        type="json", 
-        help="Importer un fichier de sauvegarde", 
-        label_visibility="collapsed"
-    )
-    
-    if uploaded_file is not None:
-        try:
-            data = json.load(uploaded_file)
-            st.session_state.portfolio = Portfolio.from_dict(data)
-            st.sidebar.success("✅ Importé!")
-            st.rerun()
-        except Exception as e:
-            st.sidebar.error(f"Erreur d'import: {e}")
-    
-    # Bouton pour créer des données de démonstration
-    st.sidebar.subheader("🎭 Données de test")
-    if st.sidebar.button("Créer un portefeuille de démonstration", help="Crée un historique simulé sur 6 mois"):
-        st.session_state.portfolio = create_demo_portfolio()
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🎉 Portefeuille de démo créé!")
-        st.rerun()
-    
-    if st.sidebar.button("Réinitialiser portefeuille"):
-        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🔄 Portefeuille réinitialisé!")
-        st.rerun()
-
-    # Bouton d'export
-    if st.sidebar.button("Télécharger sauvegarde"):
-        portfolio_data = st.session_state.portfolio.to_dict()
-        st.sidebar.download_button(
-            label="📥 Télécharger JSON",
-            data=json.dumps(portfolio_data, indent=2, ensure_ascii=False),
-            file_name=f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            mime=
-            "application/json"
-        )
-        pdf_filename = f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        generate_portfolio_pdf(st.session_state.portfolio, filename=pdf_filename)
-        with open(pdf_filename, "rb") as f:
-            st.sidebar.download_button(
-        label="📄 Télécharger PDF",
-        data=f,
-        file_name=pdf_filename,
-        mime="application/pdf"
-    )
-
-    
-
-    
+    # Récupérer le portfolio
     portfolio = st.session_state.portfolio
-    
-    if action == "🏠 Tableau de bord":
+
+    # Créer la sidebar avec les actions de sauvegarde/chargement
+    create_sidebar_actions(portfolio, save_portfolio)
+
+    # Router vers les différentes pages selon la sélection
+    if current_page == "🏠 Tableau de bord":
         show_dashboard(portfolio)
-    elif action == "💵 Gérer les liquidités":
+    elif current_page == "💵 Gérer les liquidités":
         manage_cash(portfolio)
-    elif action == "📈 Investissements":
+    elif current_page == "📈 Investissements":
         manage_investments(portfolio)
-    elif action == "💳 Crédits":
+    elif current_page == "💳 Crédits":
         manage_credits(portfolio)
-    elif action == "🌍 Carte du monde":
-        show_world_map(portfolio)
-    elif action == "📊 Analyses":
+    elif current_page == "📊 Analyses":
         show_analytics(portfolio)
-    elif action == "📋 Historique":
+    elif current_page == "📋 Historique":
         show_history(portfolio)
 
 def show_dashboard(portfolio):
     st.header("Tableau de bord")
     
     # Métriques principales
-    col1, col2, col3, col4, col5 = st.columns(5)
-
+    col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
         st.metric("💰 Liquidités", f"{portfolio.cash:.2f}€")
-
+    
     with col2:
-        financial_value = portfolio.get_financial_investments_value()
-        st.metric("📈 Inv. Financiers", f"{financial_value:.2f}€")
-
+        investments_value = portfolio.get_total_investments_value()
+        st.metric("📈 Investissements", f"{investments_value:.2f}€")
+    
     with col3:
-        real_estate_value = portfolio.get_real_estate_investments_value()
-        st.metric("🏠 Inv. Immobiliers", f"{real_estate_value:.2f}€")
-
-    with col4:
         credits_balance = portfolio.get_total_credits_balance()
         st.metric("💳 Crédits", f"-{credits_balance:.2f}€")
-
-    with col5:
+    
+    with col4:
         net_worth = portfolio.get_net_worth()
         st.metric("🏆 Valeur nette", f"{net_worth:.2f}€")
-
-    # Indicateurs supplémentaires et affichage du revenu locatif
-    additional_info = []
-
-    # Revenu locatif
-    if portfolio.real_estate_investments:
-        annual_rental_income = portfolio.get_total_annual_rental_income()
-        if annual_rental_income > 0:
-            additional_info.append(f"💰 Revenu locatif annuel : {annual_rental_income:.2f}€ ({annual_rental_income/12:.2f}€/mois)")
-
-    # Indicateur de diversification
-    total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
-    if total_investments > 0:
-        diversification_score = "Élevée" if total_investments >= 5 else "Moyenne" if total_investments >= 3 else "Faible"
-        diversification_color = "🟢" if total_investments >= 5 else "🟡" if total_investments >= 3 else "🔴"
-        additional_info.append(f"{diversification_color} Diversification : {diversification_score} ({total_investments} investissements)")
-
-    # Répartition équilibrée
-    if portfolio.financial_investments and portfolio.real_estate_investments:
-        fin_ratio = portfolio.get_financial_investments_value() / (portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()) * 100
-        re_ratio = 100 - fin_ratio
-        additional_info.append(f"⚖️ Répartition : {fin_ratio:.0f}% financier / {re_ratio:.0f}% immobilier")
-
-    # Affichage des informations
-    if additional_info:
-        for info in additional_info:
-            st.info(info)
     
-    # Section graphique principal
-    st.markdown("---")
-
-    # Graphique en secteurs professionnel et lisible
+    # Graphique en secteurs de la répartition
     if portfolio.investments or portfolio.cash > 0:
         fig = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig, config={})
     
-    # Ligne de séparation
-    st.markdown("---")
-
-    # Tableaux des investissements séparés par type
-    col1, col2, col3 = st.columns(3)
-
+    # Tableaux des investissements et crédits
+    col1, col2 = st.columns(2)
+    
     with col1:
-        st.subheader("📈 Investissements Financiers")
-        if portfolio.financial_investments:
-            fin_data = []
-            for name, inv in portfolio.financial_investments.items():
-                inv_type = getattr(inv, 'investment_type', 'N/A')
-                fin_data.append({
+        st.subheader("📈 Investissements")
+        if portfolio.investments:
+            inv_data = []
+            for name, inv in portfolio.investments.items():
+                inv_data.append({
                     "Nom": name,
-                    "Type": inv_type,
                     "Quantité": inv.quantity,
-                    "Valeur unit.": f"{inv.current_value:.2f}€",
+                    "Valeur unitaire": f"{inv.current_value:.2f}€",
                     "Valeur totale": f"{inv.get_total_value():.2f}€",
                     "Gain/Perte": f"{inv.get_gain_loss():+.2f}€",
                     "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
                 })
-            st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
+            st.dataframe(pd.DataFrame(inv_data), width='stretch')
         else:
-            st.info("Aucun investissement financier")
-
+            st.info("Aucun investissement")
+    
     with col2:
-        st.subheader("🏠 Investissements Immobiliers")
-        if portfolio.real_estate_investments:
-            re_data = []
-            for name, inv in portfolio.real_estate_investments.items():
-                property_type = getattr(inv, 'property_type', 'N/A')
-                location = getattr(inv, 'location', 'N/A')
-                rental_yield = getattr(inv, 'rental_yield', 0)
-                annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
-
-                re_data.append({
-                    "Nom": name,
-                    "Type": property_type,
-                    "Localisation": location if location else "N/A",
-                    "Rendement": f"{rental_yield:.1f}%" if rental_yield > 0 else "N/A",
-                    "Valeur totale": f"{inv.get_total_value():.2f}€",
-                    "Revenu annuel": f"{annual_income:.2f}€" if annual_income > 0 else "N/A",
-                    "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
-                })
-            st.dataframe(pd.DataFrame(re_data), use_container_width=True)
-        else:
-            st.info("Aucun investissement immobilier")
-
-    with col3:
         st.subheader("💳 Crédits")
         if portfolio.credits:
             credit_data = []
@@ -262,7 +141,7 @@ def show_dashboard(portfolio):
                     "Taux": f"{credit.interest_rate:.1f}%",
                     "Paiement mensuel": f"{credit.monthly_payment:.2f}€"
                 })
-            st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
+            st.dataframe(pd.DataFrame(credit_data), width='stretch')
         else:
             st.info("Aucun crédit")
 
@@ -284,20 +163,15 @@ def manage_cash(portfolio):
     
     with col2:
         st.subheader("Retirer des liquidités")
-        if portfolio.cash > 0.01:
-            max_withdraw = max(0.01, portfolio.cash)
-            withdraw_amount = st.number_input("Montant à retirer", min_value=0.01, max_value=max_withdraw, step=0.01, key="withdraw_cash")
-            withdraw_description = st.text_input("Description", value="Retrait de liquidités", key="withdraw_desc")
-            can_withdraw = portfolio.cash >= withdraw_amount
-            if st.button("Retirer", key="btn_withdraw", disabled=not can_withdraw):
-                if can_withdraw and portfolio.withdraw_cash(withdraw_amount, withdraw_description):
-                    save_portfolio(portfolio)  # Sauvegarde automatique
-                    st.success(f"{withdraw_amount:.2f}€ retirés avec succès!")
-                    st.rerun()
-                else:
-                    st.error("Fonds insuffisants!")
-        else:
-            st.info("Pas assez de liquidités disponibles pour effectuer un retrait")
+        withdraw_amount = st.number_input("Montant à retirer", min_value=0.01, max_value=portfolio.cash, step=0.01, key="withdraw_cash")
+        withdraw_description = st.text_input("Description", value="Retrait de liquidités", key="withdraw_desc")
+        if st.button("Retirer", key="btn_withdraw"):
+            if portfolio.withdraw_cash(withdraw_amount, withdraw_description):
+                save_portfolio(portfolio)  # Sauvegarde automatique
+                st.success(f"{withdraw_amount:.2f}€ retirés avec succès!")
+                st.rerun()
+            else:
+                st.error("Fonds insuffisants!")
 
 def manage_investments(portfolio):
     st.header("📈 Gestion des investissements")
@@ -307,64 +181,17 @@ def manage_investments(portfolio):
 
     with tab1:
         st.subheader("Nouvel investissement manuel")
-
-        # Choix du type d'investissement
-        investment_type = st.selectbox("Type d'investissement",
-                                     ["💰 Financier", "🏠 Immobilier"],
-                                     key="investment_type_select")
-
         inv_name = st.text_input("Nom de l'investissement")
         inv_price = st.number_input("Prix unitaire", min_value=0.01, step=0.01)
         inv_quantity = st.number_input("Quantité", min_value=0.01, step=0.01)
-
-        # Champs spécifiques selon le type d'investissement
-        if investment_type == "💰 Financier":
-            col1, col2 = st.columns(2)
-            with col1:
-                financial_type = st.selectbox("Catégorie",
-                                            ["Action", "ETF", "Obligation", "Crypto", "Fonds", "Autre"],
-                                            key="financial_category")
-            with col2:
-                location = st.text_input("🌍 Localisation (optionnel)",
-                                       placeholder="Ex: États-Unis, Europe, Japon",
-                                       key="financial_location",
-                                       help="Permet de localiser l'investissement sur la carte du monde")
-        else:  # Immobilier
-            col1, col2 = st.columns(2)
-            with col1:
-                property_type = st.selectbox("Type de bien",
-                                           ["SCPI", "REIT", "Immobilier direct", "Foncière", "Autre"],
-                                           key="property_category")
-            with col2:
-                location = st.text_input("🌍 Localisation",
-                                       placeholder="Ex: Paris, États-Unis, Londres",
-                                       key="real_estate_location",
-                                       help="Localisation géographique du bien immobilier")
-
-            rental_yield = st.number_input("Rendement locatif annuel (%)",
-                                         min_value=0.0, max_value=20.0,
-                                         value=0.0, step=0.1,
-                                         key="rental_yield",
-                                         help="Rendement locatif annuel estimé en %")
-
         total_cost = inv_price * inv_quantity
         st.info(f"Coût total: {total_cost:.2f}€ (Liquidités disponibles: {portfolio.cash:.2f}€)")
 
         if st.button("Acheter", key="manual_buy"):
             if inv_name and inv_name not in portfolio.investments:
-                success = False
-                if investment_type == "💰 Financier":
-                    success = portfolio.add_financial_investment(inv_name, inv_price, inv_quantity, financial_type, location)
-                else:
-                    success = portfolio.add_real_estate_investment(inv_name, inv_price, inv_quantity,
-                                                                 property_type, location, rental_yield)
-
-                if success:
+                if portfolio.add_investment(inv_name, inv_price, inv_quantity):
                     save_portfolio(portfolio)  # Sauvegarde automatique
-                    location_msg = f" (📍 {location})" if location else ""
-                    st.success(f"Investissement '{inv_name}' ajouté avec succès!{location_msg}")
-                    if location:
-                        st.info("🌍 Consultez l'onglet 'Carte du monde' pour voir votre investissement géolocalisé!")
+                    st.success(f"Investissement '{inv_name}' ajouté avec succès!")
                     st.rerun()
                 else:
                     st.error("Fonds insuffisants!")
@@ -434,27 +261,21 @@ def manage_investments(portfolio):
         if portfolio.investments:
             inv_to_sell = st.selectbox("Investissement", list(portfolio.investments.keys()), key="sell_select")
             current_quantity = float(portfolio.investments[inv_to_sell].quantity)
-            max_sell_quantity = max(0.01, current_quantity) if current_quantity > 0 else 0.01
-            default_sell_quantity = min(current_quantity, max_sell_quantity) if current_quantity > 0 else 0.01
             sell_quantity = st.number_input(
                             "Quantité à vendre",
                             min_value=0.01,
-                            max_value=max_sell_quantity,
-                            value=default_sell_quantity,
+                            max_value=current_quantity,
+                            value=current_quantity,
                             step=0.01
                         )
             sale_value = portfolio.investments[inv_to_sell].current_value * sell_quantity
             st.info(f"Valeur de la vente: {sale_value:.2f}€")
             
-            can_sell = current_quantity >= sell_quantity and current_quantity > 0
-            if st.button("Vendre", disabled=not can_sell):
-                if can_sell:
-                    portfolio.sell_investment(inv_to_sell, sell_quantity)
-                    save_portfolio(portfolio)  # Sauvegarde automatique
-                    st.success(f"Vente effectuée avec succès!")
-                    st.rerun()
-                else:
-                    st.error("Quantité insuffisante pour la vente!")
+            if st.button("Vendre"):
+                portfolio.sell_investment(inv_to_sell, sell_quantity)
+                save_portfolio(portfolio)  # Sauvegarde automatique
+                st.success(f"Vente effectuée avec succès!")
+                st.rerun()
         else:
             st.info("Aucun investissement à vendre")
 
@@ -484,13 +305,11 @@ def manage_credits(portfolio):
         if portfolio.credits:
             credit_to_pay = st.selectbox("Crédit", list(portfolio.credits.keys()))
             remaining_balance = portfolio.credits[credit_to_pay].get_remaining_balance()
-            max_payment = max(0.01, min(portfolio.cash, remaining_balance)) if min(portfolio.cash, remaining_balance) > 0 else 0.01
-            payment_amount = st.number_input("Montant du paiement", min_value=0.01, max_value=max_payment, step=0.01)
+            payment_amount = st.number_input("Montant du paiement", min_value=0.01, max_value=min(portfolio.cash, remaining_balance), step=0.01)
             st.info(f"Solde restant: {remaining_balance:.2f}€ | Liquidités disponibles: {portfolio.cash:.2f}€")
             
-            can_pay = portfolio.cash >= payment_amount and portfolio.cash > 0 and remaining_balance > 0
-            if st.button("Payer", disabled=not can_pay):
-                if can_pay and portfolio.pay_credit(credit_to_pay, payment_amount):
+            if st.button("Payer"):
+                if portfolio.pay_credit(credit_to_pay, payment_amount):
                     save_portfolio(portfolio)  # Sauvegarde automatique
                     st.success(f"Paiement de {payment_amount:.2f}€ effectué!")
                     st.rerun()
@@ -498,130 +317,6 @@ def manage_credits(portfolio):
                     st.error("Impossible d'effectuer le paiement!")
         else:
             st.info("Aucun crédit à payer")
-
-def show_world_map(portfolio):
-    """Affiche la carte du monde des investissements"""
-    st.header("🌍 Carte du Monde des Investissements")
-
-    # Métriques de géolocalisation
-    total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
-    financial_count = len(portfolio.financial_investments)
-    real_estate_count = len(portfolio.real_estate_investments)
-
-    if total_investments > 0:
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.metric("🎯 Total Investissements", total_investments)
-        with col2:
-            st.metric("📈 Financiers", financial_count)
-        with col3:
-            st.metric("🏠 Immobiliers", real_estate_count)
-        with col4:
-            financial_value = portfolio.get_financial_investments_value()
-            real_estate_value = portfolio.get_real_estate_investments_value()
-            total_value = financial_value + real_estate_value
-            st.metric("💰 Valeur Totale", f"{total_value:.0f}€")
-
-        st.markdown("---")
-
-        # Informations sur la répartition géographique
-        st.subheader("📍 Répartition Géographique")
-
-        # Analyser les localisations
-        locations = {}
-
-        # Investissements financiers
-        for name, inv in portfolio.financial_investments.items():
-            location = getattr(inv, 'location', 'France')  # Par défaut
-            inv_type = getattr(inv, 'investment_type', 'Financier')
-            value = inv.get_total_value()
-
-            if location not in locations:
-                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
-            locations[location]['financial'] += value
-            locations[location]['count'] += 1
-
-        # Investissements immobiliers
-        for name, inv in portfolio.real_estate_investments.items():
-            location = getattr(inv, 'location', 'France')
-            value = inv.get_total_value()
-
-            if location not in locations:
-                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
-            locations[location]['real_estate'] += value
-            locations[location]['count'] += 1
-
-        # Afficher le résumé par localisation
-        if locations:
-            location_data = []
-            for loc, data in locations.items():
-                total_loc_value = data['financial'] + data['real_estate']
-                location_data.append({
-                    'Localisation': loc,
-                    'Nb. Investissements': data['count'],
-                    'Valeur Financière': f"{data['financial']:.2f}€" if data['financial'] > 0 else "-",
-                    'Valeur Immobilière': f"{data['real_estate']:.2f}€" if data['real_estate'] > 0 else "-",
-                    'Valeur Totale': f"{total_loc_value:.2f}€"
-                })
-
-            st.dataframe(pd.DataFrame(location_data), use_container_width=True)
-
-        st.markdown("---")
-
-        # Grande carte interactive
-        st.subheader("🗺️ Carte Interactive")
-        fig_map = create_world_investment_map(portfolio)
-
-        # Ajuster la taille pour une meilleure visibilité
-        fig_map.update_layout(height=700)
-
-        st.plotly_chart(fig_map, use_container_width=True, config={
-            'displayModeBar': True,
-            'displaylogo': False,
-            'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
-        })
-
-        # Légende et conseils
-        st.markdown("---")
-        st.subheader("💡 Comment lire cette carte")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🔵 Cercles bleus** : Investissements financiers
-            - Taille proportionnelle à la valeur
-            - Cliquer pour voir les détails
-            - Performance affichée au survol
-            """)
-
-        with col2:
-            st.markdown("""
-            **🟠 Carrés orange** : Investissements immobiliers
-            - Taille proportionnelle à la valeur
-            - Informations de rendement locatif
-            - Localisation précise affichée
-            """)
-
-        st.info("💡 **Astuce** : Zoomez et naviguez sur la carte pour explorer vos investissements par région")
-
-    else:
-        # Aucun investissement
-        st.info("🌍 Aucun investissement à localiser pour le moment")
-        st.markdown("""
-        ### Comment ajouter des investissements géolocalisés :
-
-        1. **📈 Allez dans l'onglet 'Investissements'**
-        2. **🌍 Renseignez la localisation** lors de l'ajout :
-           - Pour l'immobilier : champ obligatoire
-           - Pour le financier : optionnel mais recommandé
-        3. **🗺️ Revenez ici** pour voir vos investissements sur la carte !
-
-        ### Localisations supportées :
-        - **Pays** : France, États-Unis, Allemagne, Japon, etc.
-        - **Villes** : Paris, New York, Londres, Tokyo, etc.
-        - **Régions** : Europe, Asie, Amérique du Nord, etc.
-        """)
 
 def show_analytics(portfolio):
     st.header("📊 Analyses et statistiques")
@@ -735,7 +430,7 @@ def show_history(portfolio):
         st.subheader(f"📋 Transactions ({len(filtered_df)} résultats)")
         st.dataframe(
             display_df[['Date', 'Type', 'Montant', 'description']].rename(columns={'description': 'Description'}),
-            use_container_width=True,
+            width='stretch',
             height=400
         )
         
@@ -767,9 +462,6 @@ def show_history(portfolio):
     else:
         st.info("Aucune transaction enregistrée")
         st.markdown("💡 **Astuce** : Utilisez le bouton 'Créer portefeuille de démonstration' dans la sidebar pour voir un exemple d'historique complet !")
-
-
-
 
 if __name__ == "__main__":
     main()
