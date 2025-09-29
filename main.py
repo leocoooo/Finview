@@ -56,7 +56,10 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
+    st.sidebar.image(
+        "logo/FullLogo.png",
+        width='stretch'  # Ajuste automatiquement la largeur
+    )
     # Initialiser le portfolio dans session_state si nécessaire
     if 'portfolio' not in st.session_state:
         st.session_state.portfolio = load_portfolio()
