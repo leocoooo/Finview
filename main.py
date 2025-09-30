@@ -21,6 +21,7 @@ from portfolio_package.save_load_ptf_functions import save_portfolio, load_portf
 from portfolio_package.charts import create_portfolio_pie_chart, create_portfolio_chart, create_performance_chart, create_world_investment_map
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
+from top_navigation_bar import create_horizontal_menu, create_sidebar_actions
 
 
 # Configuration de la page
@@ -49,85 +50,25 @@ if 'portfolio' not in st.session_state:
 
 # Interface principale
 def main():
-    st.title("💰 Gestionnaire de Portefeuille Financier")
-    
-    # Sidebar pour les actions
-    st.sidebar.image(
-        "logo/FullLogo.png",
-        width='stretch' # Ajuste automatiquement la largeur
-    )
-    st.sidebar.title("Choix de l'onglet")
-    
-    action = st.sidebar.selectbox(
-        "Selectionnez une page",
-        ["🏠 Tableau de bord", "💵 Gérer les liquidités", "📈 Investissements",
-        "💳 Crédits", "🌍 Carte du monde", "📊 Analyses", "📋 Historique"]
-    )
+    """Interface principale avec navigation horizontale en haut"""
 
-    # Boutons de sauvegarde/chargement
-    st.sidebar.subheader("💾 Importer / exporter mon portefeuille")
+    # Créer le menu horizontal et récupérer la page sélectionnée
+    action = create_horizontal_menu()
 
-    # Bouton Sauvegarder
-    if st.sidebar.button("Sauvegarder", help="Sauvegarde automatique à chaque modification"):
-        if save_portfolio(st.session_state.portfolio):
-            st.sidebar.success("✅ Sauvegardé!")
-
-    # Importer un fichier JSON
-    uploaded_file = st.sidebar.file_uploader(
-        "Importer", 
-        type="json", 
-        help="Importer un fichier de sauvegarde", 
-        label_visibility="collapsed"
-    )
-    
-    if uploaded_file is not None:
-        try:
-            data = json.load(uploaded_file)
-            st.session_state.portfolio = Portfolio.from_dict(data)
-            st.sidebar.success("✅ Importé!")
-            st.rerun()
-        except Exception as e:
-            st.sidebar.error(f"Erreur d'import: {e}")
-    
-    # Bouton pour créer des données de démonstration
-    st.sidebar.subheader("🎭 Données de test")
-    if st.sidebar.button("Créer un portefeuille de démonstration", help="Crée un historique simulé sur 6 mois"):
-        st.session_state.portfolio = create_demo_portfolio()
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🎉 Portefeuille de démo créé!")
-        st.rerun()
-    
-    if st.sidebar.button("Réinitialiser portefeuille"):
-        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
-        save_portfolio(st.session_state.portfolio)
-        st.sidebar.success("🔄 Portefeuille réinitialisé!")
-        st.rerun()
-
-    # Bouton d'export
-    if st.sidebar.button("Télécharger sauvegarde"):
-        portfolio_data = st.session_state.portfolio.to_dict()
-        st.sidebar.download_button(
-            label="📥 Télécharger JSON",
-            data=json.dumps(portfolio_data, indent=2, ensure_ascii=False),
-            file_name=f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            mime=
-            "application/json"
-        )
-        pdf_filename = f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        generate_portfolio_pdf(st.session_state.portfolio, filename=pdf_filename)
-        with open(pdf_filename, "rb") as f:
-            st.sidebar.download_button(
-        label="📄 Télécharger PDF",
-        data=f,
-        file_name=pdf_filename,
-        mime="application/pdf"
+    # Créer la sidebar avec les actions
+    # Assure-toi d'importer les fonctions/classes nécessaires en haut de ton fichier
+    create_sidebar_actions(
+        portfolio=st.session_state.portfolio,
+        save_portfolio_func=save_portfolio,
+        Portfolio=Portfolio,
+        create_demo_portfolio_func=create_demo_portfolio,
+        generate_pdf_func=generate_portfolio_pdf  # Optionnel
     )
 
-    
-
-    
+    # Récupérer le portfolio
     portfolio = st.session_state.portfolio
-    
+
+    # Router vers la bonne page en fonction de la sélection
     if action == "🏠 Tableau de bord":
         show_dashboard(portfolio)
     elif action == "💵 Gérer les liquidités":
@@ -142,6 +83,7 @@ def main():
         show_analytics(portfolio)
     elif action == "📋 Historique":
         show_history(portfolio)
+
 
 def show_dashboard(portfolio):
     st.header("Tableau de bord")
