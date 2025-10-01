@@ -22,7 +22,7 @@ from portfolio_package.charts import create_portfolio_pie_chart, create_portfoli
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
 from top_navigation_bar import create_horizontal_menu, create_sidebar_actions
-
+from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
 
 # Configuration de la page
 st.set_page_config(
@@ -606,6 +606,212 @@ def show_analytics(portfolio):
         fig = px.pie(values=values, names=labels, title="Répartition des actifs")
         st.plotly_chart(fig, config={})
 
+    # ========== NOUVELLE SECTION: PRÉDICTIONS ==========
+    st.markdown("---")
+    st.subheader("🔮 Prédictions du Patrimoine")
+
+    st.markdown("""
+    Cette simulation utilise les rendements historiques moyens de chaque classe d'actif 
+    pour projeter l'évolution possible de votre patrimoine sur plusieurs années.
+    """)
+
+    # Contrôles de simulation
+    col1, col2, col3 = st.columns([2, 2, 1])
+
+    with col1:
+        years = st.selectbox(
+            "Horizon de prédiction",
+            options=[1, 5, 10, 20, 30],
+            index=2,  # Par défaut 10 ans
+            help="Nombre d'années à simuler"
+        )
+
+    with col2:
+        num_simulations = st.selectbox(
+            "Nombre de simulations",
+            options=[100, 500, 1000, 2000],
+            index=2,  # Par défaut 1000
+            help="Plus de simulations = résultats plus précis mais plus lent"
+        )
+
+    with col3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        run_prediction = st.button("🚀 Lancer", use_container_width=True, type="primary")
+
+    # Lancer la prédiction
+    if run_prediction or 'prediction_results' in st.session_state:
+        if run_prediction:
+            # Import du module de prédiction
+            from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, \
+                create_statistics_summary
+
+            with st.spinner(f"Simulation de {num_simulations} scénarios sur {years} ans..."):
+                prediction_results = simulate_portfolio_future(
+                    portfolio,
+                    years=years,
+                    num_simulations=num_simulations
+                )
+                st.session_state.prediction_results = prediction_results
+                st.session_state.prediction_years = years
+
+        # Afficher les résultats
+        if 'prediction_results' in st.session_state:
+            results = st.session_state.prediction_results
+
+            # Graphique principal
+            fig = create_prediction_chart(results)
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+            # Statistiques détaillées
+            st.markdown("---")
+            st.subheader("📈 Statistiques de la Simulation")
+
+            stats = create_statistics_summary(results)
+
+            # Afficher les métriques
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric(
+                    "Patrimoine Actuel",
+                    f"{stats['initial']:.0f}€",
+                    help="Valeur nette actuelle de votre portefeuille"
+                )
+
+            with col2:
+                median_final = stats['final']['p50']
+                median_gain = stats['gains']['p50']
+                median_return = stats['returns']['p50']
+                st.metric(
+                    f"Médiane ({years} ans)",
+                    f"{median_final:.0f}€",
+                    f"+{median_gain:.0f}€ ({median_return:+.1f}%/an)",
+                    help="Scénario médian (50% de chances d'être au-dessus)"
+                )
+
+            with col3:
+                optimistic_final = stats['final']['p75']
+                optimistic_gain = stats['gains']['p75']
+                st.metric(
+                    "Scénario Optimiste (P75)",
+                    f"{optimistic_final:.0f}€",
+                    f"+{optimistic_gain:.0f}€",
+                    help="25% de chances d'atteindre ou dépasser cette valeur"
+                )
+
+            with col4:
+                pessimistic_final = stats['final']['p25']
+                pessimistic_gain = stats['gains']['p25']
+                st.metric(
+                    "Scénario Prudent (P25)",
+                    f"{pessimistic_final:.0f}€",
+                    f"+{pessimistic_gain:.0f}€" if pessimistic_gain >= 0 else f"{pessimistic_gain:.0f}€",
+                    delta_color="normal" if pessimistic_gain >= 0 else "inverse",
+                    help="75% de chances d'atteindre ou dépasser cette valeur"
+                )
+
+            # Tableau détaillé des scénarios
+            st.markdown("---")
+            st.subheader("📊 Scénarios Détaillés")
+
+            scenarios_data = {
+                'Scénario': [
+                    '🔥 Très optimiste (P90)',
+                    '✨ Optimiste (P75)',
+                    '📊 Médiane (P50)',
+                    '⚠️ Prudent (P25)',
+                    '❄️ Pessimiste (P10)'
+                ],
+                f'Valeur après {years} ans': [
+                    f"{stats['final']['p90']:.0f}€",
+                    f"{stats['final']['p75']:.0f}€",
+                    f"{stats['final']['p50']:.0f}€",
+                    f"{stats['final']['p25']:.0f}€",
+                    f"{stats['final']['p10']:.0f}€"
+                ],
+                'Gain/Perte': [
+                    f"{stats['gains']['p90']:+.0f}€",
+                    f"{stats['gains']['p75']:+.0f}€",
+                    f"{stats['gains']['p50']:+.0f}€",
+                    f"{stats['gains']['p25']:+.0f}€",
+                    f"{stats['gains']['p10']:+.0f}€"
+                ],
+                'Rendement annualisé': [
+                    f"{stats['returns']['p90']:+.1f}%",
+                    f"{stats['returns']['p75']:+.1f}%",
+                    f"{stats['returns']['p50']:+.1f}%",
+                    f"{stats['returns']['p25']:+.1f}%",
+                    f"{stats['returns']['p10']:+.1f}%"
+                ],
+                'Probabilité': [
+                    '10% de chances',
+                    '25% de chances',
+                    '50% de chances',
+                    '75% de chances',
+                    '90% de chances'
+                ]
+            }
+
+            df_scenarios = pd.DataFrame(scenarios_data)
+            st.dataframe(df_scenarios, use_container_width=True, hide_index=True)
+
+            # Composition du portefeuille utilisée
+            st.markdown("---")
+            st.subheader("💼 Composition Utilisée pour la Simulation")
+
+            composition_data = []
+            for asset in results['composition']:
+                composition_data.append({
+                    'Actif': asset['name'],
+                    'Type': asset['type'],
+                    'Valeur Actuelle': f"{asset['value']:.2f}€",
+                    'Rendement Moyen Attendu': f"{asset['params']['mean']:.1f}%",
+                    'Volatilité': f"±{asset['params']['std']:.1f}%"
+                })
+
+            df_composition = pd.DataFrame(composition_data)
+            st.dataframe(df_composition, use_container_width=True, hide_index=True)
+
+            # Avertissements
+            st.info("""
+            ⚠️ **Avertissement Important**
+
+            Ces prédictions sont basées sur des rendements historiques moyens et utilisent des simulations Monte Carlo. 
+            Les résultats réels peuvent varier considérablement et dépendent de nombreux facteurs imprévisibles 
+            (crises économiques, innovations technologiques, changements réglementaires, etc.).
+
+            **Cette simulation ne constitue pas un conseil en investissement.**
+            """)
+
+    else:
+        # Affichage avant le premier lancement
+        st.info("👆 Configurez les paramètres ci-dessus et cliquez sur 'Lancer' pour voir les prédictions")
+
+        # Aperçu de la méthodologie
+        with st.expander("📚 Comment fonctionne la prédiction ?"):
+            st.markdown("""
+            ### Méthodologie de Simulation Monte Carlo
+
+            1. **Rendements Historiques**: Chaque classe d'actif a un rendement moyen et une volatilité basés sur l'historique
+                - **Crypto** (Bitcoin): ~100%/an ± 80% (très volatil)
+                - **Actions Tech**: ~20-25%/an ± 25-50%
+                - **ETF S&P 500**: ~10.5%/an ± 18%
+                - **Immobilier/SCPI**: ~4-6%/an ± 7-12%
+                - **Obligations**: ~3.5%/an ± 5%
+
+            2. **Simulations Multiples**: Génération de centaines/milliers de scénarios possibles
+
+            3. **Distribution des Rendements**:
+                - **Loi log-normale** pour les cryptos (reflet de la croissance explosive possible)
+                - **Loi normale** pour les autres actifs traditionnels
+
+            4. **Percentiles**:
+                - **P90**: Seulement 10% de chances de faire mieux (très optimiste)
+                - **P50 (Médiane)**: 50% de chances de faire mieux (scénario central)
+                - **P10**: 90% de chances de faire mieux (scénario prudent)
+
+            💡 Plus votre portefeuille est diversifié, plus les prédictions sont stables et fiables.
+            """)
 def show_history(portfolio):
     st.header("📋 Historique des transactions")
     
