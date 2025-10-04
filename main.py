@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import json
 import plotly.express as px
-from pdf import generate_portfolio_pdf
+from portfolio_package.pdf import generate_portfolio_pdf
 
 from portfolio_package.models import Portfolio
 
@@ -21,7 +21,7 @@ from portfolio_package.save_load_ptf_functions import save_portfolio, load_portf
 from portfolio_package.charts import create_portfolio_pie_chart, create_portfolio_chart, create_performance_chart, create_world_investment_map
 from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
-from top_navigation_bar import create_horizontal_menu, create_sidebar_actions
+from portfolio_package.top_navigation_bar import create_horizontal_menu, create_sidebar_actions
 from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
 
 # Page configuration
