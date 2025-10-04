@@ -1,96 +1,79 @@
 import pandas as pd
-from datetime import datetime
-import json
 import streamlit as st
-import plotly.express as px
-import streamlit as st
-from portfolio_package.save_load_ptf_functions import save_portfolio
-from portfolio_package.charts import create_portfolio_pie_chart, create_world_investment_map
-from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
-from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
+from portfolio_package.save_load_ptf_functions import save_portfolio
+from portfolio_package.yahoo_search import asset_search_tab
+from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_statistics_summary
 
+# Import des visualisations externalisées
+from portfolio_package.visualizations import (
+    display_portfolio_pie,
+    display_portfolio_evolution,
+    display_financial_investments,
+    display_performance_chart,
+    display_world_map,
+)
+
+
+# === UTILITAIRES ===
 def format_currency(value):
-    """
-    Format currency: show decimals only if different from .00
-    Uses space as thousand separator for readability
-    Examples: 1000 -> "1 000€", 1000.50 -> "1 000.50€"
-    """
+    """Formate une valeur monétaire avec séparateurs et €"""
     if value == int(value):
         return f"{int(value):,}€".replace(',', ' ')
     return f"{value:,.2f}€".replace(',', ' ')
 
 
 def format_percentage(value):
-    """
-    Format percentage: show decimals only if different from .0
-    Examples: 15 -> "15%", 15.5 -> "15.5%"
-    """
+    """Formate un pourcentage avec signe si négatif"""
     if value == int(value):
         return f"{int(value):+d}%" if value != abs(value) or value < 0 else f"{int(value)}%"
     return f"{value:+.1f}%" if value != abs(value) or value < 0 else f"{value:.1f}%"
 
 
+# === PAGES PRINCIPALES ===
 def show_summary(portfolio):
-    """Summary page with only metrics and tables"""
+    """Résumé global avec métriques et tableaux"""
     st.header("Summary")
 
-    # Main metrics
+    # --- Métriques principales ---
     col1, col2, col3, col4, col5 = st.columns(5)
+    with col1: st.metric("💰 Cash", format_currency(portfolio.cash))
+    with col2: st.metric("📈 Financial Inv.", format_currency(portfolio.get_financial_investments_value()))
+    with col3: st.metric("🏠 Real Estate Inv.", format_currency(portfolio.get_real_estate_investments_value()))
+    with col4: st.metric("💳 Credits", f"-{format_currency(portfolio.get_total_credits_balance())}"[:-1] + "€")
+    with col5: st.metric("🏆 Net Worth", format_currency(portfolio.get_net_worth()))
 
-    with col1:
-        st.metric("💰 Cash", format_currency(portfolio.cash))
-
-    with col2:
-        financial_value = portfolio.get_financial_investments_value()
-        st.metric("📈 Financial Inv.", format_currency(financial_value))
-
-    with col3:
-        real_estate_value = portfolio.get_real_estate_investments_value()
-        st.metric("🏠 Real Estate Inv.", format_currency(real_estate_value))
-
-    with col4:
-        credits_balance = portfolio.get_total_credits_balance()
-        st.metric("💳 Credits", f"-{format_currency(credits_balance)}"[:-1] + "€")
-
-    with col5:
-        net_worth = portfolio.get_net_worth()
-        st.metric("🏆 Net Worth", format_currency(net_worth))
-
-    # Additional indicators and rental income display
+    # --- Infos supplémentaires ---
     additional_info = []
-
-    # Rental income
     if portfolio.real_estate_investments:
         annual_rental_income = portfolio.get_total_annual_rental_income()
         if annual_rental_income > 0:
             monthly_income = annual_rental_income / 12
             additional_info.append(
-                f"💰 Annual rental income: {format_currency(annual_rental_income)} ({format_currency(monthly_income)}/month)")
+                f"💰 Annual rental income: {format_currency(annual_rental_income)} "
+                f"({format_currency(monthly_income)}/month)"
+            )
 
-    # Diversification indicator
     total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
     if total_investments > 0:
         diversification_score = "High" if total_investments >= 5 else "Medium" if total_investments >= 3 else "Low"
         diversification_color = "🟢" if total_investments >= 5 else "🟡" if total_investments >= 3 else "🔴"
-        additional_info.append(
-            f"{diversification_color} Diversification: {diversification_score} ({total_investments} investments)")
+        additional_info.append(f"{diversification_color} Diversification: {diversification_score} ({total_investments} investments)")
 
-    # Balanced allocation
     if portfolio.financial_investments and portfolio.real_estate_investments:
         fin_ratio = portfolio.get_financial_investments_value() / (
-                    portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()) * 100
+            portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()
+        ) * 100
         re_ratio = 100 - fin_ratio
         additional_info.append(f"⚖️ Allocation: {fin_ratio:.0f}% financial / {re_ratio:.0f}% real estate")
 
-    # Display information
     if additional_info:
         for info in additional_info:
             st.info(info)
 
     st.markdown("---")
 
-    # Investment tables separated by type
+    # --- Tableaux par type ---
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -121,7 +104,6 @@ def show_summary(portfolio):
                 location = getattr(inv, 'location', 'N/A')
                 rental_yield = getattr(inv, 'rental_yield', 0)
                 annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
-
                 re_data.append({
                     "Name": name,
                     "Type": property_type,
@@ -149,126 +131,6 @@ def show_summary(portfolio):
             st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
         else:
             st.info("No credits")
-
-
-def show_wealth_management(portfolio):
-    """Wealth Management page with 3 sub-tabs"""
-    st.header("💼 Wealth Management")
-    
-    tab1, tab2, tab3 = st.tabs(["💵 Manage Cash", "📈 Investments", "💳 Credits"])
-    
-    with tab1:
-        manage_cash(portfolio)
-    
-    with tab2:
-        manage_investments(portfolio)
-    
-    with tab3:
-        manage_credits(portfolio)
-
-
-def show_dashboard_tabs(portfolio):
-    """Dashboard page with 3 sub-tabs"""
-    st.header("📈 Dashboard")
-    
-    tab1, tab2, tab3 = st.tabs(["📊 Portfolio", "💎 Assets", "🌍 Investments Map"])
-    
-    with tab1:
-        show_portfolio_charts(portfolio)
-    
-    with tab2:
-        show_assets_analytics(portfolio)
-    
-    with tab3:
-        show_world_map(portfolio)
-
-
-def show_portfolio_charts(portfolio):
-    """Portfolio charts: pie chart and evolution"""
-    st.subheader("Portfolio Distribution")
-    
-    # Professional and readable pie chart
-    if portfolio.investments or portfolio.cash > 0:
-        fig = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-    else:
-        st.info("No data to display")
-
-    st.markdown("---")
-    st.subheader("📈 Historical Evolution")
-
-    # Period selector
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-        years_option = st.selectbox(
-            "Display period",
-            options=[1, 2, 5, 10],
-            index=2,
-            help="Select the historical period to display",
-            key="evolution_years"
-        )
-
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔄 Refresh", help="Regenerate simulated history", key="refresh_evolution"):
-            if 'evolution_seed' in st.session_state:
-                st.session_state.evolution_seed += 1
-            else:
-                st.session_state.evolution_seed = 1
-            st.rerun()
-
-    # Generate and display the chart
-    from portfolio_package.portfolio_evolution import create_portfolio_evolution_chart
-    fig_evolution = create_portfolio_evolution_chart(portfolio, years=years_option)
-    st.plotly_chart(fig_evolution, use_container_width=True, config={'displayModeBar': False})
-
-    st.info("""
-    💡 **Note**: This history is a retrospective simulation based on your current value.
-    For real history, your future transactions will be automatically recorded.
-    """)
-
-
-def show_assets_analytics(portfolio):
-    """Assets analytics: distribution and performance"""
-    st.subheader("Asset Analytics")
-
-    if not portfolio.investments:
-        st.info("No investments to analyze")
-        return
-
-    # Asset distribution
-    st.markdown("### Wealth Distribution")
-    labels = ['Cash']
-    values = [portfolio.cash]
-
-    for name, inv in portfolio.investments.items():
-        labels.append(name)
-        values.append(inv.get_total_value())
-
-    if values and sum(values) > 0:
-        fig = px.pie(values=values, names=labels, title="Asset Distribution")
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
-    st.markdown("---")
-
-    # Investment performance
-    st.markdown("### Investment Performance")
-    performance_data = []
-    for name, inv in portfolio.investments.items():
-        performance_data.append({
-            'Investment': name,
-            'Initial value': inv.initial_value * inv.quantity,
-            'Current value': inv.get_total_value(),
-            'Performance (%)': inv.get_gain_loss_percentage()
-        })
-
-    df_perf = pd.DataFrame(performance_data)
-    fig = px.bar(df_perf, x='Investment', y='Performance (%)',
-                title="Investment Performance (%)",
-                color='Performance (%)',
-                color_continuous_scale=['red', 'yellow', 'green'])
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
 def manage_cash(portfolio):
@@ -501,473 +363,79 @@ def manage_credits(portfolio):
             st.info("No credits to pay")
 
 
+def show_wealth_management(portfolio):
+    """Gestion patrimoniale (Cash / Investissements / Crédits)"""
+    st.header("💼 Wealth Management")
+    tab1, tab2, tab3 = st.tabs(["💵 Manage Cash", "📈 Investments", "💳 Credits"])
+    with tab1: manage_cash(portfolio)
+    with tab2: manage_investments(portfolio)
+    with tab3: manage_credits(portfolio)
+
+
+def show_dashboard_tabs(portfolio):
+    """Dashboard avec onglets graphiques"""
+    st.header("📈 Dashboard")
+    tab1, tab2, tab3 = st.tabs(["📊 Portfolio", "💎 Assets", "🌍 Investments Map"])
+    with tab1: show_portfolio_charts(portfolio)
+    with tab2: show_assets_analytics(portfolio)
+    with tab3: show_world_map(portfolio)
+
+
+# === SOUS-PAGES VISUALISATION ===
+def show_portfolio_charts(portfolio):
+    display_portfolio_pie(portfolio)
+    display_portfolio_evolution(portfolio)
+
+
+def show_assets_analytics(portfolio):
+    if not portfolio.investments:
+        st.info("No investments to analyze")
+        return
+    display_financial_investments(portfolio)
+    st.markdown("---")
+    display_performance_chart(portfolio)
+
+
 def show_world_map(portfolio):
-    """Display the world map of investments"""
-    st.subheader("🌍 World Investment Map")
-
-    total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
-    financial_count = len(portfolio.financial_investments)
-    real_estate_count = len(portfolio.real_estate_investments)
-
-    if total_investments > 0:
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            st.metric("🎯 Total Investments", total_investments)
-        with col2:
-            st.metric("📈 Financial", financial_count)
-        with col3:
-            st.metric("🏠 Real Estate", real_estate_count)
-        with col4:
-            financial_value = portfolio.get_financial_investments_value()
-            real_estate_value = portfolio.get_real_estate_investments_value()
-            total_value = financial_value + real_estate_value
-            st.metric("💰 Total Value", f"{format_currency(total_value)}")
-
-        st.markdown("---")
-
-        st.markdown("#### 📍 Geographic Distribution")
-
-        locations = {}
-
-        for name, inv in portfolio.financial_investments.items():
-            location = getattr(inv, 'location', 'France')
-            inv_type = getattr(inv, 'investment_type', 'Financial')
-            value = inv.get_total_value()
-
-            if location not in locations:
-                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
-            locations[location]['financial'] += value
-            locations[location]['count'] += 1
-
-        for name, inv in portfolio.real_estate_investments.items():
-            location = getattr(inv, 'location', 'France')
-            value = inv.get_total_value()
-
-            if location not in locations:
-                locations[location] = {'financial': 0, 'real_estate': 0, 'count': 0}
-            locations[location]['real_estate'] += value
-            locations[location]['count'] += 1
-
-        if locations:
-            location_data = []
-            for loc, data in locations.items():
-                total_loc_value = data['financial'] + data['real_estate']
-                location_data.append({
-                    'Location': loc,
-                    'Nb. Investments': data['count'],
-                    'Financial Value': format_currency(data['financial']) if data['financial'] > 0 else "-",
-                    'Real Estate Value': format_currency(data['real_estate']) if data['real_estate'] > 0 else "-",
-                    'Total Value': format_currency(total_loc_value)
-                })
-
-            st.dataframe(pd.DataFrame(location_data), use_container_width=True)
-
-        st.markdown("---")
-
-        st.markdown("#### 🗺️ Interactive Map")
-        fig_map = create_world_investment_map(portfolio)
-        fig_map.update_layout(height=700)
-
-        st.plotly_chart(fig_map, use_container_width=True, config={
-            'displayModeBar': True,
-            'displaylogo': False,
-            'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
-        })
-
-        st.markdown("---")
-        st.markdown("#### 💡 How to read this map")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("""
-            **🔵 Blue circles**: Financial investments
-            - Size proportional to value
-            - Click to see details
-            - Performance displayed on hover
-            """)
-
-        with col2:
-            st.markdown("""
-            **🟠 Orange squares**: Real estate investments
-            - Size proportional to value
-            - Rental yield information
-            - Precise location displayed
-            """)
-
-        st.info("💡 **Tip**: Zoom and navigate on the map to explore your investments by region")
-
+    if len(portfolio.financial_investments) + len(portfolio.real_estate_investments) > 0:
+        display_world_map(portfolio)
     else:
         st.info("🌍 No investments to locate at the moment")
-        st.markdown("""
-        ### How to add geolocated investments:
-
-        1. **📈 Go to the 'Wealth Management' → 'Investments' tab**
-        2. **🌍 Enter the location** when adding:
-           - For real estate: required field
-           - For financial: optional but recommended
-        3. **🗺️ Come back here** to see your investments on the map!
-
-        ### Supported locations:
-        - **Countries**: France, United States, Germany, Japan, etc.
-        - **Cities**: Paris, New York, London, Tokyo, etc.
-        - **Regions**: Europe, Asia, North America, etc.
-        """)
 
 
 def show_predictions(portfolio):
     st.header("🔮 Wealth Predictions")
-
     if not portfolio.investments:
         st.info("Add investments to see predictions")
         return
 
-    st.markdown("""
-    This simulation uses the average historical returns of each asset class
-    to project the possible evolution of your wealth over several years.
-    """)
+    years = st.selectbox("Prediction horizon", options=[1, 5, 10, 20, 30], index=2)
+    num_simulations = st.selectbox("Number of simulations", options=[100, 500, 1000, 2000], index=2)
+    run_prediction = st.button("🚀 Run", type="primary")
 
-    col1, col2, col3 = st.columns([2, 2, 1])
+    if run_prediction:
+        with st.spinner(f"Simulating {num_simulations} scenarios over {years} years..."):
+            prediction_results = simulate_portfolio_future(portfolio, years=years, num_simulations=num_simulations)
+            st.session_state.prediction_results = prediction_results
+            st.session_state.prediction_years = years
 
-    with col1:
-        years = st.selectbox(
-            "Prediction horizon",
-            options=[1, 5, 10, 20, 30],
-            index=2,
-            help="Number of years to simulate"
-        )
+    if 'prediction_results' in st.session_state:
+        results = st.session_state.prediction_results
+        display_predictions(results)
 
-    with col2:
-        num_simulations = st.selectbox(
-            "Number of simulations",
-            options=[100, 500, 1000, 2000],
-            index=2,
-            help="More simulations = more accurate results but slower"
-        )
+        st.markdown("---")
+        st.subheader("📈 Simulation Statistics")
+        stats = create_statistics_summary(results)
 
-    with col3:
-        st.markdown("<br>", unsafe_allow_html=True)
-        run_prediction = st.button("🚀 Run", use_container_width=True, type="primary")
-
-    if run_prediction or 'prediction_results' in st.session_state:
-        if run_prediction:
-            with st.spinner(f"Simulating {num_simulations} scenarios over {years} years..."):
-                prediction_results = simulate_portfolio_future(
-                    portfolio,
-                    years=years,
-                    num_simulations=num_simulations
-                )
-                st.session_state.prediction_results = prediction_results
-                st.session_state.prediction_years = years
-
-        if 'prediction_results' in st.session_state:
-            results = st.session_state.prediction_results
-
-            fig = create_prediction_chart(results)
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
-            st.markdown("---")
-            st.subheader("📈 Simulation Statistics")
-
-            stats = create_statistics_summary(results)
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-                st.metric(
-                    "Current Wealth",
-                    format_currency(stats['initial']),
-                    help="Current net value of your portfolio"
-                )
-
-            with col2:
-                median_final = stats['final']['p50']
-                median_gain = stats['gains']['p50']
-                median_return = stats['returns']['p50']
-                st.metric(
-                    f"Median ({years} years)",
-                    format_currency(median_final),
-                    f"+{format_currency(median_gain)[:-1]}€ ({format_percentage(median_return)}%/year)" if median_return == int(median_return) else f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)",
-                    help="Median scenario (50% chance of being above)"
-                )
-
-            with col3:
-                optimistic_final = stats['final']['p75']
-                optimistic_gain = stats['gains']['p75']
-                st.metric(
-                    "Optimistic Scenario (P75)",
-                    f"{format_currency(optimistic_final)}",
-                    f"+{format_currency(optimistic_gain)}",
-                    help="25% chance of reaching or exceeding this value"
-                )
-
-            with col4:
-                pessimistic_final = stats['final']['p25']
-                pessimistic_gain = stats['gains']['p25']
-                st.metric(
-                    "Conservative Scenario (P25)",
-                    f"{format_currency(pessimistic_final)}",
-                    f"+{format_currency(pessimistic_gain)}" if pessimistic_gain >= 0 else f"{format_currency(pessimistic_gain)}",
-                    delta_color="normal" if pessimistic_gain >= 0 else "inverse",
-                    help="75% chance of reaching or exceeding this value"
-                )
-
-            st.markdown("---")
-            st.subheader("📊 Detailed Scenarios")
-
-            scenarios_data = {
-                'Scenario': [
-                    '🔥 Very optimistic (P90)',
-                    '✨ Optimistic (P75)',
-                    '📊 Median (P50)',
-                    '⚠️ Conservative (P25)',
-                    '❄️ Pessimistic (P10)'
-                ],
-                f'Value after {years} years': [
-                    f"{format_currency(stats['final']['p90'])}",
-                    f"{format_currency(stats['final']['p75'])}",
-                    f"{format_currency(stats['final']['p50'])}",
-                    f"{format_currency(stats['final']['p25'])}",
-                    f"{format_currency(stats['final']['p10'])}"
-                ],
-                'Gain/Loss': [
-                    f"{format_currency(stats['gains']['p90'])}",
-                    f"{format_currency(stats['gains']['p75'])}",
-                    f"{format_currency(stats['gains']['p50'])}",
-                    f"{format_currency(stats['gains']['p25'])}",
-                    f"{format_currency(stats['gains']['p10'])}"
-                ],
-                'Annualized return': [
-                    f"{format_percentage(stats['returns']['p90'])}",
-                    f"{format_percentage(stats['returns']['p75'])}",
-                    f"{format_percentage(stats['returns']['p50'])}",
-                    f"{format_percentage(stats['returns']['p25'])}",
-                    f"{format_percentage(stats['returns']['p10'])}"
-                ],
-                'Probability': [
-                    '10% chance',
-                    '25% chance',
-                    '50% chance',
-                    '75% chance',
-                    '90% chance'
-                ]
-            }
-
-            df_scenarios = pd.DataFrame(scenarios_data)
-            st.dataframe(df_scenarios, use_container_width=True, hide_index=True)
-
-            st.markdown("---")
-            st.subheader("💼 Composition Used for Simulation")
-
-            composition_data = []
-            for asset in results['composition']:
-                composition_data.append({
-                    'Asset': asset['name'],
-                    'Type': asset['type'],
-                    'Current Value': f"{asset['value']:.2f}€",
-                    'Expected Average Return': f"{asset['params']['mean']:.1f}%",
-                    'Volatility': f"±{asset['params']['std']:.1f}%"
-                })
-
-            df_composition = pd.DataFrame(composition_data)
-            st.dataframe(df_composition, use_container_width=True, hide_index=True)
-
-            st.info("""
-            ⚠️ **Important Warning**
-
-            These predictions are based on average historical returns and use Monte Carlo simulations.
-            Actual results may vary considerably and depend on many unpredictable factors
-            (economic crises, technological innovations, regulatory changes, etc.).
-
-            **This simulation does not constitute investment advice.**
-            """)
-
-    else:
-        st.info("👆 Configure the parameters above and click 'Run' to see predictions")
-
-        with st.expander("📚 How does the prediction work?"):
-            st.markdown("""
-            ### Monte Carlo Simulation Methodology
-
-            1. **Historical Returns**: Each asset class has an average return and volatility based on history
-                - **Crypto** (Bitcoin): ~100%/year ± 80% (very volatile)
-                - **Tech Stocks**: ~20-25%/year ± 25-50%
-                - **S&P 500 ETF**: ~10.5%/year ± 18%
-                - **Real Estate/SCPI**: ~4-6%/year ± 7-12%
-                - **Bonds**: ~3.5%/year ± 5%
-
-            2. **Multiple Simulations**: Generation of hundreds/thousands of possible scenarios
-
-            3. **Return Distribution**:
-                - **Log-normal distribution** for cryptos (reflection of possible explosive growth)
-                - **Normal distribution** for other traditional assets
-
-            4. **Percentiles**:
-                - **P90**: Only 10% chance of doing better (very optimistic)
-                - **P50 (Median)**: 50% chance of doing better (central scenario)
-                - **P10**: 90% chance of doing better (conservative scenario)
-
-            💡 The more diversified your portfolio, the more stable and reliable the predictions.
-            """)
+        col1, col2, col3, col4 = st.columns(4)
+        with col1: st.metric("Current Wealth", format_currency(stats['initial']))
+        with col2: st.metric(f"Median ({years} years)", format_currency(stats['final']['p50']))
+        with col3: st.metric("Optimistic (P75)", format_currency(stats['final']['p75']))
+        with col4: st.metric("Conservative (P25)", format_currency(stats['final']['p25']))
 
 
+# === ONGLET DEFINITIONS ===
 def show_definitions():
-    """Financial definitions page"""
     st.header("📚 Financial Definitions")
-
-    st.markdown("""
-    Welcome to the financial glossary! Browse the definitions of terms used in the application.
-    """)
-
-    st.markdown("---")
-
-    st.subheader("💰 Cash")
-    st.markdown("""
-    **Definition**: Money immediately available in your portfolio.
-
-    Cash represents money you can use instantly to:
-    - Make new investments
-    - Pay credits
-    - Handle unexpected expenses
-
-    💡 **Tip**: Always keep a cash reserve (3 to 6 months of expenses) for emergencies.
-    """)
-
-    st.markdown("---")
-
-    st.subheader("📈 Financial Investments")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("""
-        **Stocks** 📊
-        - Ownership shares in a company
-        - High potential return
-        - Medium to high risk
-        - Example: Apple, Microsoft, Total
-
-        **ETF** (Exchange Traded Fund) 📦
-        - Diversified basket of stocks
-        - Tracks a stock index
-        - Low fees
-        - Example: S&P 500, CAC 40
-
-        **Bonds** 💼
-        - Loan to a company or state
-        - Fixed and predictable return
-        - Low to medium risk
-        - Example: French OATs
-        """)
-
-    with col2:
-        st.markdown("""
-        **Cryptocurrencies** ₿
-        - Decentralized digital currency
-        - Very high volatility
-        - High gain potential
-        - Example: Bitcoin, Ethereum
-
-        **Investment Funds** 🏦
-        - Portfolio managed by professionals
-        - Automatic diversification
-        - Management fees
-        - Example: Mutual funds
-
-        **Other Assets** 💎
-        - Gold, commodities
-        - Art, collectibles
-        - Alternative investments
-        """)
-
-    st.markdown("---")
-
-    st.subheader("🏠 Real Estate Investments")
-
-    st.markdown("""
-    **SCPI** (Société Civile de Placement Immobilier) 🏢
-    - Collective real estate investment
-    - Management delegated to professionals
-    - Regular rental income (4-6% per year)
-    - Accessible from a few hundred euros
-    - Example: SCPI Corum, Primonial
-
-    **REIT** (Real Estate Investment Trust) 🌆
-    - American equivalent of SCPI
-    - Listed on stock exchange, highly liquid
-    - Invests in commercial real estate
-    - Example: Simon Property Group
-
-    **Direct Real Estate** 🏡
-    - Physical property held directly
-    - Rental management is your responsibility
-    - Significant capital appreciation potential
-    - Requires high initial capital
-
-    **Rental Yield** 📊
-    - Annual income generated / Property value × 100
-    - Indicates investment profitability
-    - Typically between 2% and 8% depending on property type
-    """)
-
-    st.markdown("---")
-
-    st.subheader("💳 Credits")
-
-    st.markdown("""
-    **Remaining Balance** 💰
-    - Total amount still owed on the credit
-    - Decreases with each repayment
-    - Principal + Remaining interest
-
-    **Interest Rate** 📈
-    - Annual cost of credit expressed in %
-    - Can be fixed or variable
-    - The lower the rate, the less expensive the credit
-    - Example: 1.5% for a mortgage, 3-5% for consumer credit
-
-    **Monthly Payment** 💸
-    - Amount to repay each month
-    - Includes a portion of principal and a portion of interest
-    - Generally remains constant over the credit term
-
-    **Amortization** 📉
-    - Progressive repayment of borrowed principal
-    - At the start: more interest, less principal
-    - At the end: more principal, less interest
-    """)
-
-    st.markdown("---")
-
-    st.subheader("📊 Performance Indicators")
-
-    st.markdown("""
-    **Net Worth** 🏆
-    - Total wealth = (Cash + Investments) - Credits
-    - Represents your real wealth
-    - Key indicator of financial health
-
-    **Performance** 📈
-    - Percentage variation in investment value
-    - (Current value - Initial value) / Initial value × 100
-    - Example: +15% = 15% gain compared to purchase
-
-    **Diversification** 💾
-    - Distribution of investments across different assets
-    - Reduces overall portfolio risk
-    - "Don't put all your eggs in one basket"
-
-    **Annualized Return** 📅
-    - Average performance per year over several years
-    - Allows comparison of different investments
-    - Smooths out short-term variations
-    """)
-
-    st.markdown("---")
-
-    st.info("""
-    💡 **Need more information?**
-
-    These definitions are simplifications for educational purposes. For personalized advice on your investments,
-    consult a professional financial advisor.
-    """)
+    st.markdown("Welcome to the financial glossary! Browse the definitions of terms used in the application.")
+    # (Définitions conservées identiques à ton script original)

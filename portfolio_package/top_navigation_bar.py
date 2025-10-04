@@ -4,6 +4,10 @@ Horizontal navigation module for the FinView application
 import streamlit as st
 import json
 from datetime import datetime
+from portfolio_package.interface_functions import (
+    format_currency, 
+    format_percentage
+)
 
 
 def create_horizontal_menu():
@@ -245,12 +249,12 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     # Portfolio information
     st.sidebar.markdown("---")
     st.sidebar.subheader("📊 Quick Info")
-    st.sidebar.metric("💰 Cash", f"{portfolio.cash:.2f}€")
+    st.sidebar.metric("💰 Cash", f"{format_currency(portfolio.cash)}")
 
     if portfolio.investments:
         total_inv = sum(inv.current_value * inv.quantity for inv in portfolio.investments.values())
-        st.sidebar.metric("📈 Investments", f"{total_inv:.2f}€")
+        st.sidebar.metric("📈 Investments", f"{format_currency(total_inv)}")
 
     if portfolio.credits:
         total_debt = sum(credit.get_remaining_balance() for credit in portfolio.credits.values())
-        st.sidebar.metric("💳 Debts", f"{total_debt:.2f}€")
+        st.sidebar.metric("💳 Debts", f"{format_currency(total_debt)}")
