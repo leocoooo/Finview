@@ -24,23 +24,23 @@ class Investment:
         return ((self.current_value - self.initial_value) / self.initial_value) * 100
 
 class FinancialInvestment(Investment):
-    """Investissements financiers traditionnels (actions, obligations, ETF, crypto, etc.)"""
+    """Traditional financial investments (stocks, bonds, ETFs, crypto, etc.)"""
     def __init__(self, name: str, initial_value: float, current_value: float, quantity: float = 1.0,
-                 investment_type: str = "Action"):
+                 investment_type: str = "Stock"):
         super().__init__(name, initial_value, current_value, quantity)
-        self.investment_type = investment_type  # Action, ETF, Obligation, Crypto, etc.
+        self.investment_type = investment_type  # Stock, ETF, Bond, Crypto, etc.
 
 class RealEstateInvestment(Investment):
-    """Investissements immobiliers (SCPI, REIT, immobilier direct, etc.)"""
+    """Real estate investments (SCPI, REIT, direct real estate, etc.)"""
     def __init__(self, name: str, initial_value: float, current_value: float, quantity: float = 1.0,
                  property_type: str = "SCPI", location: str = "", rental_yield: float = 0.0):
         super().__init__(name, initial_value, current_value, quantity)
-        self.property_type = property_type  # SCPI, REIT, Immobilier direct, etc.
+        self.property_type = property_type  # SCPI, REIT, Direct real estate, etc.
         self.location = location
-        self.rental_yield = rental_yield  # Rendement locatif annuel en %
+        self.rental_yield = rental_yield  # Annual rental yield in %
 
     def get_annual_rental_income(self) -> float:
-        """Calcule le revenu locatif annuel estimé"""
+        """Calculates estimated annual rental income"""
         return self.get_total_value() * (self.rental_yield / 100)
 
 class Credit:
@@ -72,50 +72,50 @@ class Portfolio:
 
     @property
     def investments(self):
-        """Compatibilité avec l'ancienne interface - retourne tous les investissements"""
+        """Compatibility with old interface - returns all investments"""
         all_investments = {}
         all_investments.update(self.financial_investments)
         all_investments.update(self.real_estate_investments)
         return all_investments
     
-    def add_cash(self, amount: float, description: str = "Ajout de liquidités"):
+    def add_cash(self, amount: float, description: str = "Cash deposit"):
         self.cash += amount
         self._log_transaction("CASH_ADD", amount, description)
-    
-    def withdraw_cash(self, amount: float, description: str = "Retrait de liquidités"):
+
+    def withdraw_cash(self, amount: float, description: str = "Cash withdrawal"):
         if amount <= self.cash:
             self.cash -= amount
             self._log_transaction("CASH_WITHDRAW", amount, description)
             return True
         return False
     
-    def add_financial_investment(self, name: str, initial_value: float, quantity: float = 1.0, investment_type: str = "Action", location: str = ""):
-        """Ajoute un investissement financier"""
+    def add_financial_investment(self, name: str, initial_value: float, quantity: float = 1.0, investment_type: str = "Stock", location: str = ""):
+        """Adds a financial investment"""
         total_cost = initial_value * quantity
         if total_cost <= self.cash:
             self.cash -= total_cost
             financial_inv = FinancialInvestment(name, initial_value, initial_value, quantity, investment_type)
             if location:
-                financial_inv.location = location  # Ajouter la localisation
+                financial_inv.location = location  # Add location
             self.financial_investments[name] = financial_inv
-            self._log_transaction("FINANCIAL_INVESTMENT_BUY", total_cost, f"Achat de {quantity} parts de {name} ({investment_type})")
+            self._log_transaction("FINANCIAL_INVESTMENT_BUY", total_cost, f"Purchase of {quantity} shares of {name} ({investment_type})")
             return True
         return False
 
     def add_real_estate_investment(self, name: str, initial_value: float, quantity: float = 1.0,
                                  property_type: str = "SCPI", location: str = "", rental_yield: float = 0.0):
-        """Ajoute un investissement immobilier"""
+        """Adds a real estate investment"""
         total_cost = initial_value * quantity
         if total_cost <= self.cash:
             self.cash -= total_cost
             self.real_estate_investments[name] = RealEstateInvestment(name, initial_value, initial_value, quantity,
                                                                     property_type, location, rental_yield)
-            self._log_transaction("REAL_ESTATE_INVESTMENT_BUY", total_cost, f"Achat de {quantity} parts de {name} ({property_type})")
+            self._log_transaction("REAL_ESTATE_INVESTMENT_BUY", total_cost, f"Purchase of {quantity} shares of {name} ({property_type})")
             return True
         return False
 
     def add_investment(self, name: str, initial_value: float, quantity: float = 1.0):
-        """Méthode de compatibilité - ajoute un investissement financier par défaut"""
+        """Compatibility method - adds a financial investment by default"""
         return self.add_financial_investment(name, initial_value, quantity)
     
     def update_investment_value(self, name: str, new_value: float):
@@ -127,18 +127,18 @@ class Portfolio:
     def sell_investment(self, name: str, quantity: float = None):
         if name not in self.investments:
             return False
-        
+
         investment = self.investments[name]
         if quantity is None or quantity >= investment.quantity:
             sale_value = investment.get_total_value()
             self.cash += sale_value
-            self._log_transaction("INVESTMENT_SELL", sale_value, f"Vente totale de {name}")
+            self._log_transaction("INVESTMENT_SELL", sale_value, f"Full sale of {name}")
             del self.investments[name]
         else:
             sale_value = investment.current_value * quantity
             self.cash += sale_value
             investment.quantity -= quantity
-            self._log_transaction("INVESTMENT_SELL", sale_value, f"Vente de {quantity} parts de {name}")
+            self._log_transaction("INVESTMENT_SELL", sale_value, f"Sale of {quantity} shares of {name}")
         return True
     
     def add_credit(self, name: str, amount: float, interest_rate: float, monthly_payment: float = 0):
@@ -146,35 +146,35 @@ class Portfolio:
             return False
         self.credits[name] = Credit(name, amount, interest_rate, monthly_payment)
         self.cash += amount
-        self._log_transaction("CREDIT_ADD", amount, f"Nouveau crédit: {name} à {interest_rate}%")
+        self._log_transaction("CREDIT_ADD", amount, f"New credit: {name} at {interest_rate}%")
         return True
     
     def pay_credit(self, name: str, amount: float):
         if name not in self.credits or amount > self.cash:
             return False
-        
+
         self.cash -= amount
         self.credits[name].make_payment(amount)
-        self._log_transaction("CREDIT_PAYMENT", amount, f"Paiement sur {name}")
-        
+        self._log_transaction("CREDIT_PAYMENT", amount, f"Payment on {name}")
+
         if self.credits[name].get_remaining_balance() <= 0.01:
             del self.credits[name]
         return True
     
     def get_financial_investments_value(self) -> float:
-        """Retourne la valeur totale des investissements financiers"""
+        """Returns the total value of financial investments"""
         return sum(inv.get_total_value() for inv in self.financial_investments.values())
 
     def get_real_estate_investments_value(self) -> float:
-        """Retourne la valeur totale des investissements immobiliers"""
+        """Returns the total value of real estate investments"""
         return sum(inv.get_total_value() for inv in self.real_estate_investments.values())
 
     def get_total_investments_value(self) -> float:
-        """Retourne la valeur totale de tous les investissements"""
+        """Returns the total value of all investments"""
         return self.get_financial_investments_value() + self.get_real_estate_investments_value()
 
     def get_total_annual_rental_income(self) -> float:
-        """Retourne le revenu locatif annuel total des investissements immobiliers"""
+        """Returns the total annual rental income from real estate investments"""
         return sum(inv.get_annual_rental_income() for inv in self.real_estate_investments.values())
     
     def get_total_credits_balance(self) -> float:
@@ -192,7 +192,7 @@ class Portfolio:
         })
     
     def to_dict(self):
-        """Sérialise le portefeuille en dictionnaire"""
+        """Serializes the portfolio to a dictionary"""
         return {
             'cash': self.cash,
             'financial_investments': {
@@ -232,22 +232,22 @@ class Portfolio:
     
     @classmethod
     def from_dict(cls, data):
-        """Recrée un portefeuille à partir d'un dictionnaire"""
+        """Recreates a portfolio from a dictionary"""
         portfolio = cls(data['cash'])
 
-        # Restaurer les investissements financiers
+        # Restore financial investments
         for name, inv_data in data.get('financial_investments', {}).items():
             investment = FinancialInvestment(
                 inv_data['name'],
                 inv_data['initial_value'],
                 inv_data['current_value'],
                 inv_data['quantity'],
-                inv_data.get('investment_type', 'Action')
+                inv_data.get('investment_type', 'Stock')
             )
             investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.financial_investments[name] = investment
 
-        # Restaurer les investissements immobiliers
+        # Restore real estate investments
         for name, inv_data in data.get('real_estate_investments', {}).items():
             investment = RealEstateInvestment(
                 inv_data['name'],
@@ -261,7 +261,7 @@ class Portfolio:
             investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.real_estate_investments[name] = investment
 
-        # Compatibilité avec l'ancien format d'investissements
+        # Compatibility with old investment format
         for name, inv_data in data.get('investments', {}).items():
             investment = FinancialInvestment(
                 inv_data['name'],
@@ -272,7 +272,7 @@ class Portfolio:
             investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.financial_investments[name] = investment
 
-        # Restaurer les crédits
+        # Restore credits
         for name, credit_data in data.get('credits', {}).items():
             credit = Credit(
                 credit_data['name'],
@@ -284,7 +284,7 @@ class Portfolio:
             credit.creation_date = datetime.fromisoformat(credit_data['creation_date'])
             portfolio.credits[name] = credit
 
-        # Restaurer l'historique
+        # Restore history
         portfolio.transaction_history = data.get('transaction_history', [])
 
         return portfolio

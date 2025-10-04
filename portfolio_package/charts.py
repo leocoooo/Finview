@@ -3,14 +3,14 @@ import plotly.graph_objects as go
 
 
 def create_professional_pie_chart(portfolio):
-    """Crée un graphique en secteurs professionnel et lisible"""
+    """Creates a professional and readable pie chart"""
 
-    # Palette de couleurs professionnelle
+    # Professional color palette
     color_palette = {
-        'cash': '#27AE60',           # Vert pour liquidités
-        'financial': '#3498DB',      # Bleu pour investissements financiers
-        'real_estate': '#E67E22',    # Orange pour immobilier
-        'credits': '#E74C3C'         # Rouge pour crédits
+        'cash': '#27AE60',           # Green for cash
+        'financial': '#3498DB',      # Blue for financial investments
+        'real_estate': '#E67E22',    # Orange for real estate
+        'credits': '#E74C3C'         # Red for credits
     }
 
     labels = []
@@ -18,40 +18,40 @@ def create_professional_pie_chart(portfolio):
     colors = []
     hover_texts = []
 
-    # Liquidités
+    # Cash
     if portfolio.cash > 0:
-        labels.append('💰 Liquidités')
+        labels.append('💰 Cash')
         values.append(portfolio.cash)
         colors.append(color_palette['cash'])
-        hover_texts.append(f'<b>💰 Liquidités</b><br>Montant: {portfolio.cash:.2f}€')
+        hover_texts.append(f'<b>💰 Cash</b><br>Amount: {portfolio.cash:.2f}€')
 
-    # Investissements financiers (regroupés)
+    # Financial investments (grouped)
     financial_total = portfolio.get_financial_investments_value()
     if financial_total > 0:
-        labels.append('📈 Inv. Financiers')
+        labels.append('📈 Financial Inv.')
         values.append(financial_total)
         colors.append(color_palette['financial'])
 
-        # Détail des investissements financiers
+        # Financial investments details
         fin_details = []
         for name, inv in portfolio.financial_investments.items():
             inv_type = getattr(inv, 'investment_type', 'N/A')
             perf = inv.get_gain_loss_percentage()
             fin_details.append(f"• {name} ({inv_type}): {inv.get_total_value():.2f}€ ({perf:+.1f}%)")
 
-        hover_text = f'<b>📈 Investissements Financiers</b><br>Total: {financial_total:.2f}€<br><br>' + '<br>'.join(fin_details[:5])
+        hover_text = f'<b>📈 Financial Investments</b><br>Total: {financial_total:.2f}€<br><br>' + '<br>'.join(fin_details[:5])
         if len(fin_details) > 5:
-            hover_text += f'<br>... et {len(fin_details)-5} autres'
+            hover_text += f'<br>... and {len(fin_details)-5} more'
         hover_texts.append(hover_text)
 
-    # Investissements immobiliers (regroupés)
+    # Real estate investments (grouped)
     real_estate_total = portfolio.get_real_estate_investments_value()
     if real_estate_total > 0:
-        labels.append('🏠 Inv. Immobiliers')
+        labels.append('🏠 Real Estate Inv.')
         values.append(real_estate_total)
         colors.append(color_palette['real_estate'])
 
-        # Détail des investissements immobiliers
+        # Real estate investments details
         re_details = []
         total_rental_income = 0
         for name, inv in portfolio.real_estate_investments.items():
@@ -66,19 +66,19 @@ def create_professional_pie_chart(portfolio):
                 detail_text += f" - {rental_yield:.1f}%"
             re_details.append(detail_text)
 
-        hover_text = f'<b>🏠 Investissements Immobiliers</b><br>Total: {real_estate_total:.2f}€'
+        hover_text = f'<b>🏠 Real Estate Investments</b><br>Total: {real_estate_total:.2f}€'
         if total_rental_income > 0:
-            hover_text += f'<br>Revenu annuel: {total_rental_income:.2f}€'
+            hover_text += f'<br>Annual income: {total_rental_income:.2f}€'
         hover_text += '<br><br>' + '<br>'.join(re_details[:4])
         if len(re_details) > 4:
-            hover_text += f'<br>... et {len(re_details)-4} autres'
+            hover_text += f'<br>... and {len(re_details)-4} more'
         hover_texts.append(hover_text)
 
     if not labels:
-        # Graphique vide
+        # Empty chart
         fig = go.Figure()
         fig.add_annotation(
-            text="Aucune donnée à afficher<br>Ajoutez des liquidités ou des investissements",
+            text="No data to display<br>Add cash or investments",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray"),
@@ -88,7 +88,7 @@ def create_professional_pie_chart(portfolio):
         fig.update_layout(
             title={
                 'title_font_color' : 'white',
-                'text': "📊 Répartition du Portefeuille",
+                'text': "📊 Portfolio Distribution",
                 'x': 0.2,
                 'xanchor': 'center',
                 'font': {'size': 20, 'family': 'Arial, sans-serif'}
@@ -100,11 +100,11 @@ def create_professional_pie_chart(portfolio):
         )
         return fig
 
-    # Création du pie chart
+    # Create pie chart
     fig = go.Figure(data=[go.Pie(
         labels=labels,
         values=values,
-        hole=0.3,  # Donut chart pour un look plus moderne
+        hole=0.3,  # Donut chart for a more modern look
         marker=dict(
             colors=colors,
             line=dict(color='#FFFFFF', width=3)
@@ -115,13 +115,13 @@ def create_professional_pie_chart(portfolio):
         textfont=dict(size=13, family='Arial, sans-serif'),
         hovertemplate='%{customdata}<extra></extra>',
         customdata=hover_texts,
-        pull=[0.05 if i == values.index(max(values)) else 0 for i in range(len(values))]  # Met en avant la plus grande section
+        pull=[0.05 if i == values.index(max(values)) else 0 for i in range(len(values))]  # Highlight the largest section
     )])
 
-    # Mise en page professionnelle
+    # Professional layout
     fig.update_layout(
         title={
-            'text': "📊 Répartition du Portefeuille",
+            'text': "📊 Portfolio Distribution",
             'x': 0.45,
             'xanchor': 'center',
             'font': {'size': 22, 'family': 'Arial, sans-serif', 'color':"white"}
@@ -143,7 +143,7 @@ def create_professional_pie_chart(portfolio):
             bordercolor='rgba(0,0,0,0)',
             borderwidth=0
         ),
-        # Annotations au centre pour le total
+        # Center annotations for total
         annotations=[
             dict(
                 text=f"<b>Total</b><br>{sum(values):.0f}€",
@@ -159,37 +159,37 @@ def create_professional_pie_chart(portfolio):
     return fig
 
 def create_portfolio_chart(portfolio):
-    """Crée un graphique en barres horizontales empilées pour la répartition du portefeuille"""
+    """Creates a horizontal stacked bar chart for portfolio distribution"""
 
-    # Palette de couleurs professionnelle
+    # Professional color palette
     color_palette = {
-        'cash': '#2E8B57',           # Vert foncé pour liquidités
-        'financial': '#1E90FF',      # Bleu pour investissements financiers
-        'real_estate': '#FF6B35',    # Orange pour immobilier
-        'credits': '#DC143C'         # Rouge pour crédits
+        'cash': '#2E8B57',           # Dark green for cash
+        'financial': '#1E90FF',      # Blue for financial investments
+        'real_estate': '#FF6B35',    # Orange for real estate
+        'credits': '#DC143C'         # Red for credits
     }
 
-    # Collecte des données par catégorie
+    # Collect data by category
     categories = []
     values = []
     colors = []
     details = []
 
-    # Liquidités
+    # Cash
     if portfolio.cash > 0:
-        categories.append('💰 Liquidités')
+        categories.append('💰 Cash')
         values.append(portfolio.cash)
         colors.append(color_palette['cash'])
-        details.append(f'Montant disponible: {portfolio.cash:.2f}€')
+        details.append(f'Available amount: {portfolio.cash:.2f}€')
 
-    # Investissements financiers regroupés
+    # Grouped financial investments
     financial_total = portfolio.get_financial_investments_value()
     if financial_total > 0:
-        categories.append('📈 Inv. Financiers')
+        categories.append('📈 Financial Inv.')
         values.append(financial_total)
         colors.append(color_palette['financial'])
 
-        # Détail des investissements financiers
+        # Financial investments details
         fin_details = []
         for name, inv in portfolio.financial_investments.items():
             inv_type = getattr(inv, 'investment_type', 'N/A')
@@ -198,14 +198,14 @@ def create_portfolio_chart(portfolio):
             fin_details.append(f"• {name} ({inv_type}): {inv.get_total_value():.2f}€ ({perf:+.1f}%)")
         details.append('<br>'.join(fin_details))
 
-    # Investissements immobiliers regroupés
+    # Grouped real estate investments
     real_estate_total = portfolio.get_real_estate_investments_value()
     if real_estate_total > 0:
-        categories.append('🏠 Inv. Immobiliers')
+        categories.append('🏠 Real Estate Inv.')
         values.append(real_estate_total)
         colors.append(color_palette['real_estate'])
 
-        # Détail des investissements immobiliers
+        # Real estate investments details
         re_details = []
         for name, inv in portfolio.real_estate_investments.items():
             property_type = getattr(inv, 'property_type', 'N/A')
@@ -217,44 +217,44 @@ def create_portfolio_chart(portfolio):
             if location:
                 detail_text += f" - {location}"
             if rental_yield > 0:
-                detail_text += f" - Rendement: {rental_yield:.1f}%"
+                detail_text += f" - Yield: {rental_yield:.1f}%"
             if annual_income > 0:
-                detail_text += f" - Revenu: {annual_income:.0f}€/an"
+                detail_text += f" - Income: {annual_income:.0f}€/yr"
             re_details.append(detail_text)
         details.append('<br>'.join(re_details))
 
-    # Crédits (valeurs négatives)
+    # Credits (negative values)
     credits_total = portfolio.get_total_credits_balance()
     if credits_total > 0:
-        categories.append('💳 Crédits')
-        values.append(-credits_total)  # Négatif pour l'affichage
+        categories.append('💳 Credits')
+        values.append(-credits_total)  # Negative for display
         colors.append(color_palette['credits'])
 
-        # Détail des crédits
+        # Credits details
         credit_details = []
         for name, credit in portfolio.credits.items():
             remaining = credit.get_remaining_balance()
             rate = credit.interest_rate
-            credit_details.append(f"• {name}: -{remaining:.2f}€ (taux: {rate}%)")
+            credit_details.append(f"• {name}: -{remaining:.2f}€ (rate: {rate}%)")
         details.append('<br>'.join(credit_details))
 
     if not categories:
-        # Graphique vide si pas de données
+        # Empty chart if no data
         fig = go.Figure()
         fig.add_annotation(
-            text="Aucune donnée à afficher",
+            text="No data to display",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
         )
         fig.update_layout(
-            title="📊 Répartition du Portefeuille",
+            title="📊 Portfolio Distribution",
             height=300,
             paper_bgcolor='rgba(0,0,0,0)'
         )
         return fig
 
-    # Création du graphique en barres horizontales empilées
+    # Create horizontal stacked bar chart
     fig = go.Figure()
 
     total_value = sum([abs(v) for v in values])
@@ -263,7 +263,7 @@ def create_portfolio_chart(portfolio):
     for i, (cat, val, color, detail) in enumerate(zip(categories, values, colors, details)):
         percentage = (abs(val) / total_value) * 100
 
-        # Texte à afficher sur la barre
+        # Text to display on bar
         display_text = f"{cat}<br>{abs(val):.0f}€ ({percentage:.1f}%)"
 
         fig.add_trace(go.Bar(
@@ -275,14 +275,14 @@ def create_portfolio_chart(portfolio):
             text=display_text,
             textposition='inside',
             textfont=dict(size=11, color='white'),
-            hovertemplate=f'<b>{cat}</b><br>{detail}<br>Valeur: {abs(val):.2f}€<br>Part: {percentage:.1f}%<extra></extra>',
+            hovertemplate=f'<b>{cat}</b><br>{detail}<br>Value: {abs(val):.2f}€<br>Share: {percentage:.1f}%<extra></extra>',
             showlegend=True
         ))
 
-    # Configuration de la mise en page
+    # Layout configuration
     fig.update_layout(
         title={
-            'text': "📊 Répartition du Portefeuille",
+            'text': "📊 Portfolio Distribution",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20, 'family': 'Arial, sans-serif', 'color': '#2c3e50'}
@@ -294,9 +294,9 @@ def create_portfolio_chart(portfolio):
         plot_bgcolor='rgba(248,249,250,0.8)',
         font=dict(family="Arial, sans-serif", size=12),
 
-        # Configuration des axes
+        # Axes configuration
         xaxis=dict(
-            title="Valeur (€)",
+            title="Value (€)",
             showgrid=True,
             gridcolor='rgba(0,0,0,0.1)',
             tickformat='.0f',
@@ -307,7 +307,7 @@ def create_portfolio_chart(portfolio):
             showgrid=False
         ),
 
-        # Légende
+        # Legend
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -321,13 +321,13 @@ def create_portfolio_chart(portfolio):
     return fig
 
 def create_performance_chart(portfolio):
-    """Crée un graphique de performance des investissements"""
+    """Creates an investment performance chart"""
 
-    # Collecte des performances
+    # Collect performance data
     financial_data = []
     real_estate_data = []
 
-    # Investissements financiers
+    # Financial investments
     for name, inv in portfolio.financial_investments.items():
         performance = inv.get_gain_loss_percentage()
         value = inv.get_total_value()
@@ -339,7 +339,7 @@ def create_performance_chart(portfolio):
             'type': inv_type
         })
 
-    # Investissements immobiliers
+    # Real estate investments
     for name, inv in portfolio.real_estate_investments.items():
         performance = inv.get_gain_loss_percentage()
         value = inv.get_total_value()
@@ -354,13 +354,13 @@ def create_performance_chart(portfolio):
     if not financial_data and not real_estate_data:
         fig = go.Figure()
         fig.add_annotation(
-            text="Aucun investissement à analyser",
+            text="No investments to analyze",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray")
         )
         fig.update_layout(
-            title="📈 Performance des Investissements",
+            title="📈 Investment Performance",
             height=300,
             paper_bgcolor='rgba(0,0,0,0)'
         )
@@ -368,7 +368,7 @@ def create_performance_chart(portfolio):
 
     fig = go.Figure()
 
-    # Ajout des investissements financiers
+    # Add financial investments
     if financial_data:
         names_fin = [d['name'] for d in financial_data]
         perfs_fin = [d['performance'] for d in financial_data]
@@ -378,14 +378,14 @@ def create_performance_chart(portfolio):
         fig.add_trace(go.Bar(
             x=names_fin,
             y=perfs_fin,
-            name='📈 Financiers',
+            name='📈 Financial',
             marker_color='#1E90FF',
-            hovertemplate='<b>%{x}</b><br>Type: %{customdata}<br>Performance: %{y:+.1f}%<br>Valeur: %{text:.2f}€<extra></extra>',
+            hovertemplate='<b>%{x}</b><br>Type: %{customdata}<br>Performance: %{y:+.1f}%<br>Value: %{text:.2f}€<extra></extra>',
             customdata=types_fin,
             text=values_fin
         ))
 
-    # Ajout des investissements immobiliers
+    # Add real estate investments
     if real_estate_data:
         names_re = [d['name'] for d in real_estate_data]
         perfs_re = [d['performance'] for d in real_estate_data]
@@ -395,25 +395,25 @@ def create_performance_chart(portfolio):
         fig.add_trace(go.Bar(
             x=names_re,
             y=perfs_re,
-            name='🏠 Immobiliers',
+            name='🏠 Real Estate',
             marker_color='#FF6B35',
-            hovertemplate='<b>%{x}</b><br>Type: %{customdata}<br>Performance: %{y:+.1f}%<br>Valeur: %{text:.2f}€<extra></extra>',
+            hovertemplate='<b>%{x}</b><br>Type: %{customdata}<br>Performance: %{y:+.1f}%<br>Value: %{text:.2f}€<extra></extra>',
             customdata=types_re,
             text=values_re
         ))
 
-    # Ligne de référence à 0%
+    # Reference line at 0%
     fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
 
     # Configuration
     fig.update_layout(
         title={
-            'text': "📈 Performance des Investissements",
+            'text': "📈 Investment Performance",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 18, 'family': 'Arial, sans-serif', 'color': '#2c3e50'}
         },
-        xaxis_title="Investissements",
+        xaxis_title="Investments",
         yaxis_title="Performance (%)",
         yaxis=dict(ticksuffix='%'),
         height=400,
@@ -430,18 +430,18 @@ def create_performance_chart(portfolio):
         )
     )
 
-    # Rotation des labels sur l'axe X si nécessaire
+    # Rotate X-axis labels if necessary
     if len(financial_data) + len(real_estate_data) > 6:
         fig.update_xaxes(tickangle=45)
 
     return fig
 
 def create_world_investment_map(portfolio):
-    """Crée une carte du monde interactive des investissements"""
+    """Creates an interactive world map of investments"""
 
-    # Dictionnaire de géolocalisation pour les investissements
+    # Geolocation dictionary for investments
     location_coordinates = {
-        # Pays
+        # Countries
         'france': {'lat': 46.2276, 'lon': 2.2137, 'country': 'France'},
         'paris': {'lat': 48.8566, 'lon': 2.3522, 'country': 'France'},
         'états-unis': {'lat': 39.8283, 'lon': -98.5795, 'country': 'États-Unis'},
@@ -462,7 +462,7 @@ def create_world_investment_map(portfolio):
         'pays-bas': {'lat': 52.1326, 'lon': 5.2913, 'country': 'Pays-Bas'},
         'belgique': {'lat': 50.5039, 'lon': 4.4699, 'country': 'Belgique'},
 
-        # Villes principales
+        # Major cities
         'new york': {'lat': 40.7128, 'lon': -74.0060, 'country': 'États-Unis'},
         'londres': {'lat': 51.5074, 'lon': -0.1278, 'country': 'Royaume-Uni'},
         'tokyo': {'lat': 35.6762, 'lon': 139.6503, 'country': 'Japon'},
@@ -474,28 +474,28 @@ def create_world_investment_map(portfolio):
         'amsterdam': {'lat': 52.3676, 'lon': 4.9041, 'country': 'Pays-Bas'},
         'francfort': {'lat': 50.1109, 'lon': 8.6821, 'country': 'Allemagne'},
 
-        # Régions
+        # Regions
         'europe': {'lat': 54.5260, 'lon': 15.2551, 'country': 'Europe'},
         'asie': {'lat': 34.0479, 'lon': 100.6197, 'country': 'Asie'},
         'amérique du nord': {'lat': 54.5260, 'lon': -105.2551, 'country': 'Amérique du Nord'},
         'amérique latine': {'lat': -8.7832, 'lon': -55.4915, 'country': 'Amérique Latine'},
     }
 
-    # Collecter les données des investissements avec localisation
+    # Collect investment data with location
     investment_data = []
 
-    # Investissements financiers
+    # Financial investments
     for name, inv in portfolio.financial_investments.items():
-        inv_type = getattr(inv, 'investment_type', 'Financier')
+        inv_type = getattr(inv, 'investment_type', 'Financial')
         location = getattr(inv, 'location', '')
 
-        # Tentative de géolocalisation basée sur le nom ou autres indices
+        # Attempt geolocation based on name or other clues
         coords = None
         if location:
             location_lower = location.lower().strip()
             coords = location_coordinates.get(location_lower)
 
-        # Si pas de localisation explicite, essayer de deviner à partir du nom
+        # If no explicit location, try to guess from name
         if not coords:
             name_lower = name.lower()
             for loc_key, loc_data in location_coordinates.items():
@@ -503,16 +503,16 @@ def create_world_investment_map(portfolio):
                     coords = loc_data
                     break
 
-        # Localisation par défaut pour les investissements financiers globaux
+        # Default location for global financial investments
         if not coords:
             if 'sp' in name_lower or 's&p' in name_lower or 'nasdaq' in name_lower:
                 coords = location_coordinates['états-unis']
             elif 'europe' in name_lower or 'eur' in name_lower:
                 coords = location_coordinates['europe']
             elif 'world' in name_lower or 'global' in name_lower or 'msci' in name_lower:
-                coords = location_coordinates['états-unis']  # Par défaut
+                coords = location_coordinates['états-unis']  # Default
             else:
-                coords = location_coordinates['france']  # Défaut local
+                coords = location_coordinates['france']  # Local default
 
         if coords:
             investment_data.append({
@@ -525,22 +525,22 @@ def create_world_investment_map(portfolio):
                 'lon': coords['lon'],
                 'country': coords['country'],
                 'color': '#3498DB',
-                'size': max(10, min(50, inv.get_total_value() / 100))  # Taille proportionnelle
+                'size': max(10, min(50, inv.get_total_value() / 100))  # Proportional size
             })
 
-    # Investissements immobiliers
+    # Real estate investments
     for name, inv in portfolio.real_estate_investments.items():
-        property_type = getattr(inv, 'property_type', 'Immobilier')
+        property_type = getattr(inv, 'property_type', 'Real Estate')
         location = getattr(inv, 'location', 'France')
         rental_yield = getattr(inv, 'rental_yield', 0)
 
-        # Géolocalisation pour l'immobilier
+        # Geolocation for real estate
         coords = None
         if location:
             location_lower = location.lower().strip()
             coords = location_coordinates.get(location_lower)
 
-        # Localisation par défaut
+        # Default location
         if not coords:
             coords = location_coordinates['france']
 
@@ -556,30 +556,30 @@ def create_world_investment_map(portfolio):
             'country': coords['country'],
             'location_name': location,
             'color': '#E67E22',
-            'size': max(15, min(60, inv.get_total_value() / 80))  # Taille légèrement plus grande
+            'size': max(15, min(60, inv.get_total_value() / 80))  # Slightly larger size
         })
 
     if not investment_data:
-        # Carte vide
+        # Empty map
         fig = go.Figure()
         fig.add_annotation(
-            text="Aucun investissement localisé à afficher<br>Ajoutez des investissements avec des localisations",
+            text="No located investments to display<br>Add investments with locations",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
             font=dict(size=16, color="gray"),
             showarrow=False
         )
         fig.update_layout(
-            title="🌍 Carte Mondiale des Investissements",
+            title="🌍 World Investment Map",
             height=400,
             paper_bgcolor='rgba(0,0,0,0)'
         )
         return fig
 
-    # Création de la carte
+    # Create the map
     fig = go.Figure()
 
-    # Ajouter les investissements financiers
+    # Add financial investments
     financial_data = [inv for inv in investment_data if inv['type'] == 'Financial']
     if financial_data:
         fig.add_trace(go.Scattergeo(
@@ -588,7 +588,7 @@ def create_world_investment_map(portfolio):
             text=[f"<b>{inv['name']}</b><br>{inv['category']}<br>{inv['value']:.0f}€<br>{inv['performance']:+.1f}%"
                   for inv in financial_data],
             mode='markers',
-            name='📈 Investissements Financiers',
+            name='📈 Financial Investments',
             marker=dict(
                 size=[inv['size'] for inv in financial_data],
                 color='#3498DB',
@@ -596,36 +596,36 @@ def create_world_investment_map(portfolio):
                 line=dict(width=2, color='white'),
                 opacity=0.8
             ),
-            hovertemplate='<b>%{text}</b><br>Pays: %{customdata}<extra></extra>',
+            hovertemplate='<b>%{text}</b><br>Country: %{customdata}<extra></extra>',
             customdata=[inv['country'] for inv in financial_data]
         ))
 
-    # Ajouter les investissements immobiliers
+    # Add real estate investments
     real_estate_data = [inv for inv in investment_data if inv['type'] == 'Real Estate']
     if real_estate_data:
         fig.add_trace(go.Scattergeo(
             lon=[inv['lon'] for inv in real_estate_data],
             lat=[inv['lat'] for inv in real_estate_data],
-            text=[f"<b>{inv['name']}</b><br>{inv['category']}<br>{inv['value']:.0f}€<br>Rendement: {inv.get('rental_yield', 0):.1f}%<br>{inv['performance']:+.1f}%"
+            text=[f"<b>{inv['name']}</b><br>{inv['category']}<br>{inv['value']:.0f}€<br>Yield: {inv.get('rental_yield', 0):.1f}%<br>{inv['performance']:+.1f}%"
                   for inv in real_estate_data],
             mode='markers',
-            name='🏠 Investissements Immobiliers',
+            name='🏠 Real Estate Investments',
             marker=dict(
                 size=[inv['size'] for inv in real_estate_data],
                 color='#E67E22',
                 sizemode='diameter',
                 line=dict(width=2, color='white'),
                 opacity=0.8,
-                symbol='square'  # Carré pour différencier de l'immobilier
+                symbol='square'  # Square to differentiate from financial
             ),
-            hovertemplate='<b>%{text}</b><br>Localisation: %{customdata}<extra></extra>',
+            hovertemplate='<b>%{text}</b><br>Location: %{customdata}<extra></extra>',
             customdata=[inv['location_name'] for inv in real_estate_data]
         ))
 
-    # Configuration de la carte
+    # Map configuration
     fig.update_layout(
         title={
-            'text': "🌍 Carte Mondiale des Investissements",
+            'text': "🌍 World Investment Map",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20, 'family': 'Arial, sans-serif', 'color': 'white'}
@@ -664,7 +664,7 @@ def create_world_investment_map(portfolio):
 
     return fig
 
-# Alias pour compatibilité - utilise maintenant le nouveau pie chart professionnel
+# Alias for compatibility - now uses the new professional pie chart
 def create_portfolio_pie_chart(portfolio):
-    """Alias pour compatibilité avec l'ancien nom de fonction"""
+    """Alias for compatibility with old function name"""
     return create_professional_pie_chart(portfolio)
