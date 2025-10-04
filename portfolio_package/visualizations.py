@@ -3,6 +3,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
+from portfolio_package.patrimoine_prediction import create_prediction_chart
 
 
 # === Theme & helpers ===
@@ -318,6 +319,22 @@ def create_world_investment_map(portfolio):
     fig.update_layout(**layout)
     return fig
 
+
+def display_predictions(results):
+    """
+    Wrapper minimal pour afficher le graphique de prédiction.
+    On utilise ici la fonction create_prediction_chart fournie par le module
+    patrimoine_prediction (déjà présent dans ton projet).
+    """
+    try:
+        from portfolio_package.patrimoine_prediction import create_prediction_chart
+    except Exception:
+        st.error("Module de prédiction introuvable")
+        return
+    fig = create_prediction_chart(results)
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+
 # === Streamlit wrappers ===
 def display_portfolio_pie(portfolio):
     st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
@@ -343,3 +360,9 @@ def display_world_map(portfolio):
         'displaylogo': False,
         'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
     })
+
+
+def display_predictions(results):
+    """Affiche les prédictions sous forme de graphique"""
+    fig = create_prediction_chart(results)
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})

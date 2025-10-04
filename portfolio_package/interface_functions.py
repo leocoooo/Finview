@@ -12,6 +12,7 @@ from portfolio_package.visualizations import (
     display_financial_investments,
     display_performance_chart,
     display_world_map,
+    display_predictions
 )
 
 
@@ -435,7 +436,56 @@ def show_predictions(portfolio):
 
 
 # === ONGLET DEFINITIONS ===
+
 def show_definitions():
-    st.header("📚 Financial Definitions")
-    st.markdown("Welcome to the financial glossary! Browse the definitions of terms used in the application.")
-    # (Définitions conservées identiques à ton script original)
+     """Financial definitions page""" 
+     st.header("📚 Financial Definitions") 
+     st.markdown(""" Welcome to the financial glossary! Browse the definitions of terms used in the application. """) 
+     st.markdown("---") 
+     st.subheader("💰 Cash") 
+     st.markdown(""" **Definition**: Money immediately available in your portfolio. 
+                 Cash represents money you can use instantly to: - Make new investments - Pay credits - Handle unexpected expenses 
+                 💡 **Tip**: Always keep a cash reserve (3 to 6 months of expenses) for emergencies. """) 
+     st.markdown("---") 
+     st.subheader("📈 Financial Investments") 
+     col1, col2 = st.columns(2) 
+     with col1: 
+         st.markdown(""" **Stocks** 📊 - Ownership shares in a company - High potential return - Medium to high risk - Example: Apple, Microsoft, Total **ETF** (Exchange Traded Fund) 📦 - Diversified basket of stocks - Tracks a stock index - Low fees - Example: S&P 500, CAC 40 **Bonds** 💼 - Loan to a company or state - Fixed and predictable return - Low to medium risk - Example: French OATs """) 
+     with col2: 
+            st.markdown(""" **Cryptocurrencies** ₿ - Decentralized digital currency - Very high volatility - High gain potential - 
+                        Example: Bitcoin, Ethereum **Investment Funds** 🏦 - Portfolio managed by professionals - Automatic diversification - 
+                        Management fees - Example: Mutual funds **Other Assets** 💎 - Gold, commodities - Art, collectibles - 
+                        Alternative investments """) 
+            st.markdown("---") 
+            st.subheader("🏠 Real Estate Investments") 
+            st.markdown(""" **SCPI** (Société Civile de Placement Immobilier) 
+                        🏢 - Collective real estate investment - Management delegated to professionals - 
+                        Regular rental income (4-6% per year) - Accessible from a few hundred euros - 
+                        Example: SCPI Corum, Primonial **REIT** (Real Estate Investment Trust) 🌆 - 
+                        American equivalent of SCPI - Listed on stock exchange, highly liquid - 
+                        Invests in commercial real estate - Example: Simon Property Group **Direct Real Estate** 
+                        🏡 - Physical property held directly - Rental management is your responsibility - 
+                        Significant capital appreciation potential - Requires high initial capital **Rental Yield** 
+                        📊 - Annual income generated / Property value × 100 - Indicates investment profitability - 
+                        Typically between 2% and 8% depending on property type """) 
+            st.markdown("---") 
+            st.subheader("💳 Credits") 
+            st.markdown(""" **Remaining Balance** 💰 - Total amount still owed on the credit - 
+                        Decreases with each repayment - Principal + Remaining interest **Interest Rate** 
+                        📈 - Annual cost of credit expressed in % - Can be fixed or variable - The lower the rate, 
+                        the less expensive the credit - Example: 1.5% for a mortgage, 3-5% for consumer credit **Monthly Payment** 
+                        💸 - Amount to repay each month - Includes a portion of principal and a portion of interest -
+                         Generally remains constant over the credit term **Amortization** 
+                        📉 - Progressive repayment of borrowed principal - At the start: more interest, less principal - 
+                        At the end: more principal, less interest """) 
+            st.markdown("---") 
+            st.subheader("📊 Performance Indicators") 
+            st.markdown(""" **Net Worth** 🏆 - Total wealth = (Cash + Investments) - Credits - Represents your real wealth -
+                         Key indicator of financial health **Performance** 📈 - Percentage variation in investment value - 
+                        (Current value - Initial value) / Initial value × 100 - Example: +15% = 15% gain compared to purchase 
+                        **Diversification** 💾 - Distribution of investments across different assets - Reduces overall portfolio risk - 
+                        "Don't put all your eggs in one basket" **Annualized Return** 📅 - Average performance per year over several years - 
+                        Allows comparison of different investments - Smooths out short-term variations """) 
+            st.markdown("---") 
+            st.info(""" 💡 **Need more information?** These definitions are simplifications for educational purposes. 
+                    For personalized advice on your investments, consult a professional financial advisor. """)
