@@ -74,64 +74,60 @@ def show_summary(portfolio):
 
     st.markdown("---")
 
-    # --- Tableaux par type ---
-    col1, col2, col3 = st.columns(3)
+    # --- Tableaux récapitulatifs ---
 
-    with col1:
-        st.subheader("📈 Financial Investments")
-        if portfolio.financial_investments:
-            fin_data = []
-            for name, inv in portfolio.financial_investments.items():
-                inv_type = getattr(inv, 'investment_type', 'N/A')
-                fin_data.append({
-                    "Name": name,
-                    "Type": inv_type,
-                    "Quantity": inv.quantity,
-                    "Unit value": format_currency(inv.current_value),
-                    "Total value": format_currency(inv.get_total_value()),
-                    "Gain/Loss": f"{format_currency(inv.get_gain_loss())[:-1] if inv.get_gain_loss() >= 0 else '-' + format_currency(abs(inv.get_gain_loss()))[:-1]}€",
-                    "Performance": format_percentage(inv.get_gain_loss_percentage())
-                })
-            st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
-        else:
-            st.info("No financial investments")
+    st.subheader("📈 Financial Investments")
+    if portfolio.financial_investments:
+        fin_data = []
+        for name, inv in portfolio.financial_investments.items():
+            inv_type = getattr(inv, 'investment_type', 'N/A')
+            fin_data.append({
+                "Name": name,
+                "Type": inv_type,
+                "Quantity": inv.quantity,
+                "Unit value": format_currency(inv.current_value),
+                "Total value": format_currency(inv.get_total_value()),
+                "Gain/Loss": f"{format_currency(inv.get_gain_loss())[:-1] if inv.get_gain_loss() >= 0 else '-' + format_currency(abs(inv.get_gain_loss()))[:-1]}€",
+                "Performance": format_percentage(inv.get_gain_loss_percentage())
+            })
+        st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
+    else:
+        st.info("No financial investments")
 
-    with col2:
-        st.subheader("🏠 Real Estate Investments")
-        if portfolio.real_estate_investments:
-            re_data = []
-            for name, inv in portfolio.real_estate_investments.items():
-                property_type = getattr(inv, 'property_type', 'N/A')
-                location = getattr(inv, 'location', 'N/A')
-                rental_yield = getattr(inv, 'rental_yield', 0)
-                annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
-                re_data.append({
-                    "Name": name,
-                    "Type": property_type,
-                    "Location": location if location else "N/A",
-                    "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 and rental_yield != int(rental_yield) else f"{int(rental_yield)}%" if rental_yield > 0 else "N/A",
-                    "Total value": format_currency(inv.get_total_value()),
-                    "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
-                    "Performance": format_percentage(inv.get_gain_loss_percentage())
-                })
-            st.dataframe(pd.DataFrame(re_data), use_container_width=True)
-        else:
-            st.info("No real estate investments")
+    st.subheader("🏠 Real Estate Investments")
+    if portfolio.real_estate_investments:
+        re_data = []
+        for name, inv in portfolio.real_estate_investments.items():
+            property_type = getattr(inv, 'property_type', 'N/A')
+            location = getattr(inv, 'location', 'N/A')
+            rental_yield = getattr(inv, 'rental_yield', 0)
+            annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
+            re_data.append({
+                "Name": name,
+                "Type": property_type,
+                "Location": location if location else "N/A",
+                "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 and rental_yield != int(rental_yield) else f"{int(rental_yield)}%" if rental_yield > 0 else "N/A",
+                "Total value": format_currency(inv.get_total_value()),
+                "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
+                "Performance": format_percentage(inv.get_gain_loss_percentage())
+            })
+        st.dataframe(pd.DataFrame(re_data), use_container_width=True)
+    else:
+        st.info("No real estate investments")
 
-    with col3:
-        st.subheader("💳 Credits")
-        if portfolio.credits:
-            credit_data = []
-            for name, credit in portfolio.credits.items():
-                credit_data.append({
-                    "Name": name,
-                    "Remaining balance": format_currency(credit.get_remaining_balance()),
-                    "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
-                    "Monthly payment": format_currency(credit.monthly_payment)
-                })
-            st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
-        else:
-            st.info("No credits")
+    st.subheader("💳 Credits")
+    if portfolio.credits:
+        credit_data = []
+        for name, credit in portfolio.credits.items():
+            credit_data.append({
+                "Name": name,
+                "Remaining balance": format_currency(credit.get_remaining_balance()),
+                "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
+                "Monthly payment": format_currency(credit.monthly_payment)
+            })
+        st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
+    else:
+        st.info("No credits")
 
 
 def manage_cash(portfolio):
