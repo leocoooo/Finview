@@ -56,41 +56,33 @@ def main():
     action = create_horizontal_menu()
 
     # Create the sidebar with actions
-    # Make sure to import the necessary functions/classes at the top of the file
     create_sidebar_actions(
         portfolio=st.session_state.portfolio,
         save_portfolio_func=save_portfolio,
         Portfolio=Portfolio,
         create_demo_portfolio_func=create_demo_portfolio,
-        generate_pdf_func=generate_portfolio_pdf  # Optional
+        generate_pdf_func=generate_portfolio_pdf
     )
 
     # Get the portfolio
     portfolio = st.session_state.portfolio
 
     # Route to the correct page based on selection
-    if action == "🏠 Dashboard":
-        show_dashboard(portfolio)
-    elif action == "💵 Manage Cash":
-        manage_cash(portfolio)
-    elif action == "📈 Investments":
-        manage_investments(portfolio)
-    elif action == "💳 Credits":
-        manage_credits(portfolio)
-    elif action == "🌍 World Map":
-        show_world_map(portfolio)
-    elif action == "📊 Analytics":
-        show_analytics(portfolio)
+    if action == "📊 Summary":
+        show_summary(portfolio)
+    elif action == "💼 Wealth Management":
+        show_wealth_management(portfolio)
+    elif action == "📈 Dashboard":
+        show_dashboard_tabs(portfolio)
     elif action == "🔮 Predictions":
         show_predictions(portfolio)
-    elif action == "📋 History":
-        show_history(portfolio)
     elif action == "📚 Definitions":
         show_definitions()
 
 
-def show_dashboard(portfolio):
-    st.header("Dashboard")
+def show_summary(portfolio):
+    """Summary page with only metrics and tables"""
+    st.header("Summary")
 
     # Main metrics
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -144,52 +136,6 @@ def show_dashboard(portfolio):
         for info in additional_info:
             st.info(info)
 
-    # Main chart section
-    st.markdown("---")
-
-    # Professional and readable pie chart
-    if portfolio.investments or portfolio.cash > 0:
-        fig = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
-    # ========== NEW: Evolution chart ==========
-    st.markdown("---")
-    st.subheader("📈 Historical Evolution")
-
-    # Period selector
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-        years_option = st.selectbox(
-            "Display period",
-            options=[1, 2, 5, 10],
-            index=2,  # Default 5 years
-            help="Select the historical period to display",
-            key="evolution_years"
-        )
-
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔄 Refresh", help="Regenerate simulated history", key="refresh_evolution"):
-            # Force recalculation by changing a session key
-            if 'evolution_seed' in st.session_state:
-                st.session_state.evolution_seed += 1
-            else:
-                st.session_state.evolution_seed = 1
-            st.rerun()
-
-    # Generate and display the chart
-    from portfolio_package.portfolio_evolution import create_portfolio_evolution_chart
-    fig_evolution = create_portfolio_evolution_chart(portfolio, years=years_option)
-    st.plotly_chart(fig_evolution, use_container_width=True, config={'displayModeBar': False})
-
-    # Explanatory note
-    st.info("""
-    💡 **Note**: This history is a retrospective simulation based on your current value.
-    For real history, your future transactions will be automatically recorded.
-    """)
-
-    # Separator line
     st.markdown("---")
 
     # Investment tables separated by type
@@ -251,24 +197,147 @@ def show_dashboard(portfolio):
             st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
         else:
             st.info("No credits")
+
+
+def show_wealth_management(portfolio):
+    """Wealth Management page with 3 sub-tabs"""
+    st.header("💼 Wealth Management")
+    
+    tab1, tab2, tab3 = st.tabs(["💵 Manage Cash", "📈 Investments", "💳 Credits"])
+    
+    with tab1:
+        manage_cash(portfolio)
+    
+    with tab2:
+        manage_investments(portfolio)
+    
+    with tab3:
+        manage_credits(portfolio)
+
+
+def show_dashboard_tabs(portfolio):
+    """Dashboard page with 3 sub-tabs"""
+    st.header("📈 Dashboard")
+    
+    tab1, tab2, tab3 = st.tabs(["📊 Portfolio", "💎 Assets", "🌍 Investments Map"])
+    
+    with tab1:
+        show_portfolio_charts(portfolio)
+    
+    with tab2:
+        show_assets_analytics(portfolio)
+    
+    with tab3:
+        show_world_map(portfolio)
+
+
+def show_portfolio_charts(portfolio):
+    """Portfolio charts: pie chart and evolution"""
+    st.subheader("Portfolio Distribution")
+    
+    # Professional and readable pie chart
+    if portfolio.investments or portfolio.cash > 0:
+        fig = create_portfolio_pie_chart(portfolio)
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    else:
+        st.info("No data to display")
+
+    st.markdown("---")
+    st.subheader("📈 Historical Evolution")
+
+    # Period selector
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        years_option = st.selectbox(
+            "Display period",
+            options=[1, 2, 5, 10],
+            index=2,
+            help="Select the historical period to display",
+            key="evolution_years"
+        )
+
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 Refresh", help="Regenerate simulated history", key="refresh_evolution"):
+            if 'evolution_seed' in st.session_state:
+                st.session_state.evolution_seed += 1
+            else:
+                st.session_state.evolution_seed = 1
+            st.rerun()
+
+    # Generate and display the chart
+    from portfolio_package.portfolio_evolution import create_portfolio_evolution_chart
+    fig_evolution = create_portfolio_evolution_chart(portfolio, years=years_option)
+    st.plotly_chart(fig_evolution, use_container_width=True, config={'displayModeBar': False})
+
+    st.info("""
+    💡 **Note**: This history is a retrospective simulation based on your current value.
+    For real history, your future transactions will be automatically recorded.
+    """)
+
+
+def show_assets_analytics(portfolio):
+    """Assets analytics: distribution and performance"""
+    st.subheader("Asset Analytics")
+
+    if not portfolio.investments:
+        st.info("No investments to analyze")
+        return
+
+    # Asset distribution
+    st.markdown("### Wealth Distribution")
+    labels = ['Cash']
+    values = [portfolio.cash]
+
+    for name, inv in portfolio.investments.items():
+        labels.append(name)
+        values.append(inv.get_total_value())
+
+    if values and sum(values) > 0:
+        fig = px.pie(values=values, names=labels, title="Asset Distribution")
+        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+    st.markdown("---")
+
+    # Investment performance
+    st.markdown("### Investment Performance")
+    performance_data = []
+    for name, inv in portfolio.investments.items():
+        performance_data.append({
+            'Investment': name,
+            'Initial value': inv.initial_value * inv.quantity,
+            'Current value': inv.get_total_value(),
+            'Performance (%)': inv.get_gain_loss_percentage()
+        })
+
+    df_perf = pd.DataFrame(performance_data)
+    fig = px.bar(df_perf, x='Investment', y='Performance (%)',
+                title="Investment Performance (%)",
+                color='Performance (%)',
+                color_continuous_scale=['red', 'yellow', 'green'])
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+
 def manage_cash(portfolio):
-    st.header("💵 Cash Management")
+    """Cash management sub-tab"""
+    st.subheader("💵 Cash Management")
     st.metric("Current cash", f"{portfolio.cash:.2f}€")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Add cash")
+        st.markdown("#### Add cash")
         add_amount = st.number_input("Amount to add", min_value=0.01, step=0.01, key="add_cash")
         add_description = st.text_input("Description", value="Cash addition", key="add_desc")
         if st.button("Add", key="btn_add"):
             portfolio.add_cash(add_amount, add_description)
-            save_portfolio(portfolio)  # Automatic save
+            save_portfolio(portfolio)
             st.success(f"{add_amount:.2f}€ added successfully!")
             st.rerun()
 
     with col2:
-        st.subheader("Withdraw cash")
+        st.markdown("#### Withdraw cash")
         if portfolio.cash > 0.01:
             max_withdraw = max(0.01, portfolio.cash)
             withdraw_amount = st.number_input("Amount to withdraw", min_value=0.01, max_value=max_withdraw, step=0.01, key="withdraw_cash")
@@ -276,7 +345,7 @@ def manage_cash(portfolio):
             can_withdraw = portfolio.cash >= withdraw_amount
             if st.button("Withdraw", key="btn_withdraw", disabled=not can_withdraw):
                 if can_withdraw and portfolio.withdraw_cash(withdraw_amount, withdraw_description):
-                    save_portfolio(portfolio)  # Automatic save
+                    save_portfolio(portfolio)
                     st.success(f"{withdraw_amount:.2f}€ withdrawn successfully!")
                     st.rerun()
                 else:
@@ -284,16 +353,16 @@ def manage_cash(portfolio):
         else:
             st.info("Not enough cash available to make a withdrawal")
 
-def manage_investments(portfolio):
-    st.header("📈 Investment Management")
 
-    # Adding the new tab for asset search
+def manage_investments(portfolio):
+    """Investment management sub-tab"""
+    st.subheader("📈 Investment Management")
+
     tab1, tab2, tab3, tab4 = st.tabs(["Add manually", "🔍 Search asset", "Update", "Sell"])
 
     with tab1:
-        st.subheader("New manual investment")
+        st.markdown("#### New manual investment")
 
-        # Investment type selection
         investment_type = st.selectbox("Investment type",
                                      ["💰 Financial", "🏠 Real Estate"],
                                      key="investment_type_select")
@@ -302,7 +371,6 @@ def manage_investments(portfolio):
         inv_price = st.number_input("Unit price", min_value=0.01, step=0.01)
         inv_quantity = st.number_input("Quantity", min_value=0.01, step=0.01)
 
-        # Specific fields by investment type
         if investment_type == "💰 Financial":
             col1, col2 = st.columns(2)
             with col1:
@@ -314,7 +382,7 @@ def manage_investments(portfolio):
                                        placeholder="Ex: United States, Europe, Japan",
                                        key="financial_location",
                                        help="Allows you to locate the investment on the world map")
-        else:  # Real Estate
+        else:
             col1, col2 = st.columns(2)
             with col1:
                 property_type = st.selectbox("Property type",
@@ -345,11 +413,11 @@ def manage_investments(portfolio):
                                                                  property_type, location, rental_yield)
 
                 if success:
-                    save_portfolio(portfolio)  # Automatic save
+                    save_portfolio(portfolio)
                     location_msg = f" (📍 {location})" if location else ""
                     st.success(f"Investment '{inv_name}' added successfully!{location_msg}")
                     if location:
-                        st.info("🌍 Check the 'World Map' tab to see your geolocated investment!")
+                        st.info("🌍 Check the 'Investments Map' tab to see your geolocated investment!")
                     st.rerun()
                 else:
                     st.error("Insufficient funds!")
@@ -357,21 +425,17 @@ def manage_investments(portfolio):
                 st.error("Invalid name or investment already exists!")
 
     with tab2:
-        # Using the new search function
         portfolio_addition = asset_search_tab()
 
-        # If an asset has been selected for addition to the portfolio
         if portfolio_addition:
             asset_name = portfolio_addition['name']
             asset_price = portfolio_addition['price']
             asset_quantity = portfolio_addition['quantity']
 
-            # Check if the asset already exists in the portfolio
             if asset_name not in portfolio.investments:
                 if portfolio.add_investment(asset_name, asset_price, asset_quantity):
                     save_portfolio(portfolio)
                     st.success(f"🎉 Asset '{asset_name}' added to portfolio successfully!")
-                    # Clean session variables
                     for key in ['searched_ticker', 'searched_price', 'add_to_portfolio']:
                         if key in st.session_state:
                             del st.session_state[key]
@@ -382,16 +446,14 @@ def manage_investments(portfolio):
                 st.warning(f"⚠️ Asset '{asset_name}' already exists in your portfolio. Use the 'Update' tab to modify its values.")
 
     with tab3:
-        st.subheader("Update values")
+        st.markdown("#### Update values")
         if portfolio.investments:
             inv_to_update = st.selectbox("Investment", list(portfolio.investments.keys()))
             current_value = portfolio.investments[inv_to_update].current_value
             new_value = st.number_input("New unit value", value=current_value, step=0.01)
 
-            # Option to automatically update from Yahoo Finance
             if st.checkbox("🔄 Get current price from Yahoo Finance"):
                 try:
-                    # Try to get the current price if the name looks like a ticker
                     ticker_test = yf.Ticker(inv_to_update)
                     current_data = ticker_test.history(period="1d")
                     if not current_data.empty:
@@ -408,14 +470,14 @@ def manage_investments(portfolio):
 
             if st.button("Update"):
                 portfolio.update_investment_value(inv_to_update, new_value)
-                save_portfolio(portfolio)  # Automatic save
+                save_portfolio(portfolio)
                 st.success(f"Value of '{inv_to_update}' updated!")
                 st.rerun()
         else:
             st.info("No investments to update")
 
     with tab4:
-        st.subheader("Sell investments")
+        st.markdown("#### Sell investments")
         if portfolio.investments:
             inv_to_sell = st.selectbox("Investment", list(portfolio.investments.keys()), key="sell_select")
             current_quantity = float(portfolio.investments[inv_to_sell].quantity)
@@ -435,7 +497,7 @@ def manage_investments(portfolio):
             if st.button("Sell", disabled=not can_sell):
                 if can_sell:
                     portfolio.sell_investment(inv_to_sell, sell_quantity)
-                    save_portfolio(portfolio)  # Automatic save
+                    save_portfolio(portfolio)
                     st.success(f"Sale completed successfully!")
                     st.rerun()
                 else:
@@ -443,13 +505,15 @@ def manage_investments(portfolio):
         else:
             st.info("No investments to sell")
 
+
 def manage_credits(portfolio):
-    st.header("💳 Credit Management")
+    """Credit management sub-tab"""
+    st.subheader("💳 Credit Management")
 
     tab1, tab2 = st.tabs(["Add credit", "Pay credit"])
 
     with tab1:
-        st.subheader("New credit")
+        st.markdown("#### New credit")
         credit_name = st.text_input("Credit name")
         credit_amount = st.number_input("Amount", min_value=0.01, step=0.01)
         credit_rate = st.number_input("Annual interest rate (%)", min_value=0.0, step=0.1)
@@ -458,14 +522,14 @@ def manage_credits(portfolio):
         if st.button("Add credit"):
             if credit_name and credit_name not in portfolio.credits:
                 portfolio.add_credit(credit_name, credit_amount, credit_rate, credit_payment)
-                save_portfolio(portfolio)  # Automatic save
+                save_portfolio(portfolio)
                 st.success(f"Credit '{credit_name}' added successfully!")
                 st.rerun()
             else:
                 st.error("Invalid name or credit already exists!")
 
     with tab2:
-        st.subheader("Make a payment")
+        st.markdown("#### Make a payment")
         if portfolio.credits:
             credit_to_pay = st.selectbox("Credit", list(portfolio.credits.keys()))
             remaining_balance = portfolio.credits[credit_to_pay].get_remaining_balance()
@@ -476,7 +540,7 @@ def manage_credits(portfolio):
             can_pay = portfolio.cash >= payment_amount and portfolio.cash > 0 and remaining_balance > 0
             if st.button("Pay", disabled=not can_pay):
                 if can_pay and portfolio.pay_credit(credit_to_pay, payment_amount):
-                    save_portfolio(portfolio)  # Automatic save
+                    save_portfolio(portfolio)
                     st.success(f"Payment of {payment_amount:.2f}€ completed!")
                     st.rerun()
                 else:
@@ -484,11 +548,11 @@ def manage_credits(portfolio):
         else:
             st.info("No credits to pay")
 
+
 def show_world_map(portfolio):
     """Display the world map of investments"""
-    st.header("🌍 World Investment Map")
+    st.subheader("🌍 World Investment Map")
 
-    # Geolocation metrics
     total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
     financial_count = len(portfolio.financial_investments)
     real_estate_count = len(portfolio.real_estate_investments)
@@ -510,15 +574,12 @@ def show_world_map(portfolio):
 
         st.markdown("---")
 
-        # Geographic distribution information
-        st.subheader("📍 Geographic Distribution")
+        st.markdown("#### 📍 Geographic Distribution")
 
-        # Analyze locations
         locations = {}
 
-        # Financial investments
         for name, inv in portfolio.financial_investments.items():
-            location = getattr(inv, 'location', 'France')  # Default
+            location = getattr(inv, 'location', 'France')
             inv_type = getattr(inv, 'investment_type', 'Financial')
             value = inv.get_total_value()
 
@@ -527,7 +588,6 @@ def show_world_map(portfolio):
             locations[location]['financial'] += value
             locations[location]['count'] += 1
 
-        # Real estate investments
         for name, inv in portfolio.real_estate_investments.items():
             location = getattr(inv, 'location', 'France')
             value = inv.get_total_value()
@@ -537,7 +597,6 @@ def show_world_map(portfolio):
             locations[location]['real_estate'] += value
             locations[location]['count'] += 1
 
-        # Display summary by location
         if locations:
             location_data = []
             for loc, data in locations.items():
@@ -554,11 +613,8 @@ def show_world_map(portfolio):
 
         st.markdown("---")
 
-        # Large interactive map
-        st.subheader("🗺️ Interactive Map")
+        st.markdown("#### 🗺️ Interactive Map")
         fig_map = create_world_investment_map(portfolio)
-
-        # Adjust size for better visibility
         fig_map.update_layout(height=700)
 
         st.plotly_chart(fig_map, use_container_width=True, config={
@@ -567,9 +623,8 @@ def show_world_map(portfolio):
             'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
         })
 
-        # Legend and tips
         st.markdown("---")
-        st.subheader("💡 How to read this map")
+        st.markdown("#### 💡 How to read this map")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -591,12 +646,11 @@ def show_world_map(portfolio):
         st.info("💡 **Tip**: Zoom and navigate on the map to explore your investments by region")
 
     else:
-        # No investments
         st.info("🌍 No investments to locate at the moment")
         st.markdown("""
         ### How to add geolocated investments:
 
-        1. **📈 Go to the 'Investments' tab**
+        1. **📈 Go to the 'Wealth Management' → 'Investments' tab**
         2. **🌍 Enter the location** when adding:
            - For real estate: required field
            - For financial: optional but recommended
@@ -608,46 +662,6 @@ def show_world_map(portfolio):
         - **Regions**: Europe, Asia, North America, etc.
         """)
 
-def show_analytics(portfolio):
-    st.header("📊 Analytics and Statistics")
-
-    if not portfolio.investments and not portfolio.credits:
-        st.info("Not enough data to generate analytics")
-        return
-
-    # Investment performance
-    if portfolio.investments:
-        st.subheader("Investment performance")
-
-        # Performance chart
-        performance_data = []
-        for name, inv in portfolio.investments.items():
-            performance_data.append({
-                'Investment': name,
-                'Initial value': inv.initial_value * inv.quantity,
-                'Current value': inv.get_total_value(),
-                'Performance (%)': inv.get_gain_loss_percentage()
-            })
-
-        df_perf = pd.DataFrame(performance_data)
-        fig = px.bar(df_perf, x='Investment', y='Performance (%)',
-                    title="Investment performance (%)",
-                    color='Performance (%)',
-                    color_continuous_scale=['red', 'yellow', 'green'])
-        st.plotly_chart(fig, config={})
-
-    # Net worth evolution (simulation)
-    st.subheader("Wealth distribution")
-    labels = ['Cash']
-    values = [portfolio.cash]
-
-    for name, inv in portfolio.investments.items():
-        labels.append(name)
-        values.append(inv.get_total_value())
-
-    if values and sum(values) > 0:
-        fig = px.pie(values=values, names=labels, title="Asset distribution")
-        st.plotly_chart(fig, config={})
 
 def show_predictions(portfolio):
     st.header("🔮 Wealth Predictions")
@@ -661,14 +675,13 @@ def show_predictions(portfolio):
     to project the possible evolution of your wealth over several years.
     """)
 
-    # Simulation controls
     col1, col2, col3 = st.columns([2, 2, 1])
 
     with col1:
         years = st.selectbox(
             "Prediction horizon",
             options=[1, 5, 10, 20, 30],
-            index=2,  # Default 10 years
+            index=2,
             help="Number of years to simulate"
         )
 
@@ -676,7 +689,7 @@ def show_predictions(portfolio):
         num_simulations = st.selectbox(
             "Number of simulations",
             options=[100, 500, 1000, 2000],
-            index=2,  # Default 1000
+            index=2,
             help="More simulations = more accurate results but slower"
         )
 
@@ -684,7 +697,6 @@ def show_predictions(portfolio):
         st.markdown("<br>", unsafe_allow_html=True)
         run_prediction = st.button("🚀 Run", use_container_width=True, type="primary")
 
-    # Run prediction
     if run_prediction or 'prediction_results' in st.session_state:
         if run_prediction:
             with st.spinner(f"Simulating {num_simulations} scenarios over {years} years..."):
@@ -696,21 +708,17 @@ def show_predictions(portfolio):
                 st.session_state.prediction_results = prediction_results
                 st.session_state.prediction_years = years
 
-        # Display results
         if 'prediction_results' in st.session_state:
             results = st.session_state.prediction_results
 
-            # Main chart
             fig = create_prediction_chart(results)
             st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-            # Detailed statistics
             st.markdown("---")
             st.subheader("📈 Simulation Statistics")
 
             stats = create_statistics_summary(results)
 
-            # Display metrics
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
@@ -752,7 +760,6 @@ def show_predictions(portfolio):
                     help="75% chance of reaching or exceeding this value"
                 )
 
-            # Detailed scenarios table
             st.markdown("---")
             st.subheader("📊 Detailed Scenarios")
 
@@ -797,7 +804,6 @@ def show_predictions(portfolio):
             df_scenarios = pd.DataFrame(scenarios_data)
             st.dataframe(df_scenarios, use_container_width=True, hide_index=True)
 
-            # Portfolio composition used
             st.markdown("---")
             st.subheader("💼 Composition Used for Simulation")
 
@@ -814,7 +820,6 @@ def show_predictions(portfolio):
             df_composition = pd.DataFrame(composition_data)
             st.dataframe(df_composition, use_container_width=True, hide_index=True)
 
-            # Warnings
             st.info("""
             ⚠️ **Important Warning**
 
@@ -826,10 +831,8 @@ def show_predictions(portfolio):
             """)
 
     else:
-        # Display before first run
         st.info("👆 Configure the parameters above and click 'Run' to see predictions")
 
-        # Methodology preview
         with st.expander("📚 How does the prediction work?"):
             st.markdown("""
             ### Monte Carlo Simulation Methodology
@@ -854,109 +857,6 @@ def show_predictions(portfolio):
 
             💡 The more diversified your portfolio, the more stable and reliable the predictions.
             """)
-def show_history(portfolio):
-    st.header("📋 Transaction History")
-
-    if portfolio.transaction_history:
-        df_history = pd.DataFrame(portfolio.transaction_history)
-        df_history = df_history.sort_values('date', ascending=False)
-
-        # Adding history metrics
-        st.subheader("📊 Activity Summary")
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            total_transactions = len(df_history)
-            st.metric("Total transactions", total_transactions)
-
-        with col2:
-            cash_transactions = df_history[df_history['type'].str.contains('CASH')]['amount'].sum()
-            st.metric("Cash movements", f"{cash_transactions:.0f}€")
-
-        with col3:
-            investment_buys = df_history[df_history['type'] == 'INVESTMENT_BUY']['amount'].sum()
-            st.metric("Investments", f"{investment_buys:.0f}€")
-
-        with col4:
-            credit_payments = df_history[df_history['type'] == 'CREDIT_PAYMENT']['amount'].sum()
-            st.metric("Credit payments", f"{credit_payments:.0f}€")
-
-        # Chart of transaction evolution by month
-        df_history['month'] = pd.to_datetime(df_history['date']).dt.to_period('M').astype(str)
-        monthly_transactions = df_history.groupby(['month', 'type']).size().reset_index(name='count')
-
-        if len(monthly_transactions) > 0:
-            fig = px.bar(monthly_transactions, x='month', y='count', color='type',
-                        title="Number of transactions by month and type",
-                        labels={'month': 'Month', 'count': 'Number of transactions', 'type': 'Type'})
-            st.plotly_chart(fig, config={})
-
-        # Filters
-        col1, col2 = st.columns(2)
-        with col1:
-            type_filter = st.selectbox("Filter by type",
-                                     ["All"] + list(df_history['type'].unique()))
-        with col2:
-            date_filter = st.date_input("Minimum date", value=None)
-
-        # Apply filters
-        filtered_df = df_history.copy()
-        if type_filter != "All":
-            filtered_df = filtered_df[filtered_df['type'] == type_filter]
-        if date_filter:
-            filtered_df = filtered_df[pd.to_datetime(filtered_df['date']).dt.date >= date_filter]
-
-        # Improved table display
-        display_df = filtered_df.copy()
-        display_df['Type'] = display_df['type'].map({
-            'CASH_ADD': '💰 Cash addition',
-            'CASH_WITHDRAW': '💸 Cash withdrawal',
-            'INVESTMENT_BUY': '📈 Investment purchase',
-            'INVESTMENT_SELL': '📉 Investment sale',
-            'INVESTMENT_UPDATE': '🔄 Price update',
-            'CREDIT_ADD': '🏦 New credit',
-            'CREDIT_PAYMENT': '💳 Credit payment',
-            'CREDIT_INTEREST': '📊 Credit interest'
-        })
-        display_df['Amount'] = display_df['amount'].apply(lambda x: f"{x:.2f}€" if x > 0 else "")
-        display_df['Date'] = pd.to_datetime(display_df['date']).dt.strftime('%d/%m/%Y %H:%M')
-
-        # Display table
-        st.subheader(f"📋 Transactions ({len(filtered_df)} results)")
-        st.dataframe(
-            display_df[['Date', 'Type', 'Amount', 'description']].rename(columns={'description': 'Description'}),
-            use_container_width=True,
-            height=400
-        )
-
-        # Detailed statistics
-        st.subheader("📈 Detailed Statistics")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Number of transactions", len(filtered_df))
-        with col2:
-            total_amount = filtered_df['amount'].sum()
-            st.metric("Total amount", f"{total_amount:.2f}€")
-        with col3:
-            avg_amount = filtered_df['amount'].mean() if len(filtered_df) > 0 else 0
-            st.metric("Average amount", f"{avg_amount:.2f}€")
-
-        # Timeline of major events
-        if len(df_history) > 5:
-            st.subheader("🕒 Major Events Timeline")
-            major_events = df_history[df_history['type'].isin(['INVESTMENT_BUY', 'CREDIT_ADD', 'INVESTMENT_SELL'])].head(10)
-            for _, event in major_events.iterrows():
-                event_date = pd.to_datetime(event['date']).strftime('%d/%m/%Y')
-                if event['type'] == 'INVESTMENT_BUY':
-                    st.write(f"📈 **{event_date}**: {event['description']} ({event['amount']:.0f}€)")
-                elif event['type'] == 'CREDIT_ADD':
-                    st.write(f"🏦 **{event_date}**: {event['description']} ({event['amount']:.0f}€)")
-                elif event['type'] == 'INVESTMENT_SELL':
-                    st.write(f"📉 **{event_date}**: {event['description']} ({event['amount']:.0f}€)")
-
-    else:
-        st.info("No transactions recorded")
-        st.markdown("💡 **Tip**: Use the 'Create demo portfolio' button in the sidebar to see a full history example!")
 
 
 def show_definitions():
@@ -969,7 +869,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Cash
     st.subheader("💰 Cash")
     st.markdown("""
     **Definition**: Money immediately available in your portfolio.
@@ -984,7 +883,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Financial Investments
     st.subheader("📈 Financial Investments")
 
     col1, col2 = st.columns(2)
@@ -1032,7 +930,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Real Estate Investments
     st.subheader("🏠 Real Estate Investments")
 
     st.markdown("""
@@ -1063,7 +960,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Credits
     st.subheader("💳 Credits")
 
     st.markdown("""
@@ -1091,7 +987,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Performance Indicators
     st.subheader("📊 Performance Indicators")
 
     st.markdown("""
@@ -1118,7 +1013,6 @@ def show_definitions():
 
     st.markdown("---")
 
-    # Final note
     st.info("""
     💡 **Need more information?**
 

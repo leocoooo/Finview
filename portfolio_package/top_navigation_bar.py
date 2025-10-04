@@ -96,18 +96,14 @@ def create_horizontal_menu():
 
     # Initialize current page in session_state
     if 'current_page' not in st.session_state:
-        st.session_state.current_page = "🏠 Dashboard"
+        st.session_state.current_page = "📊 Summary"
 
-    # Define pages with their icons
+    # Define pages with their icons - Updated structure
     pages_config = [
-        ("🏠 Dashboard", "🏠"),
-        ("💵 Manage Cash", "💵"),
-        ("📈 Investments", "📈"),
-        ("💳 Credits", "💳"),
-        ("🌍 World Map", "🌍"),
-        ("📊 Analytics", "📊"),
+        ("📊 Summary", "📊"),
+        ("💼 Wealth Management", "💼"),
+        ("📈 Dashboard", "📈"),
         ("🔮 Predictions", "🔮"),
-        ("📋 History", "📋"),
         ("📚 Definitions", "📚")
     ]
 
@@ -121,7 +117,6 @@ def create_horizontal_menu():
             button_type = "primary" if is_active else "secondary"
 
             # Create button label (without the emoji from page name)
-
             page_label = page_name.split(" ", 1)[1] if " " in page_name else page_name
             button_label = f"{icon}\n\n{page_label}"
 
