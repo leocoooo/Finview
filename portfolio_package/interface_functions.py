@@ -11,14 +11,21 @@ import yfinance as yf
 from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
 
 def format_currency(value):
-    """Format currency: show decimals only if different from .00"""
+    """
+    Format currency: show decimals only if different from .00
+    Uses space as thousand separator for readability
+    Examples: 1000 -> "1 000€", 1000.50 -> "1 000.50€"
+    """
     if value == int(value):
-        return f"{int(value)}€"
-    return f"{value:.2f}€"
+        return f"{int(value):,}€".replace(',', ' ')
+    return f"{value:,.2f}€".replace(',', ' ')
 
 
 def format_percentage(value):
-    """Format percentage: show decimals only if different from .0"""
+    """
+    Format percentage: show decimals only if different from .0
+    Examples: 15 -> "15%", 15.5 -> "15.5%"
+    """
     if value == int(value):
         return f"{int(value):+d}%" if value != abs(value) or value < 0 else f"{int(value)}%"
     return f"{value:+.1f}%" if value != abs(value) or value < 0 else f"{value:.1f}%"
@@ -515,7 +522,7 @@ def show_world_map(portfolio):
             financial_value = portfolio.get_financial_investments_value()
             real_estate_value = portfolio.get_real_estate_investments_value()
             total_value = financial_value + real_estate_value
-            st.metric("💰 Total Value", f"{total_value:.0f}€")
+            st.metric("💰 Total Value", f"{format_currency(total_value)}")
 
         st.markdown("---")
 
@@ -680,7 +687,7 @@ def show_predictions(portfolio):
                 st.metric(
                     f"Median ({years} years)",
                     format_currency(median_final),
-                    f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)" if median_return == int(median_return) else f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)",
+                    f"+{format_currency(median_gain)[:-1]}€ ({format_percentage(median_return)}%/year)" if median_return == int(median_return) else f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)",
                     help="Median scenario (50% chance of being above)"
                 )
 
@@ -689,8 +696,8 @@ def show_predictions(portfolio):
                 optimistic_gain = stats['gains']['p75']
                 st.metric(
                     "Optimistic Scenario (P75)",
-                    f"{optimistic_final:.0f}€",
-                    f"+{optimistic_gain:.0f}€",
+                    f"{format_currency(optimistic_final)}",
+                    f"+{format_currency(optimistic_gain)}",
                     help="25% chance of reaching or exceeding this value"
                 )
 
@@ -699,8 +706,8 @@ def show_predictions(portfolio):
                 pessimistic_gain = stats['gains']['p25']
                 st.metric(
                     "Conservative Scenario (P25)",
-                    f"{pessimistic_final:.0f}€",
-                    f"+{pessimistic_gain:.0f}€" if pessimistic_gain >= 0 else f"{pessimistic_gain:.0f}€",
+                    f"{format_currency(pessimistic_final)}",
+                    f"+{format_currency(pessimistic_gain)}" if pessimistic_gain >= 0 else f"{format_currency(pessimistic_gain)}",
                     delta_color="normal" if pessimistic_gain >= 0 else "inverse",
                     help="75% chance of reaching or exceeding this value"
                 )
@@ -717,25 +724,25 @@ def show_predictions(portfolio):
                     '❄️ Pessimistic (P10)'
                 ],
                 f'Value after {years} years': [
-                    f"{stats['final']['p90']:.0f}€",
-                    f"{stats['final']['p75']:.0f}€",
-                    f"{stats['final']['p50']:.0f}€",
-                    f"{stats['final']['p25']:.0f}€",
-                    f"{stats['final']['p10']:.0f}€"
+                    f"{format_currency(stats['final']['p90'])}",
+                    f"{format_currency(stats['final']['p75'])}",
+                    f"{format_currency(stats['final']['p50'])}",
+                    f"{format_currency(stats['final']['p25'])}",
+                    f"{format_currency(stats['final']['p10'])}"
                 ],
                 'Gain/Loss': [
-                    f"{stats['gains']['p90']:+.0f}€",
-                    f"{stats['gains']['p75']:+.0f}€",
-                    f"{stats['gains']['p50']:+.0f}€",
-                    f"{stats['gains']['p25']:+.0f}€",
-                    f"{stats['gains']['p10']:+.0f}€"
+                    f"{format_currency(stats['gains']['p90'])}",
+                    f"{format_currency(stats['gains']['p75'])}",
+                    f"{format_currency(stats['gains']['p50'])}",
+                    f"{format_currency(stats['gains']['p25'])}",
+                    f"{format_currency(stats['gains']['p10'])}"
                 ],
                 'Annualized return': [
-                    f"{stats['returns']['p90']:+.1f}%",
-                    f"{stats['returns']['p75']:+.1f}%",
-                    f"{stats['returns']['p50']:+.1f}%",
-                    f"{stats['returns']['p25']:+.1f}%",
-                    f"{stats['returns']['p10']:+.1f}%"
+                    f"{format_percentage(stats['returns']['p90'])}",
+                    f"{format_percentage(stats['returns']['p75'])}",
+                    f"{format_percentage(stats['returns']['p50'])}",
+                    f"{format_percentage(stats['returns']['p25'])}",
+                    f"{format_percentage(stats['returns']['p10'])}"
                 ],
                 'Probability': [
                     '10% chance',
