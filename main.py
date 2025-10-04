@@ -14,14 +14,14 @@ from portfolio_package.wealth_management_functions import (
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
-from portfolio_package.top_navigation_bar import create_horizontal_menu, create_sidebar_actions
-
 from portfolio_package.interface_functions import (
+    create_horizontal_menu, 
+    create_sidebar_actions,
     show_summary,
     show_wealth_management,
     show_dashboard_tabs,
     show_predictions,
-    show_definitions
+    show_definitions,
 )
 
 # Page configuration
