@@ -31,11 +31,14 @@ def create_portfolio_evolution_chart(portfolio, years=5):
 
     # Générer une évolution réaliste
     # On part d'une valeur initiale (par exemple 60-80% de la valeur actuelle)
-    initial_value = current_value * np.random.uniform(0.4, 0.7)
+    initial_value = current_value * np.random.uniform(0.4, 0.7) if current_value > 0 else 1000
 
     # Créer une tendance générale de croissance avec volatilité
     # Taux de croissance mensuel moyen pour atteindre la valeur actuelle
-    monthly_growth_rate = (current_value / initial_value) ** (1 / num_months) - 1
+    if initial_value > 0 and num_months > 0:
+        monthly_growth_rate = (current_value / initial_value) ** (1 / num_months) - 1
+    else:
+        monthly_growth_rate = 0
 
     # Générer les valeurs avec volatilité
     values = [initial_value]
