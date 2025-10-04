@@ -1,6 +1,7 @@
 from fpdf import FPDF
 import plotly.express as px
 import os
+from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
 
 # Fonction pour convertir hex en RGB
 def hex_to_rgb(hex_color):
@@ -229,7 +230,7 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/
             pdf.cell(45, 8, f"{perf:+.1f}%", border=1)
             pdf.ln()
 
-    # === PAGE 3: Conseils d'investissement ===
+    # === PAGE 3: Prédictions du patrimoine ===
     pdf.add_page()
 
     # Fond page 3
@@ -242,6 +243,105 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/
 
     # Titre page 3
     pdf.ln(15)  # espace pour le logo
+    pdf.set_font("Arial", 'B', 16)
+    pdf.set_text_color(*text_color)
+    pdf.cell(0, 10, "Predictions du Patrimoine", ln=True, align="C")
+    pdf.ln(5)
+
+    # Ligne de séparation blanche
+    pdf.set_draw_color(*text_color)
+    pdf.set_line_width(0.5)
+    pdf.line(20, pdf.get_y(), pdf.w - 20, pdf.get_y())
+    pdf.ln(10)
+
+    # Générer les prédictions si le portefeuille contient des investissements
+    if portfolio.investments:
+        # Générer la simulation
+        try:
+            prediction_results = simulate_portfolio_future(portfolio, years=10, num_simulations=1000)
+            stats = create_statistics_summary(prediction_results)
+
+            # Graphique de prédiction
+            fig = create_prediction_chart(prediction_results)
+            fig.write_image("prediction_chart.png", width=800, height=400)
+            pdf.image("prediction_chart.png", x=10, y=pdf.get_y(), w=190)
+            pdf.ln(110)
+
+            # Statistiques clés
+            pdf.set_font("Arial", 'B', 13)
+            pdf.set_text_color(*text_color)
+            pdf.cell(0, 8, "Scenarios de prevision sur 10 ans", ln=True)
+            pdf.ln(3)
+
+            # Tableau des scénarios
+            pdf.set_draw_color(*border_color)
+            pdf.set_fill_color(*header_bg_color)
+            pdf.set_font("Arial", 'B', 9)
+
+            pdf.cell(55, 8, "Scenario", border=1, fill=True)
+            pdf.cell(45, 8, "Valeur finale", border=1, fill=True)
+            pdf.cell(45, 8, "Gain/Perte", border=1, fill=True)
+            pdf.cell(45, 8, "Rdt annualise", border=1, fill=True)
+            pdf.ln()
+
+            # Contenu des scénarios
+            pdf.set_font("Arial", '', 9)
+            scenarios = [
+                ("Tres optimiste (P90)", stats['final']['p90'], stats['gains']['p90'], stats['returns']['p90']),
+                ("Optimiste (P75)", stats['final']['p75'], stats['gains']['p75'], stats['returns']['p75']),
+                ("Mediane (P50)", stats['final']['p50'], stats['gains']['p50'], stats['returns']['p50']),
+                ("Prudent (P25)", stats['final']['p25'], stats['gains']['p25'], stats['returns']['p25']),
+                ("Pessimiste (P10)", stats['final']['p10'], stats['gains']['p10'], stats['returns']['p10'])
+            ]
+
+            for scenario_name, final_val, gain, return_pct in scenarios:
+                pdf.cell(55, 7, scenario_name, border=1)
+                pdf.cell(45, 7, f"{final_val:.0f} EUR", border=1)
+                pdf.cell(45, 7, f"{gain:+.0f} EUR", border=1)
+                pdf.cell(45, 7, f"{return_pct:+.1f}%/an", border=1)
+                pdf.ln()
+
+            pdf.ln(5)
+
+            # Note d'avertissement
+            pdf.set_font("Arial", 'I', 9)
+            pdf.set_text_color(*text_color)
+            avertissement = (
+                "Ces predictions sont basees sur des simulations Monte Carlo utilisant des rendements "
+                "historiques moyens. Les resultats reels peuvent varier considerablement en fonction "
+                "de nombreux facteurs imprevus (crises economiques, innovations, changements reglementaires, etc.). "
+                "Cette simulation ne constitue pas un conseil en investissement."
+            )
+            pdf.multi_cell(0, 5, avertissement)
+
+            # Nettoyer le fichier temporaire
+            try:
+                os.remove("prediction_chart.png")
+            except:
+                pass
+
+        except Exception as e:
+            pdf.set_font("Arial", '', 11)
+            pdf.set_text_color(*text_color)
+            pdf.multi_cell(0, 6, f"Impossible de generer les predictions: {str(e)}")
+    else:
+        pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(*text_color)
+        pdf.multi_cell(0, 6, "Aucun investissement pour generer des predictions.")
+
+    # === PAGE 4: Conseils d'investissement ===
+    pdf.add_page()
+
+    # Fond page 4
+    pdf.set_fill_color(*background_color)
+    pdf.rect(0, 0, pdf.w, pdf.h, 'F')
+
+    # Logo en haut à gauche (page 4)
+    if os.path.exists(full_logo_path):
+        pdf.image(full_logo_path, x=5, y=5, w=50)
+
+    # Titre page 4
+    pdf.ln(15)
     pdf.set_font("Arial", 'B', 16)
     pdf.set_text_color(*text_color)
     pdf.cell(0, 10, "Conseils d'Investissement", ln=True, align="C")

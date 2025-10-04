@@ -106,6 +106,7 @@ def create_horizontal_menu():
         ("💳 Crédits", "💳"),
         ("🌍 Carte du monde", "🌍"),
         ("📊 Analyses", "📊"),
+        ("🔮 Prédictions", "🔮"),
         ("📋 Historique", "📋"),
         ("📚 Définitions", "📚")
     ]

@@ -81,6 +81,8 @@ def main():
         show_world_map(portfolio)
     elif action == "📊 Analyses":
         show_analytics(portfolio)
+    elif action == "🔮 Prédictions":
+        show_predictions(portfolio)
     elif action == "📋 Historique":
         show_history(portfolio)
     elif action == "📚 Définitions":
@@ -608,15 +610,15 @@ def show_world_map(portfolio):
 
 def show_analytics(portfolio):
     st.header("📊 Analyses et statistiques")
-    
+
     if not portfolio.investments and not portfolio.credits:
         st.info("Pas assez de données pour générer des analyses")
         return
-    
+
     # Performance des investissements
     if portfolio.investments:
         st.subheader("Performance des investissements")
-        
+
         # Graphique de performance
         performance_data = []
         for name, inv in portfolio.investments.items():
@@ -626,33 +628,36 @@ def show_analytics(portfolio):
                 'Valeur actuelle': inv.get_total_value(),
                 'Performance (%)': inv.get_gain_loss_percentage()
             })
-        
+
         df_perf = pd.DataFrame(performance_data)
-        fig = px.bar(df_perf, x='Investissement', y='Performance (%)', 
+        fig = px.bar(df_perf, x='Investissement', y='Performance (%)',
                     title="Performance des investissements (%)",
                     color='Performance (%)',
                     color_continuous_scale=['red', 'yellow', 'green'])
         st.plotly_chart(fig, config={})
-    
+
     # Évolution de la valeur nette (simulation)
     st.subheader("Répartition du patrimoine")
     labels = ['Liquidités']
     values = [portfolio.cash]
-    
+
     for name, inv in portfolio.investments.items():
         labels.append(name)
         values.append(inv.get_total_value())
-    
+
     if values and sum(values) > 0:
         fig = px.pie(values=values, names=labels, title="Répartition des actifs")
         st.plotly_chart(fig, config={})
 
-    # ========== NOUVELLE SECTION: PRÉDICTIONS ==========
-    st.markdown("---")
-    st.subheader("🔮 Prédictions du Patrimoine")
+def show_predictions(portfolio):
+    st.header("🔮 Prédictions du Patrimoine")
+
+    if not portfolio.investments:
+        st.info("Ajoutez des investissements pour voir les prédictions")
+        return
 
     st.markdown("""
-    Cette simulation utilise les rendements historiques moyens de chaque classe d'actif 
+    Cette simulation utilise les rendements historiques moyens de chaque classe d'actif
     pour projeter l'évolution possible de votre patrimoine sur plusieurs années.
     """)
 
@@ -682,10 +687,6 @@ def show_analytics(portfolio):
     # Lancer la prédiction
     if run_prediction or 'prediction_results' in st.session_state:
         if run_prediction:
-            # Import du module de prédiction
-            from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, \
-                create_statistics_summary
-
             with st.spinner(f"Simulation de {num_simulations} scénarios sur {years} ans..."):
                 prediction_results = simulate_portfolio_future(
                     portfolio,
@@ -817,8 +818,8 @@ def show_analytics(portfolio):
             st.info("""
             ⚠️ **Avertissement Important**
 
-            Ces prédictions sont basées sur des rendements historiques moyens et utilisent des simulations Monte Carlo. 
-            Les résultats réels peuvent varier considérablement et dépendent de nombreux facteurs imprévisibles 
+            Ces prédictions sont basées sur des rendements historiques moyens et utilisent des simulations Monte Carlo.
+            Les résultats réels peuvent varier considérablement et dépendent de nombreux facteurs imprévisibles
             (crises économiques, innovations technologiques, changements réglementaires, etc.).
 
             **Cette simulation ne constitue pas un conseil en investissement.**
