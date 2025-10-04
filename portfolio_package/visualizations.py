@@ -242,46 +242,188 @@ def create_performance_chart(portfolio):
     fig.update_layout(**layout)
     return fig
 
+import pandas as pd
+from datetime import datetime
 
-def create_portfolio_evolution_chart(portfolio, years=5):
-    """Smoothed portfolio evolution chart"""
-    current_value = getattr(portfolio, "get_net_worth", lambda:1000)()
+def get_portfolio_value_at_date(portfolio, date):
+    """Calcule la valeur totale du portefeuille à une date donnée."""
+    total = 0.0
+
+    # Trésorerie (approximation simple : prend la valeur actuelle)
+    total += portfolio.cash
+
+    # Valeur des investissements financiers
+    for inv in portfolio.financial_investments.values():
+        if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
+            total += inv.current_value * inv.quantity
+
+    # Valeur des investissements immobiliers
+    for inv in portfolio.real_estate_investments.values():
+        if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
+            total += inv.current_value * inv.quantity
+
+    # On pourrait ajouter ici la valeur nette des crédits si tu veux les inclure
+    return total
+
+
+def get_portfolio_monthly_history(portfolio):
+    """
+    Reconstruit l'historique mensuel du portefeuille à partir de transaction_history.
+    Retourne un DataFrame avec les colonnes ['date', 'value'].
+    """
+    if not hasattr(portfolio, "transaction_history") or len(portfolio.transaction_history) == 0:
+        return pd.DataFrame(columns=["date", "value"])
+
+    df = pd.DataFrame(portfolio.transaction_history)
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.sort_values("date")
+
+    # Crée une série de dates mensuelles entre le début et la fin
+    start_date = df["date"].iloc[0].replace(day=1)
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=years*365)
-    dates = [start_date + timedelta(days=30*i) for i in range(years*12+1)]
-    initial_value = current_value*0.6 if current_value>0 else 1000
+    monthly_dates = pd.date_range(start=start_date, end=end_date, freq="MS")
 
-    values = np.linspace(initial_value, current_value, len(dates))
-    values += np.random.normal(0, current_value*0.02, len(dates))
-    values[-1] = current_value
+    # Calcule la valeur totale à chaque début de mois
+    values = [get_portfolio_value_at_date(portfolio, d) for d in monthly_dates]
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=dates, y=values, mode='lines',
-        line=dict(color=THEME['financial'], width=3),
-        fill='tozeroy', fillcolor='rgba(59,130,246,0.1)',
-        hovertemplate='<b>%{x|%d/%m/%Y}</b><br>Value: %{y:,.0f}€<extra></extra>'
-    ))
-    fig.add_trace(go.Scatter(
-        x=[dates[-1]], y=[current_value], mode='markers',
-        marker=dict(size=12, color=THEME['positive'], line=dict(color='white', width=2)),
-        name="Current Value"
-    ))
+    history_df = pd.DataFrame({"date": monthly_dates, "value": values})
+    return history_df
+
+
+def create_portfolio_evolution_chart(portfolio):
+    """
+    Crée un graphique d'évolution basé sur l'historique mensuel réel du portefeuille.
+    """
+
+    THEME = {
+        'financial': '#3B82F6',
+        'positive': '#10B981',
+        'grid': 'rgba(255,255,255,0.1)',
+        'text_primary': '#FFFFFF',
+        'text_secondary': '#9CA3AF'
+    }
+
+    df = get_portfolio_monthly_history(portfolio)
+    if df.empty:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="Pas de données disponibles",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color=THEME['text_secondary'])
+        )
+        return fig
+
+    dates = df["date"]
+    values = df["value"]
+
+    initial_value = values.iloc[0]
+    current_value = values.iloc[-1]
+
+    total_days = (dates.iloc[-1] - dates.iloc[0]).days
+    years_actual = total_days / 365 if total_days > 0 else 1
 
     total_gain = current_value - initial_value
-    annualized = ((current_value/initial_value)**(1/years)-1)*100
-    fig.add_annotation(text=f"<b>{years}-year performance</b><br>Gain: {total_gain:+,.0f}€<br>Annualized: {annualized:.1f}%",
-                       x=0.02, y=0.98, xanchor='left', yanchor='top',
-                       showarrow=False, bgcolor='rgba(0,0,0,0.7)',
-                       bordercolor=THEME['financial'], borderwidth=1,
-                       font=dict(size=11, color='white'))
+    total_return = ((current_value / initial_value) - 1) * 100 if initial_value > 0 else 0
+    annualized = ((current_value / initial_value) ** (1 / years_actual) - 1) * 100 if initial_value > 0 else 0
 
-    layout = get_base_layout(f"📈 Portfolio evolution over {years} years", 450)
-    layout['xaxis'] = dict(showgrid=True, gridcolor=THEME['grid'])
-    layout['yaxis'] = dict(showgrid=True, gridcolor=THEME['grid'], ticksuffix='€')
-    fig.update_layout(**layout)
+    # === Graphique
+    fig = go.Figure()
+
+    # Ligne principale
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=values,
+        mode='lines',
+        name='Portfolio Value',
+        line=dict(color=THEME['financial'], width=3),
+        fill='tozeroy',
+        fillcolor='rgba(59,130,246,0.1)',
+        hovertemplate='<b>%{x|%d/%m/%Y}</b><br>Valeur: %{y:,.0f}€<extra></extra>'
+    ))
+
+    # Point actuel
+    fig.add_trace(go.Scatter(
+        x=[dates.iloc[-1]],
+        y=[current_value],
+        mode='markers',
+        name="Current Value",
+        marker=dict(
+            size=12,
+            color=THEME['positive'],
+            line=dict(color='white', width=2)
+        ),
+        hovertemplate=f'<b>Aujourd\'hui</b><br>Valeur: {current_value:,.0f}€<extra></extra>'
+    ))
+
+    # Annotation
+    #annotation_text = (
+        #f"<b>📈 Historique réel</b><br>"
+        #f"Période: {total_days} jours<br>"
+        #f"Gain: {total_gain:+,.0f}€ ({total_return:+.1f}%)<br>"
+        #f"Rendement annualisé: {annualized:+.1f}%"
+    #)
+
+    #fig.add_annotation(
+        #text=annotation_text,
+        #x=0.02, y=0.98,
+        #xanchor='left', yanchor='top',
+        #xref='paper', yref='paper',
+        #showarrow=False,
+        #bgcolor='rgba(0,0,0,0.7)',
+        #bordercolor=THEME['financial'],
+        #borderwidth=2,
+        #borderpad=10,
+        #font=dict(size=11, color='white')
+    #)
+
+    # Layout
+    fig.update_layout(
+        title={
+            'text': f"📈 Portfolio Evolution",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20, 'color': THEME['text_primary']}
+        },
+        xaxis=dict(
+            title="Date",
+            showgrid=True,
+            gridcolor=THEME['grid'],
+            gridwidth=1
+        ),
+        yaxis=dict(
+            title="Value (€)",
+            showgrid=True,
+            gridcolor=THEME['grid'],
+            ticksuffix='€',
+            gridwidth=1,
+            tickformat=',.0f'
+        ),
+        height=450,
+        hovermode='x unified',
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial, sans-serif", size=12, color=THEME['text_primary']),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor='rgba(0,0,0,0.5)',
+            bordercolor='rgba(255,255,255,0.2)',
+            borderwidth=1
+        ),
+        margin=dict(l=60, r=30, t=80, b=60)
+    )
+
     return fig
 
+def display_portfolio_evolution(portfolio):
+    import streamlit as st
+    from portfolio_package.visualizations import create_portfolio_evolution_chart
+
+    fig = create_portfolio_evolution_chart(portfolio)
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 def create_world_investment_map(portfolio):
     """World map of investments"""
@@ -340,8 +482,8 @@ def display_portfolio_pie(portfolio):
     st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
 
-def display_portfolio_evolution(portfolio, years=5):
-    st.plotly_chart(create_portfolio_evolution_chart(portfolio, years=years), use_container_width=True, config={'displayModeBar': False})
+def display_portfolio_evolution(portfolio, years=1):
+    st.plotly_chart(create_portfolio_evolution_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
 
 def display_financial_investments(portfolio):
