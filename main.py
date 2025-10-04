@@ -87,7 +87,7 @@ def main():
 
 def show_dashboard(portfolio):
     st.header("Tableau de bord")
-    
+
     # Métriques principales
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -117,18 +117,21 @@ def show_dashboard(portfolio):
     if portfolio.real_estate_investments:
         annual_rental_income = portfolio.get_total_annual_rental_income()
         if annual_rental_income > 0:
-            additional_info.append(f"💰 Revenu locatif annuel : {annual_rental_income:.2f}€ ({annual_rental_income/12:.2f}€/mois)")
+            additional_info.append(
+                f"💰 Revenu locatif annuel : {annual_rental_income:.2f}€ ({annual_rental_income / 12:.2f}€/mois)")
 
     # Indicateur de diversification
     total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
     if total_investments > 0:
         diversification_score = "Élevée" if total_investments >= 5 else "Moyenne" if total_investments >= 3 else "Faible"
         diversification_color = "🟢" if total_investments >= 5 else "🟡" if total_investments >= 3 else "🔴"
-        additional_info.append(f"{diversification_color} Diversification : {diversification_score} ({total_investments} investissements)")
+        additional_info.append(
+            f"{diversification_color} Diversification : {diversification_score} ({total_investments} investissements)")
 
     # Répartition équilibrée
     if portfolio.financial_investments and portfolio.real_estate_investments:
-        fin_ratio = portfolio.get_financial_investments_value() / (portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()) * 100
+        fin_ratio = portfolio.get_financial_investments_value() / (
+                    portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()) * 100
         re_ratio = 100 - fin_ratio
         additional_info.append(f"⚖️ Répartition : {fin_ratio:.0f}% financier / {re_ratio:.0f}% immobilier")
 
@@ -136,7 +139,7 @@ def show_dashboard(portfolio):
     if additional_info:
         for info in additional_info:
             st.info(info)
-    
+
     # Section graphique principal
     st.markdown("---")
 
@@ -144,7 +147,44 @@ def show_dashboard(portfolio):
     if portfolio.investments or portfolio.cash > 0:
         fig = create_portfolio_pie_chart(portfolio)
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-    
+
+    # ========== NOUVEAU: Graphique d'évolution ==========
+    st.markdown("---")
+    st.subheader("📈 Évolution Historique")
+
+    # Sélecteur de période
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        years_option = st.selectbox(
+            "Période d'affichage",
+            options=[1, 2, 5, 10],
+            index=2,  # Par défaut 5 ans
+            help="Sélectionnez la période d'historique à afficher",
+            key="evolution_years"
+        )
+
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 Actualiser", help="Régénérer l'historique simulé", key="refresh_evolution"):
+            # Force le recalcul en changeant une clé de session
+            if 'evolution_seed' in st.session_state:
+                st.session_state.evolution_seed += 1
+            else:
+                st.session_state.evolution_seed = 1
+            st.rerun()
+
+    # Générer et afficher le graphique
+    from portfolio_package.portfolio_evolution import create_portfolio_evolution_chart
+    fig_evolution = create_portfolio_evolution_chart(portfolio, years=years_option)
+    st.plotly_chart(fig_evolution, use_container_width=True, config={'displayModeBar': False})
+
+    # Note explicative
+    st.info("""
+    💡 **Note**: Cet historique est une simulation rétrospective basée sur votre valeur actuelle. 
+    Pour un historique réel, vos transactions futures seront automatiquement enregistrées.
+    """)
+
     # Ligne de séparation
     st.markdown("---")
 
@@ -207,7 +247,6 @@ def show_dashboard(portfolio):
             st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
         else:
             st.info("Aucun crédit")
-
 def manage_cash(portfolio):
     st.header("💵 Gestion des liquidités")
     st.metric("Liquidités actuelles", f"{portfolio.cash:.2f}€")
