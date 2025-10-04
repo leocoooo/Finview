@@ -16,15 +16,55 @@ header_bg_color = hex_to_rgb("#1d293d")   # fond header tableau
 
 def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/FullLogo.png"):
     pdf = FPDF()
+
+    # === PAGE DE GARDE ===
+    pdf.add_page()
+
+    # Fond page de garde
+    pdf.set_fill_color(*background_color)
+    pdf.rect(0, 0, pdf.w, pdf.h, 'F')
+
+    # Chemin absolu du logo
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    full_logo_path = os.path.join(script_dir, logo_path)
+
+    # Logo centre verticalement
+    if os.path.exists(full_logo_path):
+        # Centrer le logo (largeur 80mm, hauteur proportionnelle)
+        logo_width = 80
+        logo_x = (pdf.w - logo_width) / 2
+        logo_y = 70  # Position verticale
+        pdf.image(full_logo_path, x=logo_x, y=logo_y, w=logo_width)
+
+    # Titre FINVIEW centre sous le logo
+    pdf.set_y(130)
+    pdf.set_font("Arial", 'B', 32)
+    pdf.set_text_color(*text_color)
+    pdf.cell(0, 15, "FINVIEW", ln=True, align="C")
+
+    # Ligne de separation
+    pdf.ln(10)
+    pdf.set_draw_color(*text_color)
+    pdf.set_line_width(0.3)
+    line_margin = 60
+    pdf.line(line_margin, pdf.get_y(), pdf.w - line_margin, pdf.get_y())
+
+    # Noms des auteurs centres
+    pdf.ln(15)
+    pdf.set_font("Arial", '', 14)
+    pdf.set_text_color(*text_color)
+    pdf.cell(0, 8, "Antonin BENARD", ln=True, align="C")
+    pdf.cell(0, 8, "Leo COLIN", ln=True, align="C")
+    pdf.cell(0, 8, "Pierre QUINTIN de KERCADIO", ln=True, align="C")
+
+    # === PAGE 1: Performance du Portefeuille ===
     pdf.add_page()
 
     # Fond page
     pdf.set_fill_color(*background_color)
     pdf.rect(0, 0, pdf.w, pdf.h, 'F')
 
-    # Logo en haut à gauche (chemin absolu)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    full_logo_path = os.path.join(script_dir, logo_path)
+    # Logo en haut à gauche
     if os.path.exists(full_logo_path):
         pdf.image(full_logo_path, x=5, y=5, w=50)
 
