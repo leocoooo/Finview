@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Dict, List
 
+from datetime import datetime
+
 class Investment:
     def __init__(self, name: str, initial_value: float, current_value: float, quantity: float = 1.0):
         self.name = name
@@ -23,12 +25,19 @@ class Investment:
             return 0
         return ((self.current_value - self.initial_value) / self.initial_value) * 100
 
+
 class FinancialInvestment(Investment):
     """Traditional financial investments (stocks, bonds, ETFs, crypto, etc.)"""
     def __init__(self, name: str, initial_value: float, current_value: float, quantity: float = 1.0,
-                 investment_type: str = "Stock"):
+                 investment_type: str = "Stock", location: str = ""):
         super().__init__(name, initial_value, current_value, quantity)
         self.investment_type = investment_type  # Stock, ETF, Bond, Crypto, etc.
+        self.location = location  # Ex: 'USA', 'Europe', 'France', 'Global'
+
+    def __repr__(self):
+        loc_str = f" in {self.location}" if self.location else ""
+        return f"<FinancialInvestment: {self.name} ({self.investment_type}){loc_str} - {self.quantity} units>"
+
 
 class RealEstateInvestment(Investment):
     """Real estate investments (SCPI, REIT, direct real estate, etc.)"""
@@ -42,6 +51,11 @@ class RealEstateInvestment(Investment):
     def get_annual_rental_income(self) -> float:
         """Calculates estimated annual rental income"""
         return self.get_total_value() * (self.rental_yield / 100)
+
+    def __repr__(self):
+        return (f"<RealEstateInvestment: {self.name} ({self.property_type}) in {self.location} - "
+                f"{self.quantity} units, yield {self.rental_yield}%>")
+
 
 class Credit:
     def __init__(self, name: str, initial_amount: float, interest_rate: float, monthly_payment: float = 0):
@@ -61,6 +75,7 @@ class Credit:
     
     def get_remaining_balance(self) -> float:
         return self.current_balance
+
 
 class Portfolio:
     def __init__(self, initial_cash: float = 0):

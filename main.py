@@ -9,8 +9,10 @@ from portfolio_package.wealth_management_functions import (
     _sell_investment_with_date,
     _add_credit_with_date,
     _pay_credit_with_date,
-    create_demo_portfolio
 )
+
+from portfolio_package.create_demo_portfolio import (create_demo_portfolio_bis, 
+                                                     create_demo_portfolio)
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
@@ -60,7 +62,7 @@ def main():
         portfolio=st.session_state.portfolio,
         save_portfolio_func=save_portfolio,
         Portfolio=Portfolio,
-        create_demo_portfolio_func=create_demo_portfolio,
+        create_demo_portfolio_func=create_demo_portfolio_bis,
         generate_pdf_func=generate_portfolio_pdf
     )
 

@@ -17,7 +17,7 @@ from portfolio_package.visualizations import (
     display_performance_chart,
     display_world_map,
     display_predictions
-)
+    )
 
 
 # === UTILITAIRES ===
@@ -284,6 +284,7 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     if portfolio.credits:
         total_debt = sum(credit.get_remaining_balance() for credit in portfolio.credits.values())
         st.sidebar.metric("💳 Debts", f"{format_currency(total_debt)}")
+
 
 # === PAGES PRINCIPALES ===
 def show_summary(portfolio):
