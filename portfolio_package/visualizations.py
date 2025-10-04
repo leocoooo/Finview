@@ -2,10 +2,8 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime, timedelta
-import numpy as np
+from datetime import datetime
 from portfolio_package.patrimoine_prediction import create_prediction_chart
-
 
 # === Theme & helpers ===
 THEME = {
@@ -351,8 +349,6 @@ def create_performance_chart(portfolio):
     fig.update_layout(**layout)
     return fig
 
-import pandas as pd
-from datetime import datetime
 
 def get_portfolio_value_at_date(portfolio, date):
     """Calcule la valeur totale du portefeuille à une date donnée."""
@@ -527,6 +523,7 @@ def create_portfolio_evolution_chart(portfolio):
 
     return fig
 
+
 def display_portfolio_evolution(portfolio):
     import streamlit as st
     from portfolio_package.visualizations import create_portfolio_evolution_chart
@@ -534,40 +531,127 @@ def display_portfolio_evolution(portfolio):
     fig = create_portfolio_evolution_chart(portfolio)
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
-def create_world_investment_map(portfolio):
-    """World map of investments"""
-    investments = []
-    for name, inv in getattr(portfolio, "financial_investments", {}).items():
-        investments.append({'name': name, 'type':'Financial','value':inv.get_total_value(),
-                            'perf':inv.get_gain_loss_percentage(),'lat':48.8566,'lon':2.3522,'color':THEME['financial']})
-    for name, inv in getattr(portfolio, "real_estate_investments", {}).items():
-        investments.append({'name': name, 'type':'Real Estate','value':inv.get_total_value(),
-                            'perf':inv.get_gain_loss_percentage(),'lat':46.2276,'lon':2.2137,'color':THEME['real_estate']})
 
+def create_world_investment_map(portfolio):
+    """World map of investments with real locations"""
+    
+    # Mapping of locations to GPS coordinates
+    location_coords = {
+        'United States': {'lat': 37.0902, 'lon': -95.7129},
+        'France': {'lat': 46.2276, 'lon': 2.2137},
+        'Paris': {'lat': 48.8566, 'lon': 2.3522},
+        'Lyon, France': {'lat': 45.7640, 'lon': 4.8357},
+        'Japan': {'lat': 36.2048, 'lon': 138.2529},
+        'Tokyo, Japan': {'lat': 35.6762, 'lon': 139.6503},
+        'Europe': {'lat': 50.8503, 'lon': 4.3517},
+        'Global': {'lat': 20.0, 'lon': 0.0},
+        'China': {'lat': 35.8617, 'lon': 104.1954},
+        'Singapore': {'lat': 1.3521, 'lon': 103.8198},
+        'Berlin, Germany': {'lat': 52.5200, 'lon': 13.4050},
+        'Germany': {'lat': 51.1657, 'lon': 10.4515},
+        'Emerging Markets': {'lat': 0.0, 'lon': 20.0},
+    }
+    
+    investments = []
+    
+    # Financial investments
+    for name, inv in getattr(portfolio, "financial_investments", {}).items():
+        location = getattr(inv, 'location', None)
+        if location and location in location_coords:
+            coords = location_coords[location]
+            investments.append({
+                'name': name,
+                'type': 'Financial',
+                'value': inv.get_total_value(),
+                'perf': inv.get_gain_loss_percentage(),
+                'lat': coords['lat'],
+                'lon': coords['lon'],
+                'color': THEME['financial'],
+                'location': location
+            })
+    
+    # Real estate investments
+    for name, inv in getattr(portfolio, "real_estate_investments", {}).items():
+        location = getattr(inv, 'location', None)
+        if location and location in location_coords:
+            coords = location_coords[location]
+            investments.append({
+                'name': name,
+                'type': 'Real Estate',
+                'value': inv.get_total_value(),
+                'perf': inv.get_gain_loss_percentage(),
+                'lat': coords['lat'],
+                'lon': coords['lon'],
+                'color': THEME['real_estate'],
+                'location': location
+            })
+    
+    # Apply slight offset to investments at the same location to avoid overlap
+    import random
+    from collections import defaultdict
+    
+    location_counts = defaultdict(int)
+    for inv in investments:
+        loc_key = f"{inv['lat']},{inv['lon']}"
+        if location_counts[loc_key] > 0:
+            # Add small random offset (±2 degrees)
+            angle = random.uniform(0, 2 * 3.14159)
+            radius = 2 + location_counts[loc_key] * 1.5
+            inv['lat'] += radius * random.uniform(-1, 1)
+            inv['lon'] += radius * random.uniform(-1, 1)
+        location_counts[loc_key] += 1
+    
     if not investments:
         fig = go.Figure()
-        fig.add_annotation(text="No geo-localized investments", x=0.5, y=0.5,
-                           font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
+        fig.add_annotation(
+            text="No geo-localized investments", 
+            x=0.5, y=0.5,
+            font=dict(size=16, color=THEME['text_secondary']), 
+            showarrow=False
+        )
         fig.update_layout(**get_base_layout("🌍 World Investment Map", 500))
         return fig
-
+    
     fig = go.Figure()
+    
     for inv in investments:
         fig.add_trace(go.Scattergeo(
-            lon=[inv['lon']], lat=[inv['lat']], text=inv['name'],
-            mode='markers', marker=dict(size=15, color=inv['color'], opacity=0.8),
-            hovertemplate=f"<b>{inv['name']}</b><br>Value: {format_currency(inv['value'])}<br>Perf: {inv['perf']:+.1f}%<extra></extra>"
+            lon=[inv['lon']], 
+            lat=[inv['lat']], 
+            text=inv['name'],
+            mode='markers',
+            marker=dict(
+                size=max(12, min(25, inv['value'] / 1000)),  # Taille proportionnelle à la valeur
+                color=inv['color'], 
+                opacity=0.7,
+                line=dict(width=1.5, color='white')
+            ),
+            hovertemplate=f"<b>{inv['name']}</b><br>" +
+                         f"Location: {inv['location']}<br>" +
+                         f"Type: {inv['type']}<br>" +
+                         f"Value: {format_currency(inv['value'])}<br>" +
+                         f"Performance: {inv['perf']:+.1f}%<extra></extra>",
+            name=inv['name'],
+            showlegend=False
         ))
-
+    
     layout = get_base_layout("🌍 World Investment Map", 600)
     layout['geo'] = dict(
         projection_type='natural earth',
-        showland=True, landcolor='rgba(51, 65, 85, 0.4)',
-        showocean=True, oceancolor='rgba(15, 23, 42, 0.6)',
-        showcountries=True, countrycolor='rgba(148, 163, 184, 0.2)',
-        bgcolor='rgba(0,0,0,0)'
+        showland=True, 
+        landcolor='rgba(51, 65, 85, 0.4)',
+        showocean=True, 
+        oceancolor='rgba(15, 23, 42, 0.6)',
+        showcountries=True, 
+        countrycolor='rgba(148, 163, 184, 0.2)',
+        bgcolor='rgba(0,0,0,0)',
+        coastlinecolor='rgba(148, 163, 184, 0.3)',
+        showlakes=True,
+        lakecolor='rgba(15, 23, 42, 0.6)'
     )
+    
     fig.update_layout(**layout)
+    
     return fig
 
 
