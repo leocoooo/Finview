@@ -83,6 +83,8 @@ def main():
         show_analytics(portfolio)
     elif action == "📋 Historique":
         show_history(portfolio)
+    elif action == "📚 Définitions":
+        show_definitions()
 
 
 def show_dashboard(portfolio):
@@ -853,63 +855,63 @@ def show_analytics(portfolio):
             """)
 def show_history(portfolio):
     st.header("📋 Historique des transactions")
-    
+
     if portfolio.transaction_history:
         df_history = pd.DataFrame(portfolio.transaction_history)
         df_history = df_history.sort_values('date', ascending=False)
-        
+
         # Ajout de métriques sur l'historique
         st.subheader("📊 Résumé de l'activité")
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
             total_transactions = len(df_history)
             st.metric("Total transactions", total_transactions)
-        
+
         with col2:
             cash_transactions = df_history[df_history['type'].str.contains('CASH')]['amount'].sum()
             st.metric("Mouvements cash", f"{cash_transactions:.0f}€")
-        
+
         with col3:
             investment_buys = df_history[df_history['type'] == 'INVESTMENT_BUY']['amount'].sum()
             st.metric("Investissements", f"{investment_buys:.0f}€")
-        
+
         with col4:
             credit_payments = df_history[df_history['type'] == 'CREDIT_PAYMENT']['amount'].sum()
             st.metric("Paiements crédits", f"{credit_payments:.0f}€")
-        
+
         # Graphique de l'évolution des transactions par mois
         df_history['month'] = pd.to_datetime(df_history['date']).dt.to_period('M').astype(str)
         monthly_transactions = df_history.groupby(['month', 'type']).size().reset_index(name='count')
-        
+
         if len(monthly_transactions) > 0:
             fig = px.bar(monthly_transactions, x='month', y='count', color='type',
                         title="Nombre de transactions par mois et type",
                         labels={'month': 'Mois', 'count': 'Nombre de transactions', 'type': 'Type'})
             st.plotly_chart(fig, config={})
-        
+
         # Filtres
         col1, col2 = st.columns(2)
         with col1:
-            type_filter = st.selectbox("Filtrer par type", 
+            type_filter = st.selectbox("Filtrer par type",
                                      ["Tous"] + list(df_history['type'].unique()))
         with col2:
             date_filter = st.date_input("Date minimum", value=None)
-        
+
         # Application des filtres
         filtered_df = df_history.copy()
         if type_filter != "Tous":
             filtered_df = filtered_df[filtered_df['type'] == type_filter]
         if date_filter:
             filtered_df = filtered_df[pd.to_datetime(filtered_df['date']).dt.date >= date_filter]
-        
+
         # Amélioration de l'affichage du tableau
         display_df = filtered_df.copy()
         display_df['Type'] = display_df['type'].map({
             'CASH_ADD': '💰 Ajout liquidités',
             'CASH_WITHDRAW': '💸 Retrait liquidités',
             'INVESTMENT_BUY': '📈 Achat investissement',
-            'INVESTMENT_SELL': '📉 Vente investissement', 
+            'INVESTMENT_SELL': '📉 Vente investissement',
             'INVESTMENT_UPDATE': '🔄 MAJ prix',
             'CREDIT_ADD': '🏦 Nouveau crédit',
             'CREDIT_PAYMENT': '💳 Paiement crédit',
@@ -917,7 +919,7 @@ def show_history(portfolio):
         })
         display_df['Montant'] = display_df['amount'].apply(lambda x: f"{x:.2f}€" if x > 0 else "")
         display_df['Date'] = pd.to_datetime(display_df['date']).dt.strftime('%d/%m/%Y %H:%M')
-        
+
         # Affichage du tableau
         st.subheader(f"📋 Transactions ({len(filtered_df)} résultats)")
         st.dataframe(
@@ -925,7 +927,7 @@ def show_history(portfolio):
             use_container_width=True,
             height=400
         )
-        
+
         # Statistiques détaillées
         st.subheader("📈 Statistiques détaillées")
         col1, col2, col3 = st.columns(3)
@@ -937,7 +939,7 @@ def show_history(portfolio):
         with col3:
             avg_amount = filtered_df['amount'].mean() if len(filtered_df) > 0 else 0
             st.metric("Montant moyen", f"{avg_amount:.2f}€")
-        
+
         # Timeline des événements majeurs
         if len(df_history) > 5:
             st.subheader("🕒 Timeline des événements majeurs")
@@ -950,12 +952,178 @@ def show_history(portfolio):
                     st.write(f"🏦 **{event_date}** : {event['description']} ({event['amount']:.0f}€)")
                 elif event['type'] == 'INVESTMENT_SELL':
                     st.write(f"📉 **{event_date}** : {event['description']} ({event['amount']:.0f}€)")
-                    
+
     else:
         st.info("Aucune transaction enregistrée")
         st.markdown("💡 **Astuce** : Utilisez le bouton 'Créer portefeuille de démonstration' dans la sidebar pour voir un exemple d'historique complet !")
 
 
+def show_definitions():
+    """Page des définitions financières"""
+    st.header("📚 Définitions Financières")
+
+    st.markdown("""
+    Bienvenue dans le glossaire financier ! Consultez les définitions des termes utilisés dans l'application.
+    """)
+
+    st.markdown("---")
+
+    # Liquidités
+    st.subheader("💰 Liquidités")
+    st.markdown("""
+    **Définition** : Argent disponible immédiatement dans votre portefeuille.
+
+    Les liquidités représentent l'argent que vous pouvez utiliser instantanément pour :
+    - Effectuer de nouveaux investissements
+    - Payer des crédits
+    - Faire face aux dépenses imprévues
+
+    💡 **Conseil** : Gardez toujours une réserve de liquidités (3 à 6 mois de dépenses) pour les urgences.
+    """)
+
+    st.markdown("---")
+
+    # Investissements Financiers
+    st.subheader("📈 Investissements Financiers")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("""
+        **Actions** 📊
+        - Parts de propriété d'une entreprise
+        - Rendement potentiel élevé
+        - Risque moyen à élevé
+        - Exemple : Apple, Microsoft, Total
+
+        **ETF** (Exchange Traded Fund) 📦
+        - Panier d'actions diversifié
+        - Suit un indice boursier
+        - Frais réduits
+        - Exemple : S&P 500, CAC 40
+
+        **Obligations** 💼
+        - Prêt à une entreprise ou un État
+        - Rendement fixe et prévisible
+        - Risque faible à moyen
+        - Exemple : OAT françaises
+        """)
+
+    with col2:
+        st.markdown("""
+        **Crypto-monnaies** ₿
+        - Monnaie numérique décentralisée
+        - Très haute volatilité
+        - Potentiel de gains élevés
+        - Exemple : Bitcoin, Ethereum
+
+        **Fonds d'investissement** 🏦
+        - Portefeuille géré par des professionnels
+        - Diversification automatique
+        - Frais de gestion
+        - Exemple : Fonds communs de placement
+
+        **Autres actifs** 💎
+        - Or, matières premières
+        - Art, objets de collection
+        - Investissements alternatifs
+        """)
+
+    st.markdown("---")
+
+    # Investissements Immobiliers
+    st.subheader("🏠 Investissements Immobiliers")
+
+    st.markdown("""
+    **SCPI** (Société Civile de Placement Immobilier) 🏢
+    - Investissement immobilier collectif
+    - Gestion déléguée à des professionnels
+    - Revenus locatifs réguliers (4-6% par an)
+    - Accessible dès quelques centaines d'euros
+    - Exemple : SCPI Corum, Primonial
+
+    **REIT** (Real Estate Investment Trust) 🌆
+    - Équivalent américain des SCPI
+    - Coté en bourse, très liquide
+    - Investit dans l'immobilier commercial
+    - Exemple : Simon Property Group
+
+    **Immobilier Direct** 🏡
+    - Propriété physique détenue directement
+    - Gestion locative à votre charge
+    - Potentiel de plus-value important
+    - Nécessite un capital initial élevé
+
+    **Rendement Locatif** 📊
+    - Revenu annuel généré / Valeur du bien × 100
+    - Indique la rentabilité de l'investissement
+    - Typiquement entre 2% et 8% selon le type de bien
+    """)
+
+    st.markdown("---")
+
+    # Crédits
+    st.subheader("💳 Crédits")
+
+    st.markdown("""
+    **Solde Restant** 💰
+    - Montant total encore dû sur le crédit
+    - Diminue à chaque remboursement
+    - Capital + Intérêts restants
+
+    **Taux d'Intérêt** 📈
+    - Coût annuel du crédit exprimé en %
+    - Peut être fixe ou variable
+    - Plus le taux est bas, moins le crédit coûte cher
+    - Exemple : 1,5% pour un prêt immobilier, 3-5% pour un crédit à la consommation
+
+    **Paiement Mensuel** 💸
+    - Montant à rembourser chaque mois
+    - Comprend une part de capital et une part d'intérêts
+    - Reste généralement constant sur la durée du crédit
+
+    **Amortissement** 📉
+    - Remboursement progressif du capital emprunté
+    - Au début : plus d'intérêts, moins de capital
+    - À la fin : plus de capital, moins d'intérêts
+    """)
+
+    st.markdown("---")
+
+    # Indicateurs de Performance
+    st.subheader("📊 Indicateurs de Performance")
+
+    st.markdown("""
+    **Valeur Nette** 🏆
+    - Patrimoine total = (Liquidités + Investissements) - Crédits
+    - Représente votre richesse réelle
+    - Indicateur clé de santé financière
+
+    **Performance** 📈
+    - Variation en % de la valeur d'un investissement
+    - (Valeur actuelle - Valeur initiale) / Valeur initiale × 100
+    - Exemple : +15% = gain de 15% par rapport à l'achat
+
+    **Diversification** 💾
+    - Répartition des investissements sur différents actifs
+    - Réduit le risque global du portefeuille
+    - "Ne pas mettre tous ses œufs dans le même panier"
+
+    **Rendement Annualisé** 📅
+    - Performance moyenne par an sur plusieurs années
+    - Permet de comparer différents investissements
+    - Lisse les variations à court terme
+    """)
+
+    st.markdown("---")
+
+    # Note finale
+    st.info("""
+    💡 **Besoin de plus d'informations ?**
+
+    Ces définitions sont des simplifications à but pédagogique. Pour des conseils personnalisés sur vos investissements,
+    consultez un conseiller financier professionnel.
+    """)
 
 
 if __name__ == "__main__":

@@ -106,7 +106,8 @@ def create_horizontal_menu():
         ("💳 Crédits", "💳"),
         ("🌍 Carte du monde", "🌍"),
         ("📊 Analyses", "📊"),
-        ("📋 Historique", "📋")
+        ("📋 Historique", "📋"),
+        ("📚 Définitions", "📚")
     ]
 
     # Créer les colonnes pour la navigation
