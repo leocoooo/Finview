@@ -10,6 +10,19 @@ from portfolio_package.yahoo_search import asset_search_tab
 import yfinance as yf
 from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
 
+def format_currency(value):
+    """Format currency: show decimals only if different from .00"""
+    if value == int(value):
+        return f"{int(value)}€"
+    return f"{value:.2f}€"
+
+
+def format_percentage(value):
+    """Format percentage: show decimals only if different from .0"""
+    if value == int(value):
+        return f"{int(value):+d}%" if value != abs(value) or value < 0 else f"{int(value)}%"
+    return f"{value:+.1f}%" if value != abs(value) or value < 0 else f"{value:.1f}%"
+
 
 def show_summary(portfolio):
     """Summary page with only metrics and tables"""
@@ -19,23 +32,23 @@ def show_summary(portfolio):
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-        st.metric("💰 Cash", f"{portfolio.cash:.2f}€")
+        st.metric("💰 Cash", format_currency(portfolio.cash))
 
     with col2:
         financial_value = portfolio.get_financial_investments_value()
-        st.metric("📈 Financial Inv.", f"{financial_value:.2f}€")
+        st.metric("📈 Financial Inv.", format_currency(financial_value))
 
     with col3:
         real_estate_value = portfolio.get_real_estate_investments_value()
-        st.metric("🏠 Real Estate Inv.", f"{real_estate_value:.2f}€")
+        st.metric("🏠 Real Estate Inv.", format_currency(real_estate_value))
 
     with col4:
         credits_balance = portfolio.get_total_credits_balance()
-        st.metric("💳 Credits", f"-{credits_balance:.2f}€")
+        st.metric("💳 Credits", f"-{format_currency(credits_balance)}"[:-1] + "€")
 
     with col5:
         net_worth = portfolio.get_net_worth()
-        st.metric("🏆 Net Worth", f"{net_worth:.2f}€")
+        st.metric("🏆 Net Worth", format_currency(net_worth))
 
     # Additional indicators and rental income display
     additional_info = []
@@ -44,8 +57,9 @@ def show_summary(portfolio):
     if portfolio.real_estate_investments:
         annual_rental_income = portfolio.get_total_annual_rental_income()
         if annual_rental_income > 0:
+            monthly_income = annual_rental_income / 12
             additional_info.append(
-                f"💰 Annual rental income: {annual_rental_income:.2f}€ ({annual_rental_income / 12:.2f}€/month)")
+                f"💰 Annual rental income: {format_currency(annual_rental_income)} ({format_currency(monthly_income)}/month)")
 
     # Diversification indicator
     total_investments = len(portfolio.financial_investments) + len(portfolio.real_estate_investments)
@@ -82,10 +96,10 @@ def show_summary(portfolio):
                     "Name": name,
                     "Type": inv_type,
                     "Quantity": inv.quantity,
-                    "Unit value": f"{inv.current_value:.2f}€",
-                    "Total value": f"{inv.get_total_value():.2f}€",
-                    "Gain/Loss": f"{inv.get_gain_loss():+.2f}€",
-                    "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
+                    "Unit value": format_currency(inv.current_value),
+                    "Total value": format_currency(inv.get_total_value()),
+                    "Gain/Loss": f"{format_currency(inv.get_gain_loss())[:-1] if inv.get_gain_loss() >= 0 else '-' + format_currency(abs(inv.get_gain_loss()))[:-1]}€",
+                    "Performance": format_percentage(inv.get_gain_loss_percentage())
                 })
             st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
         else:
@@ -105,10 +119,10 @@ def show_summary(portfolio):
                     "Name": name,
                     "Type": property_type,
                     "Location": location if location else "N/A",
-                    "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 else "N/A",
-                    "Total value": f"{inv.get_total_value():.2f}€",
-                    "Annual income": f"{annual_income:.2f}€" if annual_income > 0 else "N/A",
-                    "Performance": f"{inv.get_gain_loss_percentage():+.1f}%"
+                    "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 and rental_yield != int(rental_yield) else f"{int(rental_yield)}%" if rental_yield > 0 else "N/A",
+                    "Total value": format_currency(inv.get_total_value()),
+                    "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
+                    "Performance": format_percentage(inv.get_gain_loss_percentage())
                 })
             st.dataframe(pd.DataFrame(re_data), use_container_width=True)
         else:
@@ -121,9 +135,9 @@ def show_summary(portfolio):
             for name, credit in portfolio.credits.items():
                 credit_data.append({
                     "Name": name,
-                    "Remaining balance": f"{credit.get_remaining_balance():.2f}€",
-                    "Rate": f"{credit.interest_rate:.1f}%",
-                    "Monthly payment": f"{credit.monthly_payment:.2f}€"
+                    "Remaining balance": format_currency(credit.get_remaining_balance()),
+                    "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
+                    "Monthly payment": format_currency(credit.monthly_payment)
                 })
             st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
         else:
@@ -253,7 +267,7 @@ def show_assets_analytics(portfolio):
 def manage_cash(portfolio):
     """Cash management sub-tab"""
     st.subheader("💵 Cash Management")
-    st.metric("Current cash", f"{portfolio.cash:.2f}€")
+    st.metric("Current cash", format_currency(portfolio.cash))
 
     col1, col2 = st.columns(2)
 
@@ -264,7 +278,7 @@ def manage_cash(portfolio):
         if st.button("Add", key="btn_add"):
             portfolio.add_cash(add_amount, add_description)
             save_portfolio(portfolio)
-            st.success(f"{add_amount:.2f}€ added successfully!")
+            st.success(f"{format_currency(add_amount)} added successfully!")
             st.rerun()
 
     with col2:
@@ -277,7 +291,7 @@ def manage_cash(portfolio):
             if st.button("Withdraw", key="btn_withdraw", disabled=not can_withdraw):
                 if can_withdraw and portfolio.withdraw_cash(withdraw_amount, withdraw_description):
                     save_portfolio(portfolio)
-                    st.success(f"{withdraw_amount:.2f}€ withdrawn successfully!")
+                    st.success(f"{format_currency(withdraw_amount)} withdrawn successfully!")
                     st.rerun()
                 else:
                     st.error("Insufficient funds!")
@@ -332,7 +346,7 @@ def manage_investments(portfolio):
                                          help="Estimated annual rental yield in %")
 
         total_cost = inv_price * inv_quantity
-        st.info(f"Total cost: {total_cost:.2f}€ (Available cash: {portfolio.cash:.2f}€)")
+        st.info(f"Total cost: {format_currency(total_cost)} (Available cash: {format_currency(portfolio.cash)})")
 
         if st.button("Buy", key="manual_buy"):
             if inv_name and inv_name not in portfolio.investments:
@@ -422,7 +436,7 @@ def manage_investments(portfolio):
                             step=0.01
                         )
             sale_value = portfolio.investments[inv_to_sell].current_value * sell_quantity
-            st.info(f"Sale value: {sale_value:.2f}€")
+            st.info(f"Sale value: {format_currency(sale_value)}")
 
             can_sell = current_quantity >= sell_quantity and current_quantity > 0
             if st.button("Sell", disabled=not can_sell):
@@ -466,13 +480,13 @@ def manage_credits(portfolio):
             remaining_balance = portfolio.credits[credit_to_pay].get_remaining_balance()
             max_payment = max(0.01, min(portfolio.cash, remaining_balance)) if min(portfolio.cash, remaining_balance) > 0 else 0.01
             payment_amount = st.number_input("Payment amount", min_value=0.01, max_value=max_payment, step=0.01)
-            st.info(f"Remaining balance: {remaining_balance:.2f}€ | Available cash: {portfolio.cash:.2f}€")
+            st.info(f"Remaining balance: {format_currency(remaining_balance)} | Available cash: {format_currency(portfolio.cash)}")
 
             can_pay = portfolio.cash >= payment_amount and portfolio.cash > 0 and remaining_balance > 0
             if st.button("Pay", disabled=not can_pay):
                 if can_pay and portfolio.pay_credit(credit_to_pay, payment_amount):
                     save_portfolio(portfolio)
-                    st.success(f"Payment of {payment_amount:.2f}€ completed!")
+                    st.success(f"Payment of {format_currency(payment_amount)} completed!")
                     st.rerun()
                 else:
                     st.error("Unable to make payment!")
@@ -535,9 +549,9 @@ def show_world_map(portfolio):
                 location_data.append({
                     'Location': loc,
                     'Nb. Investments': data['count'],
-                    'Financial Value': f"{data['financial']:.2f}€" if data['financial'] > 0 else "-",
-                    'Real Estate Value': f"{data['real_estate']:.2f}€" if data['real_estate'] > 0 else "-",
-                    'Total Value': f"{total_loc_value:.2f}€"
+                    'Financial Value': format_currency(data['financial']) if data['financial'] > 0 else "-",
+                    'Real Estate Value': format_currency(data['real_estate']) if data['real_estate'] > 0 else "-",
+                    'Total Value': format_currency(total_loc_value)
                 })
 
             st.dataframe(pd.DataFrame(location_data), use_container_width=True)
@@ -655,7 +669,7 @@ def show_predictions(portfolio):
             with col1:
                 st.metric(
                     "Current Wealth",
-                    f"{stats['initial']:.0f}€",
+                    format_currency(stats['initial']),
                     help="Current net value of your portfolio"
                 )
 
@@ -665,8 +679,8 @@ def show_predictions(portfolio):
                 median_return = stats['returns']['p50']
                 st.metric(
                     f"Median ({years} years)",
-                    f"{median_final:.0f}€",
-                    f"+{median_gain:.0f}€ ({median_return:+.1f}%/year)",
+                    format_currency(median_final),
+                    f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)" if median_return == int(median_return) else f"+{format_currency(median_gain)[:-1]}€ ({median_return:+.1f}%/year)",
                     help="Median scenario (50% chance of being above)"
                 )
 
