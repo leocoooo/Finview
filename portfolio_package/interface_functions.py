@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 import yfinance as yf
+from portfolio_package.visualizations import create_monthly_transactions_chart
 from portfolio_package.save_load_ptf_functions import save_portfolio
 from portfolio_package.yahoo_search import asset_search_tab
 from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_statistics_summary
@@ -66,7 +67,7 @@ def show_summary(portfolio):
             portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()
         ) * 100
         re_ratio = 100 - fin_ratio
-        additional_info.append(f"⚖️ Allocation: {fin_ratio:.0f}% financial / {re_ratio:.0f}% real estate")
+        additional_info.append(f"⚖️ Allocation: {format_percentage(fin_ratio)} financial / {format_percentage(re_ratio)} real estate")
 
     if additional_info:
         for info in additional_info:
@@ -74,60 +75,165 @@ def show_summary(portfolio):
 
     st.markdown("---")
 
-    # --- Tableaux récapitulatifs ---
+    # --- Onglets Portfolio Vision et History ---
+    tab1, tab2 = st.tabs(["📊 Portfolio Vision", "📋 Portfolio History"])
 
-    st.subheader("📈 Financial Investments")
-    if portfolio.financial_investments:
-        fin_data = []
-        for name, inv in portfolio.financial_investments.items():
-            inv_type = getattr(inv, 'investment_type', 'N/A')
-            fin_data.append({
-                "Name": name,
-                "Type": inv_type,
-                "Quantity": inv.quantity,
-                "Unit value": format_currency(inv.current_value),
-                "Total value": format_currency(inv.get_total_value()),
-                "Gain/Loss": f"{format_currency(inv.get_gain_loss())[:-1] if inv.get_gain_loss() >= 0 else '-' + format_currency(abs(inv.get_gain_loss()))[:-1]}€",
-                "Performance": format_percentage(inv.get_gain_loss_percentage())
-            })
-        st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
-    else:
-        st.info("No financial investments")
+    with tab1:
+        # --- Tableaux récapitulatifs de tous les produits du portefeuille ---
 
-    st.subheader("🏠 Real Estate Investments")
-    if portfolio.real_estate_investments:
-        re_data = []
-        for name, inv in portfolio.real_estate_investments.items():
-            property_type = getattr(inv, 'property_type', 'N/A')
-            location = getattr(inv, 'location', 'N/A')
-            rental_yield = getattr(inv, 'rental_yield', 0)
-            annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
-            re_data.append({
-                "Name": name,
-                "Type": property_type,
-                "Location": location if location else "N/A",
-                "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 and rental_yield != int(rental_yield) else f"{int(rental_yield)}%" if rental_yield > 0 else "N/A",
-                "Total value": format_currency(inv.get_total_value()),
-                "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
-                "Performance": format_percentage(inv.get_gain_loss_percentage())
-            })
-        st.dataframe(pd.DataFrame(re_data), use_container_width=True)
-    else:
-        st.info("No real estate investments")
+        st.subheader("📈 Financial Investments")
+        if portfolio.financial_investments:
+            fin_data = []
+            for name, inv in portfolio.financial_investments.items():
+                inv_type = getattr(inv, 'investment_type', 'N/A')
+                fin_data.append({
+                    "Name": name,
+                    "Type": inv_type,
+                    "Quantity": inv.quantity,
+                    "Unit value": format_currency(inv.current_value),
+                    "Total value": format_currency(inv.get_total_value()),
+                    "Gain/Loss": f"{format_currency(inv.get_gain_loss())[:-1] if inv.get_gain_loss() >= 0 else '-' + format_currency(abs(inv.get_gain_loss()))[:-1]}€",
+                    "Performance": format_percentage(inv.get_gain_loss_percentage())
+                })
+            st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
+        else:
+            st.info("No financial investments")
 
-    st.subheader("💳 Credits")
-    if portfolio.credits:
-        credit_data = []
-        for name, credit in portfolio.credits.items():
-            credit_data.append({
-                "Name": name,
-                "Remaining balance": format_currency(credit.get_remaining_balance()),
-                "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
-                "Monthly payment": format_currency(credit.monthly_payment)
+        st.subheader("🏠 Real Estate Investments")
+        if portfolio.real_estate_investments:
+            re_data = []
+            for name, inv in portfolio.real_estate_investments.items():
+                property_type = getattr(inv, 'property_type', 'N/A')
+                location = getattr(inv, 'location', 'N/A')
+                rental_yield = getattr(inv, 'rental_yield', 0)
+                annual_income = inv.get_annual_rental_income() if hasattr(inv, 'get_annual_rental_income') else 0
+                re_data.append({
+                    "Name": name,
+                    "Type": property_type,
+                    "Location": location if location else "N/A",
+                    "Yield": f"{rental_yield:.1f}%" if rental_yield > 0 and rental_yield != int(rental_yield) else f"{int(rental_yield)}%" if rental_yield > 0 else "N/A",
+                    "Total value": format_currency(inv.get_total_value()),
+                    "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
+                    "Performance": format_percentage(inv.get_gain_loss_percentage())
+                })
+            st.dataframe(pd.DataFrame(re_data), use_container_width=True)
+        else:
+            st.info("No real estate investments")
+
+        st.subheader("💳 Credits")
+        if portfolio.credits:
+            credit_data = []
+            for name, credit in portfolio.credits.items():
+                credit_data.append({
+                    "Name": name,
+                    "Remaining balance": format_currency(credit.get_remaining_balance()),
+                    "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
+                    "Monthly payment": format_currency(credit.monthly_payment)
+                })
+            st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
+        else:
+            st.info("No credits")
+
+    with tab2:
+        # --- Transaction History ---
+        if portfolio.transaction_history:
+            df_history = pd.DataFrame(portfolio.transaction_history)
+            df_history = df_history.sort_values('date', ascending=False)
+
+            # Adding history metrics
+            st.subheader("📊 Activity Summary")
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                total_transactions = len(df_history)
+                st.metric("Total transactions", total_transactions)
+
+            with col2:
+                cash_transactions = df_history[df_history['type'].str.contains('CASH')]['amount'].sum()
+                st.metric("Cash movements", f"{format_currency(cash_transactions)}")
+
+            with col3:
+                investment_buys = df_history[df_history['type'] == 'INVESTMENT_BUY']['amount'].sum()
+                st.metric("Investments", f"{format_currency(investment_buys)}")
+
+            with col4:
+                credit_payments = df_history[df_history['type'] == 'CREDIT_PAYMENT']['amount'].sum()
+                st.metric("Credit payments", f"{format_currency(credit_payments)}")
+
+            # Chart of transaction evolution by month
+            df_history['month'] = pd.to_datetime(df_history['date']).dt.to_period('M').astype(str)
+            monthly_transactions = df_history.groupby(['month', 'type']).size().reset_index(name='count')
+
+            if len(monthly_transactions) > 0:
+                fig = create_monthly_transactions_chart(df_history)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+            # Filters
+            col1, col2 = st.columns(2)
+            with col1:
+                type_filter = st.selectbox("Filter by type",
+                                         ["All"] + list(df_history['type'].unique()))
+            with col2:
+                date_filter = st.date_input("Minimum date", value=None)
+
+            # Apply filters
+            filtered_df = df_history.copy()
+            if type_filter != "All":
+                filtered_df = filtered_df[filtered_df['type'] == type_filter]
+            if date_filter:
+                filtered_df = filtered_df[pd.to_datetime(filtered_df['date']).dt.date >= date_filter]
+
+            # Improved table display
+            display_df = filtered_df.copy()
+            display_df['Type'] = display_df['type'].map({
+                'CASH_ADD': '💰 Cash addition',
+                'CASH_WITHDRAW': '💸 Cash withdrawal',
+                'INVESTMENT_BUY': '📈 Investment purchase',
+                'INVESTMENT_SELL': '📉 Investment sale',
+                'INVESTMENT_UPDATE': '🔄 Price update',
+                'CREDIT_ADD': '🏦 New credit',
+                'CREDIT_PAYMENT': '💳 Credit payment',
+                'CREDIT_INTEREST': '📊 Credit interest'
             })
-        st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
-    else:
-        st.info("No credits")
+            display_df['Amount'] = display_df['amount'].apply(lambda x: f"{x:.2f}€" if x > 0 else "")
+            display_df['Date'] = pd.to_datetime(display_df['date']).dt.strftime('%d/%m/%Y %H:%M')
+
+            # Display table
+            st.subheader(f"📋 Transactions ({len(filtered_df)} results)")
+            st.dataframe(
+                display_df[['Date', 'Type', 'Amount', 'description']].rename(columns={'description': 'Description'}),
+                use_container_width=True,
+                height=400
+            )
+
+            # Detailed statistics
+            st.subheader("📈 Detailed Statistics")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Number of transactions", len(filtered_df))
+            with col2:
+                total_amount = filtered_df['amount'].sum()
+                st.metric("Total amount", f"{format_currency(total_amount)}")
+            with col3:
+                avg_amount = filtered_df['amount'].mean() if len(filtered_df) > 0 else 0
+                st.metric("Average amount", f"{format_currency(avg_amount)}")
+
+            # Timeline of major events
+            if len(df_history) > 5:
+                st.subheader("🕒 Major Events Timeline")
+                major_events = df_history[df_history['type'].isin(['INVESTMENT_BUY', 'CREDIT_ADD', 'INVESTMENT_SELL'])].head(10)
+                for _, event in major_events.iterrows():
+                    event_date = pd.to_datetime(event['date']).strftime('%d/%m/%Y')
+                    if event['type'] == 'INVESTMENT_BUY':
+                        st.write(f"📈 **{event_date}**: {event['description']} ({format_currency(event['amount'])}")
+                    elif event['type'] == 'CREDIT_ADD':
+                        st.write(f"🏦 **{event_date}**: {event['description']} ({format_currency(event['amount'])})")
+                    elif event['type'] == 'INVESTMENT_SELL':
+                        st.write(f"📉 **{event_date}**: {event['description']} ({format_currency(event['amount'])})")
+
+        else:
+            st.info("No transactions recorded")
+            st.markdown("💡 **Tip**: Use the 'Create demo portfolio' button in the sidebar to see a full history example!")
 
 
 def manage_cash(portfolio):
@@ -367,6 +473,7 @@ def show_wealth_management(portfolio):
     with tab1: manage_cash(portfolio)
     with tab2: manage_investments(portfolio)
     with tab3: manage_credits(portfolio)
+
 
 
 def show_dashboard_tabs(portfolio):

@@ -1,6 +1,7 @@
-# portfolio_package/visualizations.py
+import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+import plotly.express as px
 from datetime import datetime, timedelta
 import numpy as np
 from portfolio_package.patrimoine_prediction import create_prediction_chart
@@ -84,6 +85,114 @@ def get_base_layout(title, height=500):
 
 # === FIGURES ===
 
+# Dans le summary, on veut un graphique des transactions par mois et type
+def create_monthly_transactions_chart(df_history):
+    """
+    Creates a professional chart of transactions by month and type
+    
+    Args:
+        df_history: DataFrame containing transaction history with 'date' and 'type' columns
+    
+    Returns:
+        fig: Plotly figure object
+    """
+    # Prepare data
+    df_copy = df_history.copy()
+    df_copy['month'] = pd.to_datetime(df_copy['date']).dt.to_period('M').astype(str)
+    monthly_transactions = df_copy.groupby(['month', 'type']).size().reset_index(name='count')
+    
+    # Professional color palette
+    color_map = {
+        'CASH_ADD': '#10b981',           # Emerald green
+        'CASH_WITHDRAW': '#ef4444',      # Red
+        'INVESTMENT_BUY': '#3b82f6',     # Blue
+        'INVESTMENT_SELL': '#f59e0b',    # Orange
+        'INVESTMENT_UPDATE': '#8b5cf6',  # Purple
+        'CREDIT_ADD': '#ec4899',         # Pink
+        'CREDIT_PAYMENT': '#14b8a6',     # Teal
+        'CREDIT_INTEREST': '#f97316'     # Dark orange
+    }
+    
+    # Label mapping in English
+    type_labels = {
+        'CASH_ADD': '💰 Cash addition',
+        'CASH_WITHDRAW': '💸 Cash withdrawal',
+        'INVESTMENT_BUY': '📈 Investment purchase',
+        'INVESTMENT_SELL': '📉 Investment sale',
+        'INVESTMENT_UPDATE': '🔄 Price update',
+        'CREDIT_ADD': '🏦 New credit',
+        'CREDIT_PAYMENT': '💳 Credit payment',
+        'CREDIT_INTEREST': '📊 Credit interest'
+    }
+    
+    # Apply labels
+    monthly_transactions['type_label'] = monthly_transactions['type'].map(type_labels)
+    
+    # Create chart
+    fig = px.bar(
+        monthly_transactions, 
+        x='month', 
+        y='count', 
+        color='type_label',
+        title="Transaction Evolution by Month",
+        labels={
+            'month': 'Month', 
+            'count': 'Number of transactions', 
+            'type_label': 'Transaction type'
+        },
+        color_discrete_map={type_labels[k]: v for k, v in color_map.items()},
+        custom_data=['type_label']
+    )
+    
+    # Customize chart
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12, color='#374151'),
+        title=dict(
+            font=dict(size=18, color='#1f2937', family='Arial, sans-serif'),
+            x=0.5,
+            xanchor='center'
+        ),
+        xaxis=dict(
+            showgrid=False,
+            showline=True,
+            linewidth=1,
+            linecolor='#e5e7eb',
+            tickfont=dict(size=11)
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridwidth=1,
+            gridcolor='#f3f4f6',
+            showline=False,
+            tickfont=dict(size=11)
+        ),
+        legend=dict(
+            title=dict(text='Transaction type', font=dict(size=12)),
+            orientation='v',
+            yanchor='top',
+            y=1,
+            xanchor='left',
+            x=1.02,
+            bgcolor='rgba(0,0,0,0)',
+            bordercolor='rgba(0,0,0,0)',
+            borderwidth=0
+        ),
+        hovermode='x unified',
+        bargap=0.15,
+        bargroupgap=0.1
+    )
+    
+    # Improve tooltips
+    fig.update_traces(
+        hovertemplate='<b>%{customdata[0]}</b><br>Count: %{y}<extra></extra>'
+    )
+    
+    return fig
+
+
+# Dans le dashboard, on veut plusieurs graphiques :
 def create_portfolio_pie_chart(portfolio):
     """Donut chart showing asset distribution with percentages"""
     labels, values, colors, hover_texts = [], [], [], []
