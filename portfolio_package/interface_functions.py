@@ -223,7 +223,7 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
         st.rerun()
 
     if st.sidebar.button("Reset portfolio", use_container_width=True):
-        st.session_state.portfolio = Portfolio(initial_cash=1000.0)
+        st.session_state.portfolio = Portfolio(initial_cash=0)
         save_portfolio_func(st.session_state.portfolio)
         st.sidebar.success("🔄 Portfolio reset!")
         st.rerun()

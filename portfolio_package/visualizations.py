@@ -340,6 +340,7 @@ def create_financial_investments_chart(portfolio):
         dtick=None  # Quadrillage automatique plus fin
     )
     layout['xaxis'] = dict(showgrid=False)
+    layout['showlegend'] = False
     fig.update_layout(**layout)
     return fig
 
@@ -431,6 +432,7 @@ def create_performance_chart(portfolio):
     layout = get_base_layout("📈 Investment Performance", 450)
     layout['yaxis'] = dict(title='Performance (%)', gridcolor=THEME['grid'], ticksuffix='%')
     layout['xaxis'] = dict(showgrid=False, tickangle=-30 if len(names)>6 else 0)
+    layout['showlegend'] = False
     fig.update_layout(**layout)
     return fig
 
