@@ -18,12 +18,13 @@ from portfolio_package.create_demo_portfolio import (create_demo_portfolio_bis,
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
 from portfolio_package.interface_functions import (
-    create_horizontal_menu, 
+    create_horizontal_menu,
     create_sidebar_actions,
     show_summary,
     show_wealth_management,
     show_dashboard_tabs,
     show_predictions,
+    show_news,
     show_definitions,
 )
 
@@ -79,6 +80,8 @@ def main():
         show_dashboard_tabs(portfolio)
     elif action == "🔮 Predictions":
         show_predictions(portfolio)
+    elif action == "📰 Actuality":
+        show_news()
     elif action == "📚 Definitions":
         show_definitions()
 

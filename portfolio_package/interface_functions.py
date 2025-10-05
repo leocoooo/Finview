@@ -134,6 +134,7 @@ def create_horizontal_menu():
         ("💼 Wealth Management", "💼"),
         ("📈 Dashboard", "📈"),
         ("🔮 Predictions", "🔮"),
+        ("📰 Actuality", "📰"),
         ("📚 Definitions", "📚")
     ]
 
@@ -1120,3 +1121,469 @@ Each asset has an **average annual return** and a **volatility (standard deviati
 
 💡 **Note**: These values are estimates based on historical data and do not guarantee future performance.
 """)
+
+
+def show_news():
+    """Financial news page with curated articles"""
+    st.header("📰 Financial News & Economic Updates")
+    st.markdown("Stay informed with the latest financial news, company earnings, and economic announcements.")
+
+    st.markdown("---")
+
+    # Create tabs for news organization
+    tab1, tab2 = st.tabs(["🔥 Latest News", "📅 Upcoming Results"])
+
+    with tab1:
+        # Curated financial news articles
+        st.subheader("🔥 Top Financial News")
+
+        # Article 1: CAC 40 Results
+        with st.container():
+            st.markdown("### 📊 CAC 40: Half-year 2025 earnings season ends in pain")
+            st.markdown("""
+            The first half 2025 earnings season for CAC 40 companies disappointed markets with numerous stock penalties.
+            Teleperformance (-20.7%), Renault (-18.5%) and STMicroelectronics (-16.62%) were particularly affected by downward revised forecasts.
+            Despite a strong year start with +12% in January-February, the index suffered from US customs tariffs in April.
+            """)
+            st.markdown("🔗 **Source:** [TradingSat - CAC 40 Results](https://www.tradingsat.com/cac-40-FR0003500008/actualites/cac-40-quels-groupes-du-cac-40-ont-le-mieux-et-le-moins-bien-resiste-a-la-terrible-saison-des-resultats-semestriels-1143776.html)")
+            st.markdown("📅 **Date:** August 2025")
+            st.markdown("---")
+
+        # Article 2: French Economic Outlook
+        with st.container():
+            st.markdown("### 📉 French Economy: Declining inflation, slight unemployment rise")
+            st.markdown("""
+            The Bank of France forecasts 1% inflation for 2025 (down from 2% in 2024), thanks notably to falling energy prices.
+            The unemployment rate is expected to reach 7.6% mid-2025 according to Insee, with approximately 112,000 job losses.
+            Economic growth is revised to 0.7% for 2025, down from 1.1% in 2024.
+            """)
+            st.markdown("🔗 **Source:** [France Info - Economic Forecasts 2025](https://www.franceinfo.fr/economie/croissance/croissance-inflation-chomage-a-quoi-faut-il-s-attendre-pour-l-economie-francaise-en-2025_6990509.html)")
+            st.markdown("📅 **Date:** September 2025")
+            st.markdown("---")
+
+        # Article 3: S&P 500 Earnings
+        with st.container():
+            st.markdown("### 💼 S&P 500: Ninth consecutive quarter of earnings growth")
+            st.markdown("""
+            The third quarter earnings season begins with major US banks (JPMorgan Chase, Citigroup, Wells Fargo).
+            FactSet estimates 7.9% earnings growth for S&P 500 companies, marking the ninth consecutive quarter of growth.
+            Investors closely monitor publication calendars on MarketBeat, Yahoo Finance and Nasdaq.
+            """)
+            st.markdown("🔗 **Source:** [MarketBeat - S&P 500 Earnings Calendar](https://www.marketbeat.com/earnings/latest/)")
+            st.markdown("📅 **Date:** October 2025")
+            st.markdown("---")
+
+        # Article 4: CAC 40 Dividends
+        with st.container():
+            st.markdown("### 💰 CAC 40 Dividends: €73.9 billion expected in 2025")
+            st.markdown("""
+            CAC 40 companies are expected to pay €73.9 billion in dividends for the 2024 fiscal year.
+            Despite a mixed earnings season, major French groups maintain their shareholder distribution policies.
+            Publication and payment calendars are available on Boursorama and ABC Bourse.
+            """)
+            st.markdown("🔗 **Source:** [Boursorama - Dividend Calendar](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
+            st.markdown("📅 **Date:** 2025")
+            st.markdown("---")
+
+        # Add market indices widget
+        st.markdown("---")
+        st.subheader("📊 Market Indices Overview")
+
+        try:
+            indices = {
+                "S&P 500": "^GSPC",
+                "Dow Jones": "^DJI",
+                "NASDAQ": "^IXIC",
+                "CAC 40": "^FCHI",
+                "DAX": "^GDAXI",
+                "FTSE 100": "^FTSE",
+                "Nikkei 225": "^N225",
+                "Bitcoin": "BTC-USD",
+                "Ethereum": "ETH-USD"
+            }
+
+            cols = st.columns(3)
+
+            for idx, (name, ticker) in enumerate(indices.items()):
+                with cols[idx % 3]:
+                    try:
+                        stock = yf.Ticker(ticker)
+                        hist = stock.history(period="5d")
+
+                        if not hist.empty and len(hist) >= 2:
+                            current_price = hist['Close'].iloc[-1]
+                            prev_price = hist['Close'].iloc[-2]
+                            change = current_price - prev_price
+                            change_pct = (change / prev_price) * 100
+
+                            st.metric(
+                                label=name,
+                                value=f"{current_price:,.2f}",
+                                delta=f"{change_pct:+.2f}%"
+                            )
+                    except:
+                        st.metric(label=name, value="N/A")
+        except Exception as e:
+            st.info("📊 Market indices data temporarily unavailable")
+
+    with tab2:
+        # Earnings calendar section
+        st.subheader("📅 Upcoming Earnings Announcements")
+
+        st.markdown("""
+        Track upcoming earnings announcements from major companies.
+        """)
+
+        # Search bar for companies
+        search_company = st.text_input(
+            "🔍 Search for a company...",
+            key="search_company",
+            placeholder="Ex: Apple, LVMH, Tesla, TotalEnergies..."
+        )
+
+        # French companies earnings calendar (from Boursorama)
+        french_earnings = {
+            # Format: "Company Name": "DD/MM/YYYY"
+            # CAC 40 et grandes entreprises françaises
+            "LVMH": "28/01/2025",
+            "TotalEnergies": "06/02/2025",
+            "Sanofi": "07/02/2025",
+            "Hermès": "05/02/2025",
+            "L'Oréal": "14/02/2025",
+            "Air Liquide": "13/02/2025",
+            "BNP Paribas": "04/02/2025",
+            "Schneider Electric": "20/02/2025",
+            "Airbus": "20/02/2025",
+            "AXA": "21/02/2025",
+            "Danone": "26/02/2025",
+            "EssilorLuxottica": "27/02/2025",
+            "Saint-Gobain": "27/02/2025",
+            "Stellantis": "25/02/2025",
+            "Vinci": "04/03/2025",
+            "Orange": "20/02/2025",
+            "Carrefour": "19/02/2025",
+            "Pernod Ricard": "27/02/2025",
+            "Engie": "20/02/2025",
+            "Renault": "13/02/2025",
+            "Capgemini": "13/02/2025",
+            "Publicis": "06/02/2025",
+            "Bouygues": "27/02/2025",
+            "Legrand": "13/02/2025",
+            "Thales": "27/02/2025",
+            "Dassault Systèmes": "06/02/2025",
+            "Safran": "27/02/2025",
+            "Crédit Agricole": "13/02/2025",
+            "Société Générale": "06/02/2025",
+            "Veolia": "28/02/2025",
+            "Accor": "20/02/2025",
+            "Edenred": "25/02/2025",
+            "Worldline": "18/02/2025",
+            "STMicroelectronics": "29/01/2025",
+            "Kering": "12/02/2025",
+            "Michelin": "11/02/2025",
+            "ArcelorMittal": "13/02/2025",
+            "Alstom": "14/05/2025",
+            "Atos": "27/02/2025",
+            "Teleperformance": "20/02/2025",
+            # 2026
+            "LVMH": "27/01/2026",
+            "TotalEnergies": "05/02/2026",
+            "Sanofi": "06/02/2026",
+            "Hermès": "04/02/2026",
+            "L'Oréal": "13/02/2026",
+            "Air Liquide": "12/02/2026",
+            "BNP Paribas": "03/02/2026",
+            "Schneider Electric": "19/02/2026",
+            "Airbus": "19/02/2026",
+            "AXA": "20/02/2026",
+            "Danone": "25/02/2026",
+            "EssilorLuxottica": "26/02/2026",
+            "Saint-Gobain": "26/02/2026",
+            "Stellantis": "24/02/2026",
+            "Vinci": "03/03/2026",
+            "Orange": "19/02/2026",
+            "Carrefour": "18/02/2026",
+            "Pernod Ricard": "26/02/2026",
+            "Engie": "19/02/2026",
+            "Renault": "12/02/2026",
+            "Capgemini": "12/02/2026",
+            "Publicis": "05/02/2026",
+            "Bouygues": "26/02/2026",
+            "Legrand": "12/02/2026",
+            "Thales": "26/02/2026",
+            "Dassault Systèmes": "05/02/2026",
+            "Safran": "26/02/2026",
+            "Crédit Agricole": "12/02/2026",
+            "Société Générale": "05/02/2026",
+            "Veolia": "27/02/2026",
+            "Accor": "19/02/2026",
+            "Edenred": "24/02/2026",
+            "Worldline": "17/02/2026",
+            "STMicroelectronics": "28/01/2026",
+            "Kering": "11/02/2026",
+            "Michelin": "10/02/2026",
+            "ArcelorMittal": "12/02/2026",
+            "Alstom": "13/05/2026",
+            "Atos": "26/02/2026",
+            "Teleperformance": "19/02/2026",
+        }
+
+        # International companies earnings calendar
+        international_earnings = {
+            # Format: "Company Name": "DD/MM/YYYY"
+            # 🇺🇸 US Tech Giants
+            "Apple": "30/01/2025",
+            "Microsoft": "23/01/2025",
+            "Alphabet (Google)": "04/02/2025",
+            "Amazon": "06/02/2025",
+            "Meta (Facebook)": "29/01/2025",
+            "Tesla": "22/01/2025",
+            "NVIDIA": "26/02/2025",
+            "Netflix": "16/01/2025",
+            "Adobe": "13/03/2025",
+            "Intel": "23/01/2025",
+            "AMD": "04/02/2025",
+            "Salesforce": "27/02/2025",
+            "Oracle": "10/03/2025",
+            "IBM": "29/01/2025",
+            "Cisco": "12/02/2025",
+            # 🇺🇸 US Finance
+            "JPMorgan Chase": "14/01/2025",
+            "Bank of America": "14/01/2025",
+            "Wells Fargo": "15/01/2025",
+            "Goldman Sachs": "15/01/2025",
+            "Morgan Stanley": "16/01/2025",
+            "Citigroup": "14/01/2025",
+            "American Express": "24/01/2025",
+            "Visa": "23/01/2025",
+            "Mastercard": "30/01/2025",
+            "BlackRock": "17/01/2025",
+            # 🇺🇸 US Consumer & Retail
+            "Walmart": "20/02/2025",
+            "Coca-Cola": "11/02/2025",
+            "PepsiCo": "06/02/2025",
+            "Procter & Gamble": "22/01/2025",
+            "Nike": "20/03/2025",
+            "McDonald's": "10/02/2025",
+            "Starbucks": "28/01/2025",
+            "Home Depot": "25/02/2025",
+            "Target": "04/03/2025",
+            "Costco": "27/02/2025",
+            # 🇺🇸 US Healthcare & Pharma
+            "Johnson & Johnson": "21/01/2025",
+            "UnitedHealth": "17/01/2025",
+            "Pfizer": "04/02/2025",
+            "AbbVie": "31/01/2025",
+            "Eli Lilly": "06/02/2025",
+            "Merck": "06/02/2025",
+            "Bristol Myers Squibb": "06/02/2025",
+            # 🇺🇸 US Energy
+            "Exxon Mobil": "31/01/2025",
+            "Chevron": "31/01/2025",
+            "ConocoPhillips": "06/02/2025",
+            # 🇩🇪 German Companies
+            "SAP": "23/01/2025",
+            "Siemens": "13/02/2025",
+            "Volkswagen": "13/03/2025",
+            "BMW": "19/03/2025",
+            "Mercedes-Benz": "20/02/2025",
+            "Allianz": "21/02/2025",
+            "BASF": "27/02/2025",
+            "Deutsche Bank": "30/01/2025",
+            "Adidas": "05/03/2025",
+            "Bayer": "26/02/2025",
+            # 🇳🇱 Dutch Companies
+            "ASML": "22/01/2025",
+            "Shell": "30/01/2025",
+            "Unilever": "13/02/2025",
+            "Philips": "27/01/2025",
+            "ING Group": "07/02/2025",
+            # 🇨🇭 Swiss Companies
+            "Nestlé": "13/02/2025",
+            "Novartis": "30/01/2025",
+            "Roche": "30/01/2025",
+            "UBS": "31/01/2025",
+            "Zurich Insurance": "13/02/2025",
+            "ABB": "06/02/2025",
+            "Richemont": "16/05/2025",
+            # 🇬🇧 UK Companies
+            "AstraZeneca": "13/02/2025",
+            "BP": "04/02/2025",
+            "HSBC": "18/02/2025",
+            "Unilever": "13/02/2025",
+            "Diageo": "30/01/2025",
+            "GSK": "12/02/2025",
+            "Rio Tinto": "26/02/2025",
+            # 🇯🇵 Japanese Companies
+            "Toyota": "06/02/2025",
+            "Sony": "14/02/2025",
+            "Honda": "07/02/2025",
+            "Nintendo": "04/02/2025",
+            "SoftBank": "13/02/2025",
+            "Mitsubishi": "07/02/2025",
+            # 🇰🇷 South Korean Companies
+            "Samsung Electronics": "31/01/2025",
+            "Hyundai": "23/01/2025",
+            "SK Hynix": "23/01/2025",
+            "LG Electronics": "29/01/2025",
+            # 🇨🇳 Chinese Companies
+            "Alibaba": "20/02/2025",
+            "Tencent": "19/03/2025",
+            "BYD": "28/04/2025",
+            "ICBC": "28/03/2025",
+            "PetroChina": "27/03/2025",
+            # 🇨🇦 Canadian Companies
+            "Royal Bank of Canada": "27/02/2025",
+            "Toronto-Dominion Bank": "27/02/2025",
+            "Shopify": "13/02/2025",
+            "Canadian National Railway": "28/01/2025",
+            # === 2026 ===
+            # 🇺🇸 US Tech Giants 2026
+            "Apple": "29/01/2026",
+            "Microsoft": "22/01/2026",
+            "Alphabet (Google)": "03/02/2026",
+            "Amazon": "05/02/2026",
+            "Meta (Facebook)": "28/01/2026",
+            "Tesla": "21/01/2026",
+            "NVIDIA": "25/02/2026",
+            "Netflix": "15/01/2026",
+            "Adobe": "12/03/2026",
+            "Intel": "22/01/2026",
+            "AMD": "03/02/2026",
+            "Salesforce": "26/02/2026",
+            "Oracle": "09/03/2026",
+            "IBM": "28/01/2026",
+            "Cisco": "11/02/2026",
+            # 🇺🇸 US Finance 2026
+            "JPMorgan Chase": "13/01/2026",
+            "Bank of America": "13/01/2026",
+            "Wells Fargo": "14/01/2026",
+            "Goldman Sachs": "14/01/2026",
+            "Morgan Stanley": "15/01/2026",
+            "Citigroup": "13/01/2026",
+            "American Express": "23/01/2026",
+            "Visa": "22/01/2026",
+            "Mastercard": "29/01/2026",
+            "BlackRock": "16/01/2026",
+            # 🇺🇸 US Consumer & Retail 2026
+            "Walmart": "19/02/2026",
+            "Coca-Cola": "10/02/2026",
+            "PepsiCo": "05/02/2026",
+            "Procter & Gamble": "21/01/2026",
+            "Nike": "19/03/2026",
+            "McDonald's": "09/02/2026",
+            "Starbucks": "27/01/2026",
+            "Home Depot": "24/02/2026",
+            "Target": "03/03/2026",
+            "Costco": "26/02/2026",
+            # 🇺🇸 US Healthcare & Pharma 2026
+            "Johnson & Johnson": "20/01/2026",
+            "UnitedHealth": "16/01/2026",
+            "Pfizer": "03/02/2026",
+            "AbbVie": "30/01/2026",
+            "Eli Lilly": "05/02/2026",
+            "Merck": "05/02/2026",
+            "Bristol Myers Squibb": "05/02/2026",
+            # 🇺🇸 US Energy 2026
+            "Exxon Mobil": "30/01/2026",
+            "Chevron": "30/01/2026",
+            "ConocoPhillips": "05/02/2026",
+            # 🇩🇪 German Companies 2026
+            "SAP": "22/01/2026",
+            "Siemens": "12/02/2026",
+            "Volkswagen": "12/03/2026",
+            "BMW": "18/03/2026",
+            "Mercedes-Benz": "19/02/2026",
+            "Allianz": "20/02/2026",
+            "BASF": "26/02/2026",
+            "Deutsche Bank": "29/01/2026",
+            "Adidas": "04/03/2026",
+            "Bayer": "25/02/2026",
+            # 🇳🇱 Dutch Companies 2026
+            "ASML": "21/01/2026",
+            "Shell": "29/01/2026",
+            "Unilever": "12/02/2026",
+            "Philips": "26/01/2026",
+            "ING Group": "06/02/2026",
+            # 🇨🇭 Swiss Companies 2026
+            "Nestlé": "12/02/2026",
+            "Novartis": "29/01/2026",
+            "Roche": "29/01/2026",
+            "UBS": "30/01/2026",
+            "Zurich Insurance": "12/02/2026",
+            "ABB": "05/02/2026",
+            "Richemont": "15/05/2026",
+            # 🇬🇧 UK Companies 2026
+            "AstraZeneca": "12/02/2026",
+            "BP": "03/02/2026",
+            "HSBC": "17/02/2026",
+            "Unilever": "12/02/2026",
+            "Diageo": "29/01/2026",
+            "GSK": "11/02/2026",
+            "Rio Tinto": "25/02/2026",
+            # 🇯🇵 Japanese Companies 2026
+            "Toyota": "05/02/2026",
+            "Sony": "13/02/2026",
+            "Honda": "06/02/2026",
+            "Nintendo": "03/02/2026",
+            "SoftBank": "12/02/2026",
+            "Mitsubishi": "06/02/2026",
+            # 🇰🇷 South Korean Companies 2026
+            "Samsung Electronics": "30/01/2026",
+            "Hyundai": "22/01/2026",
+            "SK Hynix": "22/01/2026",
+            "LG Electronics": "28/01/2026",
+            # 🇨🇳 Chinese Companies 2026
+            "Alibaba": "19/02/2026",
+            "Tencent": "18/03/2026",
+            "BYD": "27/04/2026",
+            "ICBC": "27/03/2026",
+            "PetroChina": "26/03/2026",
+            # 🇨🇦 Canadian Companies 2026
+            "Royal Bank of Canada": "26/02/2026",
+            "Toronto-Dominion Bank": "26/02/2026",
+            "Shopify": "12/02/2026",
+            "Canadian National Railway": "27/01/2026",
+        }
+
+        # Filter French companies based on search
+        filtered_french_earnings = french_earnings
+        if search_company:
+            search_lower = search_company.lower()
+            filtered_french_earnings = {
+                company: date for company, date in french_earnings.items()
+                if search_lower in company.lower()
+            }
+
+        if filtered_french_earnings:
+            st.markdown("#### 🇫🇷 French Companies (CAC 40 / SBF 120)")
+            french_data = [{"Entreprise": company, "Date de publication": date}
+                          for company, date in sorted(filtered_french_earnings.items(),
+                                                     key=lambda x: pd.to_datetime(x[1], format='%d/%m/%Y'))]
+            st.dataframe(pd.DataFrame(french_data), use_container_width=True, hide_index=True)
+            st.caption(f"📊 {len(filtered_french_earnings)} publications françaises à venir")
+            st.markdown("🔗 [Calendrier complet sur Boursorama](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
+        elif search_company:
+            st.info(f"No French companies found matching '{search_company}'")
+
+        st.markdown("---")
+
+        # Filter international companies based on search
+        filtered_international_earnings = international_earnings
+        if search_company:
+            search_lower = search_company.lower()
+            filtered_international_earnings = {
+                company: date for company, date in international_earnings.items()
+                if search_lower in company.lower()
+            }
+
+        if filtered_international_earnings:
+            st.markdown("#### 🌍 International Companies (US, Europe, Asia)")
+            intl_data = [{"Company": company, "Publication Date": date}
+                        for company, date in sorted(filtered_international_earnings.items(),
+                                                   key=lambda x: pd.to_datetime(x[1], format='%d/%m/%Y'))]
+            st.dataframe(pd.DataFrame(intl_data), use_container_width=True, hide_index=True, height=400)
+            st.caption(f"📊 {len(filtered_international_earnings)} international publications upcoming")
+        elif search_company and not filtered_french_earnings:
+            st.info(f"No international companies found matching '{search_company}'")
+
