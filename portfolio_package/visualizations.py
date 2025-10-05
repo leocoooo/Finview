@@ -281,6 +281,7 @@ def create_portfolio_pie_chart(portfolio):
         'bgcolor': 'rgba(0,0,0,0)',
         'font': {'size': 13, 'color': THEME['text_primary']}
     }
+    layout['separators'] = ' ,'
     fig.update_layout(**layout)
     return fig
 
@@ -312,6 +313,7 @@ def create_financial_investments_chart(portfolio):
     layout = get_base_layout("📊 Financial Investments Breakdown", 400)
     layout['yaxis'] = dict(title='Value (€)', gridcolor=THEME['grid'])
     layout['xaxis'] = dict(showgrid=False)
+    layout['separators'] = ' ,'
     fig.update_layout(**layout)
     return fig
 
@@ -346,6 +348,7 @@ def create_performance_chart(portfolio):
     layout = get_base_layout("📈 Investment Performance", 450)
     layout['yaxis'] = dict(title='Performance (%)', gridcolor=THEME['grid'], ticksuffix='%')
     layout['xaxis'] = dict(showgrid=False, tickangle=-30 if len(names)>6 else 0)
+    layout['separators'] = ' ,'
     fig.update_layout(**layout)
     return fig
 
@@ -443,7 +446,8 @@ def create_portfolio_evolution_chart(portfolio):
         line=dict(color=THEME['financial'], width=3),
         fill='tozeroy',
         fillcolor='rgba(59,130,246,0.1)',
-        hovertemplate='<b>%{x|%d/%m/%Y}</b><br>Valeur: %{y:,.0f}€<extra></extra>'
+        hovertemplate='<b>%{x|%d/%m/%Y}</b><br>Valeur: %{customdata}€<extra></extra>',
+        customdata=[format_currency(v)[:-1] for v in values]
     ))
 
     # Point actuel
@@ -457,7 +461,7 @@ def create_portfolio_evolution_chart(portfolio):
             color=THEME['positive'],
             line=dict(color='white', width=2)
         ),
-        hovertemplate=f'<b>Aujourd\'hui</b><br>Valeur: {current_value:,.0f}€<extra></extra>'
+        hovertemplate=f'<b>Aujourd\'hui</b><br>Valeur: {format_currency(current_value)}<extra></extra>'
     ))
 
     # Annotation
@@ -501,7 +505,7 @@ def create_portfolio_evolution_chart(portfolio):
             gridcolor=THEME['grid'],
             ticksuffix='€',
             gridwidth=1,
-            tickformat=',.0f'
+            tickformat=' '
         ),
         height=450,
         hovermode='x unified',
@@ -518,7 +522,8 @@ def create_portfolio_evolution_chart(portfolio):
             bordercolor='rgba(255,255,255,0.2)',
             borderwidth=1
         ),
-        margin=dict(l=60, r=30, t=80, b=60)
+        margin=dict(l=60, r=30, t=80, b=60),
+        separators=' ,'
     )
 
     return fig
@@ -638,18 +643,19 @@ def create_world_investment_map(portfolio):
     layout = get_base_layout("🌍 World Investment Map", 600)
     layout['geo'] = dict(
         projection_type='natural earth',
-        showland=True, 
+        showland=True,
         landcolor='rgba(51, 65, 85, 0.4)',
-        showocean=True, 
+        showocean=True,
         oceancolor='rgba(15, 23, 42, 0.6)',
-        showcountries=True, 
+        showcountries=True,
         countrycolor='rgba(148, 163, 184, 0.2)',
         bgcolor='rgba(0,0,0,0)',
         coastlinecolor='rgba(148, 163, 184, 0.3)',
         showlakes=True,
         lakecolor='rgba(15, 23, 42, 0.6)'
     )
-    
+    layout['separators'] = ' ,'
+
     fig.update_layout(**layout)
     
     return fig

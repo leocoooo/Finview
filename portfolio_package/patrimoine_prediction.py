@@ -6,37 +6,128 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Données historiques de rendements annuels moyens (en %)
+# ============================================================================
+# DONNÉES HISTORIQUES DE RENDEMENTS ANNUELS MOYENS
+# ============================================================================
+# Basées sur les moyennes historiques réelles ajustées pour plus de réalisme
+# Format: {'mean': rendement annuel moyen (%), 'std': volatilité (%), 'distribution': type}
+#
+# Distributions utilisées:
+#   - 'normal': distribution normale (Gaussienne) pour actifs traditionnels
+#   - 'lognormal': distribution log-normale pour actifs à forte asymétrie
+# ============================================================================
+
 HISTORICAL_RETURNS = {
-    # Cryptomonnaies (haute volatilité)
-    'Bitcoin': {'mean': 100.0, 'std': 80.0, 'distribution': 'lognormal'},
-    'Crypto': {'mean': 80.0, 'std': 70.0, 'distribution': 'lognormal'},
+    # ========================================================================
+    # CRYPTOMONNAIES - Haute volatilité / Haute croissance potentielle
+    # ========================================================================
+    'Bitcoin': {'mean': 30.0, 'std': 65.0, 'distribution': 'lognormal'},
+    'Ethereum': {'mean': 28.0, 'std': 70.0, 'distribution': 'lognormal'},
+    'Crypto': {'mean': 25.0, 'std': 70.0, 'distribution': 'lognormal'},
+    'Altcoin': {'mean': 20.0, 'std': 80.0, 'distribution': 'lognormal'},
 
-    # Actions individuelles (volatilité moyenne-haute)
-    'Actions Tesla': {'mean': 25.0, 'std': 50.0, 'distribution': 'normal'},
-    'Actions Apple': {'mean': 20.0, 'std': 25.0, 'distribution': 'normal'},
-    'Actions Microsoft': {'mean': 22.0, 'std': 28.0, 'distribution': 'normal'},
-    'Action': {'mean': 18.0, 'std': 25.0, 'distribution': 'normal'},
+    # ========================================================================
+    # ACTIONS INDIVIDUELLES - Volatilité moyenne à haute
+    # ========================================================================
+    # Tech Giants (GAFAM)
+    'Actions Apple': {'mean': 15.0, 'std': 30.0, 'distribution': 'normal'},
+    'Actions Microsoft': {'mean': 14.0, 'std': 28.0, 'distribution': 'normal'},
+    'Actions Google': {'mean': 13.5, 'std': 29.0, 'distribution': 'normal'},
+    'Actions Amazon': {'mean': 16.0, 'std': 35.0, 'distribution': 'normal'},
+    'Actions Meta': {'mean': 12.0, 'std': 40.0, 'distribution': 'normal'},
 
-    # ETF (volatilité moyenne)
-    'ETF S&P 500': {'mean': 10.5, 'std': 18.0, 'distribution': 'normal'},
-    'ETF Europe': {'mean': 8.5, 'std': 20.0, 'distribution': 'normal'},
-    'ETF': {'mean': 9.0, 'std': 18.0, 'distribution': 'normal'},
+    # Growth / Tech
+    'Actions Tesla': {'mean': 12.0, 'std': 45.0, 'distribution': 'normal'},
+    'Actions Nvidia': {'mean': 18.0, 'std': 42.0, 'distribution': 'normal'},
+    'Actions Netflix': {'mean': 11.0, 'std': 38.0, 'distribution': 'normal'},
 
-    # Immobilier (faible volatilité)
-    'SCPI Bureaux Paris': {'mean': 4.5, 'std': 8.0, 'distribution': 'normal'},
-    'SCPI': {'mean': 4.2, 'std': 7.0, 'distribution': 'normal'},
-    'REIT Résidentiel US': {'mean': 6.5, 'std': 12.0, 'distribution': 'normal'},
-    'REIT': {'mean': 6.0, 'std': 12.0, 'distribution': 'normal'},
-    'Immobilier direct': {'mean': 5.0, 'std': 10.0, 'distribution': 'normal'},
+    # Secteur Financier
+    'Actions Bancaires': {'mean': 8.0, 'std': 22.0, 'distribution': 'normal'},
+    'Actions Assurance': {'mean': 7.5, 'std': 20.0, 'distribution': 'normal'},
 
-    # Obligations (très faible volatilité)
-    'Obligations': {'mean': 3.5, 'std': 5.0, 'distribution': 'normal'},
-    'Obligation': {'mean': 3.5, 'std': 5.0, 'distribution': 'normal'},
+    # Luxe & Consommation (France)
+    'Actions LVMH': {'mean': 13.0, 'std': 25.0, 'distribution': 'normal'},
+    'Actions Hermès': {'mean': 14.0, 'std': 22.0, 'distribution': 'normal'},
 
-    # Autres
-    'Fonds': {'mean': 7.0, 'std': 12.0, 'distribution': 'normal'},
-    'Liquidités': {'mean': 2.0, 'std': 0.5, 'distribution': 'normal'},
+    # Énergie
+    'Actions Énergies Renouvelables': {'mean': 9.0, 'std': 32.0, 'distribution': 'normal'},
+    'Actions Pétrole': {'mean': 6.5, 'std': 28.0, 'distribution': 'normal'},
+
+    # Valeur par défaut pour actions
+    'Action': {'mean': 10.0, 'std': 20.0, 'distribution': 'normal'},
+
+    # ========================================================================
+    # ETF - Volatilité moyenne / Diversification
+    # ========================================================================
+    # Indices Majeurs
+    'ETF S&P 500': {'mean': 8.0, 'std': 16.0, 'distribution': 'normal'},
+    'ETF Nasdaq': {'mean': 9.0, 'std': 18.0, 'distribution': 'normal'},
+    'ETF CAC 40': {'mean': 6.0, 'std': 17.0, 'distribution': 'normal'},
+    'ETF Europe': {'mean': 6.5, 'std': 18.0, 'distribution': 'normal'},
+    'ETF World': {'mean': 7.5, 'std': 15.0, 'distribution': 'normal'},
+    'ETF MSCI World': {'mean': 7.5, 'std': 15.0, 'distribution': 'normal'},
+
+    # Marchés Émergents
+    'ETF Émergents': {'mean': 8.5, 'std': 22.0, 'distribution': 'normal'},
+    'ETF Chine': {'mean': 7.0, 'std': 25.0, 'distribution': 'normal'},
+    'ETF Inde': {'mean': 9.0, 'std': 23.0, 'distribution': 'normal'},
+
+    # Sectoriels
+    'ETF Tech': {'mean': 10.0, 'std': 20.0, 'distribution': 'normal'},
+    'ETF Santé': {'mean': 8.5, 'std': 16.0, 'distribution': 'normal'},
+    'ETF ESG': {'mean': 7.5, 'std': 16.0, 'distribution': 'normal'},
+
+    # Valeur par défaut
+    'ETF': {'mean': 7.0, 'std': 16.0, 'distribution': 'normal'},
+
+    # ========================================================================
+    # IMMOBILIER - Faible à moyenne volatilité
+    # ========================================================================
+    # SCPI (Sociétés Civiles de Placement Immobilier)
+    'SCPI Bureaux Paris': {'mean': 4.0, 'std': 6.0, 'distribution': 'normal'},
+    'SCPI Résidentiel': {'mean': 4.2, 'std': 5.5, 'distribution': 'normal'},
+    'SCPI Commerce': {'mean': 4.5, 'std': 7.0, 'distribution': 'normal'},
+    'SCPI Diversifiée': {'mean': 4.3, 'std': 5.8, 'distribution': 'normal'},
+    'SCPI Europe': {'mean': 4.0, 'std': 6.5, 'distribution': 'normal'},
+    'SCPI': {'mean': 4.0, 'std': 5.0, 'distribution': 'normal'},
+
+    # REIT (Real Estate Investment Trusts)
+    'REIT Résidentiel US': {'mean': 5.5, 'std': 12.0, 'distribution': 'normal'},
+    'REIT Commercial': {'mean': 5.8, 'std': 13.0, 'distribution': 'normal'},
+    'REIT': {'mean': 5.5, 'std': 12.0, 'distribution': 'normal'},
+
+    # Immobilier Direct
+    'Immobilier direct': {'mean': 4.5, 'std': 8.0, 'distribution': 'normal'},
+    'Immobilier locatif': {'mean': 5.0, 'std': 9.0, 'distribution': 'normal'},
+
+    # ========================================================================
+    # OBLIGATIONS - Très faible volatilité / Revenus fixes
+    # ========================================================================
+    'Obligations États AAA': {'mean': 2.5, 'std': 3.0, 'distribution': 'normal'},
+    'Obligations Entreprises': {'mean': 3.5, 'std': 5.0, 'distribution': 'normal'},
+    'Obligations High Yield': {'mean': 5.0, 'std': 8.0, 'distribution': 'normal'},
+    'Obligations Émergentes': {'mean': 6.0, 'std': 10.0, 'distribution': 'normal'},
+    'Obligations': {'mean': 3.0, 'std': 4.0, 'distribution': 'normal'},
+    'Obligation': {'mean': 3.0, 'std': 4.0, 'distribution': 'normal'},
+
+    # ========================================================================
+    # MATIÈRES PREMIÈRES & ALTERNATIFS
+    # ========================================================================
+    'Or': {'mean': 4.0, 'std': 15.0, 'distribution': 'normal'},
+    'Argent': {'mean': 5.0, 'std': 22.0, 'distribution': 'normal'},
+    'Commodities': {'mean': 5.5, 'std': 20.0, 'distribution': 'normal'},
+    'Private Equity': {'mean': 12.0, 'std': 25.0, 'distribution': 'lognormal'},
+
+    # ========================================================================
+    # FONDS & LIQUIDITÉS - Faible risque
+    # ========================================================================
+    'Fonds Diversifié': {'mean': 6.5, 'std': 11.0, 'distribution': 'normal'},
+    'Fonds Actions': {'mean': 8.0, 'std': 16.0, 'distribution': 'normal'},
+    'Fonds Obligations': {'mean': 3.5, 'std': 5.0, 'distribution': 'normal'},
+    'Fonds': {'mean': 6.0, 'std': 12.0, 'distribution': 'normal'},
+    'Liquidités': {'mean': 2.5, 'std': 0.3, 'distribution': 'normal'},
+    'Livret A': {'mean': 3.0, 'std': 0.1, 'distribution': 'normal'},
+    'Compte Épargne': {'mean': 2.0, 'std': 0.2, 'distribution': 'normal'},
 }
 
 
@@ -66,7 +157,7 @@ def get_asset_return_params(asset_name, asset_type=None):
         return HISTORICAL_RETURNS[asset_type]
 
     # Défaut conservateur
-    return {'mean': 7.0, 'std': 15.0, 'distribution': 'normal'}
+    return {'mean': 6.0, 'std': 14.0, 'distribution': 'normal'}
 
 
 def simulate_portfolio_future(portfolio, years=10, num_simulations=1000):
