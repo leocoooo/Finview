@@ -250,7 +250,7 @@ def create_portfolio_pie_chart(portfolio):
         fig = go.Figure()
         fig.add_annotation(text="No data to display", x=0.5, y=0.5,
                            font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
-        fig.update_layout(**get_base_layout("📊 Distribution of Assets", 500))
+        fig.update_layout(**get_base_layout("📊 Portfolio distribution", 500))
         return fig
 
     fig = go.Figure(data=[go.Pie(
@@ -270,7 +270,7 @@ def create_portfolio_pie_chart(portfolio):
     fig.add_annotation(text="Total Portfolio Value", x=0.5, y=0.45,
                        font=dict(size=13, color=THEME['text_secondary']), showarrow=False)
 
-    layout = get_base_layout("📊 Distribution of Assets", 550)
+    layout = get_base_layout("📊 Portfolio distribution", 550)
     layout['showlegend'] = True
     layout['legend'] = {
         'orientation': 'v',
@@ -286,7 +286,7 @@ def create_portfolio_pie_chart(portfolio):
 
 
 def create_financial_investments_chart(portfolio):
-    """Bar chart for each financial investment with unique dark colors"""
+    """Bar chart for each financial investment with professional muted colors"""
     investments = getattr(portfolio, "financial_investments", {})
     if not investments:
         fig = go.Figure()
@@ -294,58 +294,144 @@ def create_financial_investments_chart(portfolio):
                            font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
         fig.update_layout(**get_base_layout("📊 Financial Investments", 400))
         return fig
-
+    
     names = list(investments.keys())
     values = [getattr(inv, 'get_total_value', lambda:0)() for inv in investments.values()]
-    colors = THEME['dark_colors'] * ((len(values)//len(THEME['dark_colors']))+1)
+    
+    # Palette de couleurs professionnelles légèrement plus vives
+    professional_colors = [
+        'rgba(90, 130, 170, 0.85)',   # Bleu acier
+        'rgba(100, 160, 120, 0.85)',  # Vert sauge
+        'rgba(150, 110, 150, 0.85)',  # Violet doux
+        'rgba(160, 140, 90, 0.85)',   # Or mat
+        'rgba(80, 150, 160, 0.85)',   # Cyan profond
+        'rgba(170, 100, 110, 0.85)',  # Rose poudré
+        'rgba(110, 120, 170, 0.85)',  # Indigo
+        'rgba(130, 160, 100, 0.85)',  # Olive clair
+        'rgba(160, 100, 150, 0.85)',  # Orchidée
+        'rgba(90, 150, 150, 0.85)',   # Turquoise mat
+        'rgba(170, 140, 90, 0.85)',   # Terracotta
+        'rgba(140, 100, 140, 0.85)',  # Prune
+    ]
+    colors = professional_colors * ((len(values)//len(professional_colors))+1)
     colors = colors[:len(values)]
-
+    
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=names, y=values,
-        marker=dict(color=colors),
-        text=[format_currency(v) for v in values],
+        marker=dict(
+            color=colors,
+            line=dict(color='rgba(255,255,255,0.1)', width=0.5)
+        ),
+        text=[''] * len(values),  # Pas d'étiquettes sur les barres
         textposition='auto',
+        textfont=dict(size=12, color='white'),
         hovertemplate='<b>%{x}</b><br>Value: %{y}<extra></extra>'
     ))
-
+    
     layout = get_base_layout("📊 Financial Investments Breakdown", 400)
-    layout['yaxis'] = dict(title='Value (€)', gridcolor=THEME['grid'])
+    layout['yaxis'] = dict(
+        title='Value (€)', 
+        gridcolor='rgba(255,255,255,0.08)',
+        griddash='dot',
+        gridwidth=0.5,
+        showgrid=True,
+        dtick=None  # Quadrillage automatique plus fin
+    )
     layout['xaxis'] = dict(showgrid=False)
+    layout['showlegend'] = False
     fig.update_layout(**layout)
     return fig
 
 
 def create_performance_chart(portfolio):
-    """Performance chart with colors matching financial investments chart"""
+    """Performance chart with vibrant colors and gradient effects"""
     investments = {**getattr(portfolio, "financial_investments", {}),
                    **getattr(portfolio, "real_estate_investments", {})}
-
     if not investments:
         fig = go.Figure()
         fig.add_annotation(text="No investments", x=0.5, y=0.5,
                            font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
         fig.update_layout(**get_base_layout("📈 Investment Performance", 400))
         return fig
-
+    
     names = list(investments.keys())
     perfs = [getattr(inv, "get_gain_loss_percentage", lambda:0)() for inv in investments.values()]
     values = [getattr(inv, 'get_total_value', lambda:0)() for inv in investments.values()]
-    colors = THEME['dark_colors'] * ((len(values)//len(THEME['dark_colors']))+1)
+    
+    # Palette de couleurs vives avec transparence
+    vibrant_colors = [
+        'rgba(255, 23, 68, 0.7)',    # Rouge vif
+        'rgba(0, 230, 118, 0.7)',    # Vert émeraude
+        'rgba(41, 121, 255, 0.7)',   # Bleu électrique
+        'rgba(255, 196, 0, 0.7)',    # Jaune doré
+        'rgba(224, 64, 251, 0.7)',   # Violet vif
+        'rgba(0, 229, 255, 0.7)',    # Cyan lumineux
+        'rgba(255, 110, 64, 0.7)',   # Orange corail
+        'rgba(118, 255, 3, 0.7)',    # Vert lime
+        'rgba(213, 0, 249, 0.7)',    # Magenta
+        'rgba(0, 176, 255, 0.7)',    # Bleu ciel vif
+        'rgba(255, 171, 0, 0.7)',    # Ambre
+        'rgba(221, 44, 0, 0.7)',     # Rouge foncé vif
+    ]
+    colors = vibrant_colors * ((len(values)//len(vibrant_colors))+1)
     colors = colors[:len(values)]
-
+    
+    # Couleurs en dégradé du rouge au vert selon la performance
+    def get_performance_color(perf):
+        """Retourne une couleur du rouge au vert selon la performance"""
+        # Interpolation continue du rouge au vert
+        
+        # Limiter les valeurs extrêmes pour le calcul
+        perf_clamped = max(-30, min(30, perf))
+        
+        # Normaliser entre -30 et +30 pour avoir une échelle de 0 à 1
+        normalized = (perf_clamped + 30) / 60
+        
+        # Rouge foncé pour les performances négatives
+        red = [180, 50, 50]
+        # Jaune/orange pour le milieu (0%)
+        yellow = [200, 160, 70]
+        # Vert foncé pour les performances positives
+        green = [60, 140, 80]
+        
+        if normalized < 0.5:
+            # Interpolation rouge -> jaune (performances négatives)
+            factor = normalized * 2
+            r = int(red[0] + (yellow[0] - red[0]) * factor)
+            g = int(red[1] + (yellow[1] - red[1]) * factor)
+            b = int(red[2] + (yellow[2] - red[2]) * factor)
+        else:
+            # Interpolation jaune -> vert (performances positives)
+            factor = (normalized - 0.5) * 2
+            r = int(yellow[0] + (green[0] - yellow[0]) * factor)
+            g = int(yellow[1] + (green[1] - yellow[1]) * factor)
+            b = int(yellow[2] + (green[2] - yellow[2]) * factor)
+        
+        return f'rgba({r}, {g}, {b}, 0.75)'
+    
+    bar_colors = [get_performance_color(perf) for perf in perfs]
+    
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=names, y=perfs,
-        marker=dict(color=colors),
+        marker=dict(
+            color=bar_colors,
+            line=dict(color='rgba(255,255,255,0.15)', width=1)
+        ),
+        text=[f"{p:+.1f}%" for p in perfs],
+        textposition='outside',
+        textfont=dict(size=11, color='white'),
         hovertemplate='<b>%{x}</b><br>Performance: %{y:+.1f}%<br>Value: %{customdata}<extra></extra>',
         customdata=[format_currency(v) for v in values]
     ))
-    fig.add_hline(y=0, line=dict(color=THEME['grid'], dash='dash'), opacity=0.5)
-
+    
+    fig.add_hline(y=0, line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2), opacity=0.7)
+    
     layout = get_base_layout("📈 Investment Performance", 450)
     layout['yaxis'] = dict(title='Performance (%)', gridcolor=THEME['grid'], ticksuffix='%')
     layout['xaxis'] = dict(showgrid=False, tickangle=-30 if len(names)>6 else 0)
+    layout['showlegend'] = False
     fig.update_layout(**layout)
     return fig
 
@@ -482,13 +568,14 @@ def create_portfolio_evolution_chart(portfolio):
     #)
 
     # Layout
+    fig.update_layout(**get_base_layout("📈 Portfolio Evolution", 500))
     fig.update_layout(
-        title={
-            'text': f"📈 Portfolio Evolution",
-            'x': 0.5,
-            'xanchor': 'center',
-            'font': {'size': 20, 'color': THEME['text_primary']}
-        },
+        # title={
+        #     'text': f"📈 Portfolio Evolution",
+        #     'x': 0.2,
+        #     'xanchor': 'center',
+        #     'font': {'size': 20, 'color': THEME['text_primary']}
+        # },
         xaxis=dict(
             title="Date",
             showgrid=True,
