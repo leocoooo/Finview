@@ -14,7 +14,7 @@ text_color = hex_to_rgb("#e2e8f0")        # general text
 border_color = hex_to_rgb("#314158")      # borders
 header_bg_color = hex_to_rgb("#1d293d")   # table header background
 
-def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/FullLogo.png"):
+def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../logo/FullLogo.png"):
     pdf = FPDF()
 
     # === COVER PAGE ===
@@ -24,23 +24,23 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/
     pdf.set_fill_color(*background_color)
     pdf.rect(0, 0, pdf.w, pdf.h, 'F')
 
-    # Absolute path to logo
+    # Absolute path to logo (going up one level from portfolio_package to project root)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     full_logo_path = os.path.join(script_dir, logo_path)
 
     # Logo centered vertically
     if os.path.exists(full_logo_path):
         # Center the logo (width 80mm, proportional height)
-        logo_width = 80
+        logo_width = 150
         logo_x = (pdf.w - logo_width) / 2
         logo_y = 70  # Vertical position
         pdf.image(full_logo_path, x=logo_x, y=logo_y, w=logo_width)
 
     # FINVIEW title centered below logo
-    pdf.set_y(130)
+    pdf.set_y(150)
     pdf.set_font("Arial", 'B', 32)
     pdf.set_text_color(*text_color)
-    pdf.cell(0, 15, "FINVIEW", ln=True, align="C")
+    pdf.cell(0, 15, "", ln=True, align="C")
 
     # Separator line
     pdf.ln(10)
@@ -217,25 +217,87 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="logo/
         pdf.line(20, pdf.get_y(), pdf.w - 20, pdf.get_y())
         pdf.ln(10)
 
-        # Pie chart with custom colors
-        labels = [name for name in portfolio.investments]
-        values = [inv.get_total_value() for inv in portfolio.investments.values()]
+        # Pie chart with custom colors - LARGER SIZE
+        # Get all investments with their values
+        all_investments = [(name, inv.get_total_value()) for name, inv in portfolio.investments.items()]
+        total_value = sum(v for _, v in all_investments)
 
-        # Varied colors for assets
-        colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                  '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16']
+        # Show all investments without grouping
+        labels = []
+        values = []
 
-        fig = px.pie(values=values, names=labels, title="Distribution by asset",
-                     color_discrete_sequence=colors)
-        fig.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white', size=12)
+        # Sort by value descending
+        all_investments.sort(key=lambda x: x[1], reverse=True)
+
+        for name, value in all_investments:
+            labels.append(name)
+            values.append(value)
+
+        # Varied colors for assets - modern palette
+        colors = ['#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                  '#EC4899', '#14B8A6', '#F97316', '#06B6D4', '#84CC16']
+
+        fig = px.pie(
+            values=values,
+            names=labels,
+            color_discrete_sequence=colors,
+            hole=0.45  # Donut chart for better readability
         )
-        fig.write_image("graphique_pie.png")
-        pdf.image("graphique_pie.png", x=10, y=pdf.get_y(), w=180)
+        fig.update_traces(
+            textposition='auto',
+            textinfo='percent',
+            textfont=dict(size=18, color='white'),
+            marker=dict(
+                line=dict(color='#1d293d', width=3),
+                pattern=dict(shape="")
+            ),
+            pull=[0.05] * len(values)  # Slight pull effect for all slices
+        )
+        fig.update_layout(
+            paper_bgcolor='#1d293d',
+            plot_bgcolor='#1d293d',
+            font=dict(color='#e2e8f0', size=14, family='Arial'),
+            showlegend=True,
+            legend=dict(
+                orientation='h',
+                yanchor='top',
+                y=-0.15,
+                xanchor='center',
+                x=0.5,
+                font=dict(size=14),
+                bgcolor='rgba(29,41,61,0.8)',
+                bordercolor='#314158',
+                borderwidth=1
+            ),
+            margin=dict(l=20, r=20, t=20, b=60)
+        )
+        # High quality image
+        fig.write_image("graphique_pie.png", width=900, height=1000, scale=2)
+        pdf.image("graphique_pie.png", x=5, y=pdf.get_y(), w=200, h=220)
 
-        pdf.ln(120)  # Space after chart
+        # === NEW PAGE FOR INVESTMENT DETAILS TABLE ===
+        pdf.add_page()
+
+        # Page background
+        pdf.set_fill_color(*background_color)
+        pdf.rect(0, 0, pdf.w, pdf.h, 'F')
+
+        # Logo at top left
+        if os.path.exists(full_logo_path):
+            pdf.image(full_logo_path, x=5, y=5, w=50)
+
+        # Page title
+        pdf.ln(15)  # space for logo
+        pdf.set_font("Arial", 'B', 16)
+        pdf.set_text_color(*text_color)
+        pdf.cell(0, 10, "Investment Details", ln=True, align="C")
+        pdf.ln(5)
+
+        # White separator line
+        pdf.set_draw_color(*text_color)
+        pdf.set_line_width(0.5)
+        pdf.line(20, pdf.get_y(), pdf.w - 20, pdf.get_y())
+        pdf.ln(10)
 
         # Detail by investment
         pdf.set_font("Arial", 'B', 14)

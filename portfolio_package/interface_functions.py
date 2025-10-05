@@ -179,7 +179,7 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     try:
         st.sidebar.image(
             "logo/FullLogo.png",
-            use_container_width=True
+            width=300
         )
     except:
         st.sidebar.title("⚙️ Actions")
@@ -779,17 +779,61 @@ def show_predictions(portfolio):
 
     if 'prediction_results' in st.session_state:
         results = st.session_state.prediction_results
-        display_predictions(results)
-
-        st.markdown("---")
-        st.subheader("📈 Simulation Statistics")
         stats = create_statistics_summary(results)
 
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: st.metric("Current Wealth", format_currency(stats['initial']))
-        with col2: st.metric(f"Median ({years} years)", format_currency(stats['final']['p50']))
-        with col3: st.metric("Optimistic (P75)", format_currency(stats['final']['p75']))
-        with col4: st.metric("Conservative (P25)", format_currency(stats['final']['p25']))
+        # Create tabs to display results
+        tab1, tab2 = st.tabs(["📊 Chart", "📋 Projection Table"])
+
+        with tab1:
+            display_predictions(results)
+
+            st.markdown("---")
+            st.subheader("📈 Simulation Statistics")
+
+            col1, col2, col3, col4 = st.columns(4)
+            with col1: st.metric("Current Wealth", format_currency(stats['initial']))
+            with col2: st.metric(f"Median ({years} years)", format_currency(stats['final']['p50']))
+            with col3: st.metric("Optimistic (P75)", format_currency(stats['final']['p75']))
+            with col4: st.metric("Conservative (P25)", format_currency(stats['final']['p25']))
+
+        with tab2:
+            st.subheader("📋 Detailed Year-by-Year Projections")
+
+            # Create data table
+            projection_data = []
+            percentiles = results['percentiles']
+
+            for year in range(results['years'] + 1):
+                projection_data.append({
+                    'Year': year,
+                    'P10 (Pessimistic)': format_currency(percentiles['p10'][year]),
+                    'P25 (Conservative)': format_currency(percentiles['p25'][year]),
+                    'P50 (Median)': format_currency(percentiles['p50'][year]),
+                    'P75 (Optimistic)': format_currency(percentiles['p75'][year]),
+                    'P90 (Very Optimistic)': format_currency(percentiles['p90'][year]),
+                    'Average': format_currency(percentiles['mean'][year])
+                })
+
+            df_projections = pd.DataFrame(projection_data)
+
+            # Display the table
+            st.dataframe(
+                df_projections,
+                use_container_width=True,
+                height=min(600, (results['years'] + 2) * 35),
+                hide_index=True
+            )
+
+            # Additional information
+            st.markdown("---")
+            st.info("""
+**Percentile Legend:**
+- **P10**: 10% of simulations give a lower result (pessimistic scenario)
+- **P25**: 25% of simulations give a lower result (conservative scenario)
+- **P50**: Median - 50% of simulations above/below (median scenario)
+- **P75**: 75% of simulations give a lower result (optimistic scenario)
+- **P90**: 90% of simulations give a lower result (very optimistic scenario)
+            """)
 
 
 # === ONGLET DEFINITIONS ===

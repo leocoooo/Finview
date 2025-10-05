@@ -288,7 +288,7 @@ def create_prediction_chart(prediction_results):
         fill='toself',
         fillcolor='rgba(52, 152, 219, 0.2)',
         line=dict(color='rgba(255,255,255,0)'),
-        name='Intervalle 80% (P10-P90)',
+        name='80% Confidence Interval (P10-P90)',
         showlegend=True
     ))
 
@@ -299,7 +299,7 @@ def create_prediction_chart(prediction_results):
         fill='toself',
         fillcolor='rgba(52, 152, 219, 0.3)',
         line=dict(color='rgba(255,255,255,0)'),
-        name='Intervalle 50% (P25-P75)',
+        name='50% Confidence Interval (P25-P75)',
         showlegend=True
     ))
 
@@ -308,7 +308,7 @@ def create_prediction_chart(prediction_results):
         x=time_points,
         y=percentiles['p50'],
         mode='lines',
-        name='Médiane (P50)',
+        name='Median (P50)',
         line=dict(color='#2E86DE', width=3)
     ))
 
@@ -317,7 +317,7 @@ def create_prediction_chart(prediction_results):
         x=time_points,
         y=percentiles['mean'],
         mode='lines',
-        name='Moyenne',
+        name='Average',
         line=dict(color='#10AC84', width=2, dash='dash')
     ))
 
@@ -326,20 +326,20 @@ def create_prediction_chart(prediction_results):
         y=prediction_results['initial_value'],
         line_dash="dot",
         line_color="gray",
-        annotation_text="Valeur actuelle",
+        annotation_text="Current value",
         annotation_position="right"
     )
 
     # Configuration
     fig.update_layout(
         title={
-            'text': f"Prédiction du Patrimoine sur {years} ans",
+            'text': f"Portfolio Prediction over {years} years",
             'x': 0.5,
             'xanchor': 'center',
             'font': {'size': 20, 'color': 'white'}
         },
-        xaxis_title="Années",
-        yaxis_title="Valeur du Patrimoine (€)",
+        xaxis_title="Years",
+        yaxis_title="Portfolio Value (€)",
         xaxis=dict(
             tickmode='linear',
             tick0=0,
