@@ -250,7 +250,7 @@ def create_portfolio_pie_chart(portfolio):
         fig = go.Figure()
         fig.add_annotation(text="No data to display", x=0.5, y=0.5,
                            font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
-        fig.update_layout(**get_base_layout("📊 Portfolio distribution", 500))
+        fig.update_layout(**get_base_layout(" ", 50))
         return fig
 
     fig = go.Figure(data=[go.Pie(
@@ -270,7 +270,7 @@ def create_portfolio_pie_chart(portfolio):
     fig.add_annotation(text="Total Portfolio Value", x=0.5, y=0.45,
                        font=dict(size=13, color=THEME['text_secondary']), showarrow=False)
 
-    layout = get_base_layout("📊 Portfolio distribution", 550)
+    layout = get_base_layout(" ", 500)
     layout['showlegend'] = True
     layout['legend'] = {
         'orientation': 'v',
@@ -460,27 +460,29 @@ def get_portfolio_value_at_date(portfolio, date):
 
 def get_portfolio_monthly_history(portfolio):
     """
-    Reconstruit l'historique mensuel du portefeuille à partir de transaction_history.
-    Retourne un DataFrame avec les colonnes ['date', 'value'].
+    Reconstruit l'historique mensuel du portefeuille.
+    Retourne un DataFrame avec les colonnes ['date', 'value', 'invested'].
     """
     if not hasattr(portfolio, "transaction_history") or len(portfolio.transaction_history) == 0:
-        return pd.DataFrame(columns=["date", "value"])
+        return pd.DataFrame(columns=["date", "value", "invested"])
 
     df = pd.DataFrame(portfolio.transaction_history)
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values("date")
 
-    # Crée une série de dates mensuelles entre le début et la fin
     start_date = df["date"].iloc[0].replace(day=1)
     end_date = datetime.now()
     monthly_dates = pd.date_range(start=start_date, end=end_date, freq="MS")
 
-    # Calcule la valeur totale à chaque début de mois
     values = [get_portfolio_value_at_date(portfolio, d) for d in monthly_dates]
+    invested = [get_total_invested_at_date(portfolio, d) for d in monthly_dates]
 
-    history_df = pd.DataFrame({"date": monthly_dates, "value": values})
+    history_df = pd.DataFrame({
+        "date": monthly_dates,
+        "value": values,
+        "invested": invested
+    })
     return history_df
-
 
 def create_portfolio_evolution_chart(portfolio):
     """
@@ -792,3 +794,132 @@ def display_predictions(results):
     """Affiche les prédictions sous forme de graphique"""
     fig = create_prediction_chart(results)
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+
+def get_total_invested_at_date(portfolio, date):
+    """
+    Calcule le total investi dans le portefeuille jusqu'à une certaine date.
+    On suppose que transaction_history contient les entrées de type:
+    {'date': ..., 'amount': ..., 'type': 'investment' ou 'withdrawal'}
+    """
+    if not hasattr(portfolio, "transaction_history") or len(portfolio.transaction_history) == 0:
+        return 0
+
+    df = pd.DataFrame(portfolio.transaction_history)
+    df["date"] = pd.to_datetime(df["date"])
+
+    # On ne prend que les transactions avant la date donnée
+    df = df[df["date"] <= pd.to_datetime(date)]
+
+    # Somme des investissements (positifs) et des retraits (négatifs)
+    total_invested = df["amount"].sum()
+    return total_invested
+
+
+def create_kpi_metrics(portfolio):
+    """Calcule les métriques KPI pour le dashboard"""
+    net_worth = portfolio.get_net_worth()
+
+    # Calcul de la variation des investissements
+    financial_investments = getattr(portfolio, "financial_investments", {})
+    total_invested = sum(inv.quantity * inv.initial_value for inv in financial_investments.values())
+    current_value = sum(inv.get_total_value() for inv in financial_investments.values())
+    investment_change = ((current_value - total_invested) / total_invested * 100) if total_invested > 0 else 0
+
+    # Crédits
+    total_credits = portfolio.get_total_credits_balance()
+
+    return {
+        'net_worth': net_worth,
+        'investment_value': current_value,
+        'investment_change': investment_change,
+        'total_credits': total_credits
+    }
+
+
+def get_cac40_data():
+    """Récupère les données du CAC40"""
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker("^FCHI")
+        hist = ticker.history(period="5d")
+        if len(hist) >= 2:
+            current_value = hist['Close'].iloc[-1]
+            previous_value = hist['Close'].iloc[-2]
+            change = ((current_value - previous_value) / previous_value) * 100
+            return current_value, change
+        return 7500.0, 0.0
+    except:
+        return 7500.0, 0.0
+
+def get_dji_data():
+    """Récupère les données du CAC40"""
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker("^DJI")
+        hist = ticker.history(period="5d")
+        if len(hist) >= 2:
+            current_value = hist['Close'].iloc[-1]
+            previous_value = hist['Close'].iloc[-2]
+            change = ((current_value - previous_value) / previous_value) * 100
+            return current_value, change
+        return 6744.0, 0.0
+    except:
+        return 6744.0, 0.0
+
+def get_btc_data():
+    """Récupère les données du CAC40"""
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker("BTC-USD")
+        hist = ticker.history(period="5d")
+        if len(hist) >= 2:
+            current_value = hist['Close'].iloc[-1]
+            previous_value = hist['Close'].iloc[-2]
+            change = ((current_value - previous_value) / previous_value) * 100
+            return current_value, change
+        return 125512.0, 0.0
+    except:
+        return 125512.0, 0.0
+
+
+def create_performance_chart_filtered(portfolio):
+    """Performance chart pour assets sélectionnés"""
+    investments = getattr(portfolio, "financial_investments", {})
+
+    # Filtrer uniquement les assets demandés
+    selected = ['Europe ETF', 'Tesla Stock', 'Apple Stock', 'Nvidia Stock']
+    filtered_investments = {k: v for k, v in investments.items() if k in selected}
+
+    if not filtered_investments:
+        fig = go.Figure()
+        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
+        fig.update_layout(**get_base_layout(" ", 500))
+        return fig
+
+    names = list(filtered_investments.keys())
+    perfs = [inv.get_gain_loss_percentage() for inv in filtered_investments.values()]
+
+    colors = ['#FF1744', '#00E676', '#2979FF', '#FFC400'][:len(names)]
+
+    fig = go.Figure(data=[go.Bar(
+        x=names,
+        y=perfs,
+        marker=dict(
+            color=colors,
+            line=dict(color='rgba(255,255,255,0.2)', width=1)
+        ),
+        text=[f"{p:+.1f}%" for p in perfs],
+        textposition='outside'
+    )])
+
+    layout = get_base_layout(" ", 450)
+    layout.update({
+        'yaxis_title': "Performance (%)",
+        'xaxis_title': "",
+        'showlegend': False
+    })
+    fig.update_layout(**layout)
+
+    return fig
+

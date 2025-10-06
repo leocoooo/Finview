@@ -21,33 +21,33 @@ HISTORICAL_RETURNS = {
     # ========================================================================
     # CRYPTOMONNAIES - Haute volatilité / Haute croissance potentielle
     # ========================================================================
-    'Bitcoin': {'mean': 30.0, 'std': 65.0, 'distribution': 'lognormal'},
-    'Ethereum': {'mean': 28.0, 'std': 70.0, 'distribution': 'lognormal'},
-    'Crypto': {'mean': 25.0, 'std': 70.0, 'distribution': 'lognormal'},
-    'Altcoin': {'mean': 20.0, 'std': 80.0, 'distribution': 'lognormal'},
+    'Bitcoin': {'mean': 18.0, 'std': 80.0, 'distribution': 'lognormal'},
+    'Ethereum': {'mean': 12.0, 'std': 80.0, 'distribution': 'lognormal'},
+    'Crypto': {'mean': 12.0, 'std': 80.0, 'distribution': 'lognormal'},
+    'Altcoin': {'mean': 20.0, 'std': 100.0, 'distribution': 'lognormal'},
 
     # ========================================================================
     # ACTIONS INDIVIDUELLES - Volatilité moyenne à haute
     # ========================================================================
     # Tech Giants (GAFAM)
-    'Actions Apple': {'mean': 15.0, 'std': 30.0, 'distribution': 'normal'},
-    'Actions Microsoft': {'mean': 14.0, 'std': 28.0, 'distribution': 'normal'},
-    'Actions Google': {'mean': 13.5, 'std': 29.0, 'distribution': 'normal'},
-    'Actions Amazon': {'mean': 16.0, 'std': 35.0, 'distribution': 'normal'},
-    'Actions Meta': {'mean': 12.0, 'std': 40.0, 'distribution': 'normal'},
+    'Actions Apple': {'mean': 15.0, 'std': 40.0, 'distribution': 'normal'},
+    'Actions Microsoft': {'mean': 14.0, 'std': 40.0, 'distribution': 'normal'},
+    'Actions Google': {'mean': 10.5, 'std': 40.0, 'distribution': 'normal'},
+    'Actions Amazon': {'mean': 10.0, 'std': 40.0, 'distribution': 'normal'},
+    'Actions Meta': {'mean': 8.0, 'std': 40.0, 'distribution': 'normal'},
 
     # Growth / Tech
-    'Actions Tesla': {'mean': 12.0, 'std': 45.0, 'distribution': 'normal'},
-    'Actions Nvidia': {'mean': 18.0, 'std': 42.0, 'distribution': 'normal'},
-    'Actions Netflix': {'mean': 11.0, 'std': 38.0, 'distribution': 'normal'},
+    'Actions Tesla': {'mean': 6.0, 'std': 45.0, 'distribution': 'normal'},
+    'Actions Nvidia': {'mean': 10.0, 'std': 60.0, 'distribution': 'normal'},
+    'Actions Netflix': {'mean': 7.0, 'std': 38.0, 'distribution': 'normal'},
 
     # Secteur Financier
-    'Actions Bancaires': {'mean': 8.0, 'std': 22.0, 'distribution': 'normal'},
-    'Actions Assurance': {'mean': 7.5, 'std': 20.0, 'distribution': 'normal'},
+    'Actions Bancaires': {'mean': 5.0, 'std': 22.0, 'distribution': 'normal'},
+    'Actions Assurance': {'mean': 5.5, 'std': 20.0, 'distribution': 'normal'},
 
     # Luxe & Consommation (France)
-    'Actions LVMH': {'mean': 13.0, 'std': 25.0, 'distribution': 'normal'},
-    'Actions Hermès': {'mean': 14.0, 'std': 22.0, 'distribution': 'normal'},
+    'Actions LVMH': {'mean': 9.0, 'std': 25.0, 'distribution': 'normal'},
+    'Actions Hermès': {'mean': 10.0, 'std': 22.0, 'distribution': 'normal'},
 
     # Énergie
     'Actions Énergies Renouvelables': {'mean': 9.0, 'std': 32.0, 'distribution': 'normal'},
@@ -60,20 +60,20 @@ HISTORICAL_RETURNS = {
     # ETF - Volatilité moyenne / Diversification
     # ========================================================================
     # Indices Majeurs
-    'ETF S&P 500': {'mean': 8.0, 'std': 16.0, 'distribution': 'normal'},
-    'ETF Nasdaq': {'mean': 9.0, 'std': 18.0, 'distribution': 'normal'},
+    'ETF S&P 500': {'mean': 6.0, 'std': 16.0, 'distribution': 'normal'},
+    'ETF Nasdaq': {'mean': 6.0, 'std': 18.0, 'distribution': 'normal'},
     'ETF CAC 40': {'mean': 6.0, 'std': 17.0, 'distribution': 'normal'},
-    'ETF Europe': {'mean': 6.5, 'std': 18.0, 'distribution': 'normal'},
-    'ETF World': {'mean': 7.5, 'std': 15.0, 'distribution': 'normal'},
+    'ETF Europe': {'mean': 6.5, 'std': 20.0, 'distribution': 'normal'},
+    'ETF World': {'mean': 7.5, 'std': 20.0, 'distribution': 'normal'},
     'ETF MSCI World': {'mean': 7.5, 'std': 15.0, 'distribution': 'normal'},
 
     # Marchés Émergents
     'ETF Émergents': {'mean': 8.5, 'std': 22.0, 'distribution': 'normal'},
     'ETF Chine': {'mean': 7.0, 'std': 25.0, 'distribution': 'normal'},
-    'ETF Inde': {'mean': 9.0, 'std': 23.0, 'distribution': 'normal'},
+    'ETF Inde': {'mean': 6.0, 'std': 23.0, 'distribution': 'normal'},
 
     # Sectoriels
-    'ETF Tech': {'mean': 10.0, 'std': 20.0, 'distribution': 'normal'},
+    'ETF Tech': {'mean': 8.0, 'std': 20.0, 'distribution': 'normal'},
     'ETF Santé': {'mean': 8.5, 'std': 16.0, 'distribution': 'normal'},
     'ETF ESG': {'mean': 7.5, 'std': 16.0, 'distribution': 'normal'},
 
@@ -84,12 +84,12 @@ HISTORICAL_RETURNS = {
     # IMMOBILIER - Faible à moyenne volatilité
     # ========================================================================
     # SCPI (Sociétés Civiles de Placement Immobilier)
-    'SCPI Bureaux Paris': {'mean': 4.0, 'std': 6.0, 'distribution': 'normal'},
-    'SCPI Résidentiel': {'mean': 4.2, 'std': 5.5, 'distribution': 'normal'},
-    'SCPI Commerce': {'mean': 4.5, 'std': 7.0, 'distribution': 'normal'},
-    'SCPI Diversifiée': {'mean': 4.3, 'std': 5.8, 'distribution': 'normal'},
-    'SCPI Europe': {'mean': 4.0, 'std': 6.5, 'distribution': 'normal'},
-    'SCPI': {'mean': 4.0, 'std': 5.0, 'distribution': 'normal'},
+    'SCPI Bureaux Paris': {'mean': 4.0, 'std': 8.0, 'distribution': 'normal'},
+    'SCPI Résidentiel': {'mean': 4.2, 'std': 6.5, 'distribution': 'normal'},
+    'SCPI Commerce': {'mean': 4.5, 'std': 10.0, 'distribution': 'normal'},
+    'SCPI Diversifiée': {'mean': 4.3, 'std': 7.8, 'distribution': 'normal'},
+    'SCPI Europe': {'mean': 4.0, 'std': 7.5, 'distribution': 'normal'},
+    'SCPI': {'mean': 4.0, 'std': 8.0, 'distribution': 'normal'},
 
     # REIT (Real Estate Investment Trusts)
     'REIT Résidentiel US': {'mean': 5.5, 'std': 12.0, 'distribution': 'normal'},
