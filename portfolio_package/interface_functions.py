@@ -114,16 +114,6 @@ def create_horizontal_menu():
         </style>
     """, unsafe_allow_html=True)
 
-    # Header with title
-    st.markdown("""
-        <div class="nav-header">
-            <div>
-                <h1>💰 Financial Portfolio Manager</h1>
-                <p class="nav-subtitle">Manage your investments with ease</p>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
     # Initialize current page in session_state
     if 'current_page' not in st.session_state:
         st.session_state.current_page = "📊 Summary"
@@ -408,8 +398,8 @@ def show_summary(portfolio):
                 st.metric("Cash movements", f"{format_currency(cash_transactions)}")
 
             with col3:
-                investment_buys = df_history[df_history['type'] == 'INVESTMENT_BUY']['amount'].sum()
-                st.metric("Investments", f"{format_currency(investment_buys)}")
+                total_investments_value = portfolio.get_financial_investments_value() + portfolio.get_real_estate_investments_value()
+                st.metric("Investments", f"{format_currency(total_investments_value)}")
 
             with col4:
                 credit_payments = df_history[df_history['type'] == 'CREDIT_PAYMENT']['amount'].sum()

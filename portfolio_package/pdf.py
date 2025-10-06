@@ -142,10 +142,10 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
         pdf.set_font("Arial", 'B', 10)
 
         # History header
-        pdf.cell(45, 10, "Date", border=1, fill=True)
-        pdf.cell(50, 10, "Type", border=1, fill=True)
+        pdf.cell(35, 10, "Date", border=1, fill=True)
+        pdf.cell(40, 10, "Type", border=1, fill=True)
         pdf.cell(30, 10, "Amount", border=1, fill=True)
-        pdf.cell(65, 10, "Description", border=1, fill=True)
+        pdf.cell(85, 10, "Description", border=1, fill=True)
         pdf.ln()
 
         # History content (last 10 transactions)
@@ -153,12 +153,12 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
         last_transactions = portfolio.transaction_history[-10:]
         for transaction in last_transactions:
             # Replace unsupported special characters
-            description = transaction['description'][:30]
+            description = transaction['description'][:50]
             description = description.replace('€', 'EUR').replace('→', '->')
-            pdf.cell(45, 8, transaction['date'], border=1)
-            pdf.cell(50, 8, transaction['type'], border=1)
+            pdf.cell(35, 8, transaction['date'], border=1)
+            pdf.cell(40, 8, transaction['type'], border=1)
             pdf.cell(30, 8, f"{transaction['amount']:.2f} EUR", border=1)
-            pdf.cell(65, 8, description, border=1)
+            pdf.cell(85, 8, description, border=1)
             pdf.ln()
 
         # Analysis of recent actions
