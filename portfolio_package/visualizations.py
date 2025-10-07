@@ -658,7 +658,7 @@ def create_financial_portfolio_vs_cac40_chart(portfolio):
             side='left'
         ),
         'yaxis2': dict(
-            title=dict(text='Financial Portfolio (€)', font=dict(color='#3B82F6')),
+            title=dict(text='Financial Portfolio value (€)', font=dict(color='#3B82F6')),
             tickfont=dict(color='#3B82F6'),
             overlaying='y',
             side='right'
