@@ -284,11 +284,16 @@ def show_summary(portfolio):
 
     # --- Métriques principales ---
     col1, col2, col3, col4, col5 = st.columns(5)
-    with col1: st.metric("💰 Cash", format_currency(portfolio.cash))
-    with col2: st.metric("📈 Financial Inv.", format_currency(portfolio.get_financial_investments_value()))
-    with col3: st.metric("🏠 Real Estate Inv.", format_currency(portfolio.get_real_estate_investments_value()))
-    with col4: st.metric("💳 Credits", f"-{format_currency(portfolio.get_total_credits_balance())}"[:-1] + "€")
-    with col5: st.metric("🏆 Net Worth", format_currency(portfolio.get_net_worth()))
+    with col1: 
+        st.metric("💰 Cash", format_currency(portfolio.cash))
+    with col2: 
+        st.metric("📈 Financial Inv.", format_currency(portfolio.get_financial_investments_value()))
+    with col3: 
+        st.metric("🏠 Real Estate Inv.", format_currency(portfolio.get_real_estate_investments_value()))
+    with col4: 
+        st.metric("💳 Credits", f"-{format_currency(portfolio.get_total_credits_balance())}"[:-1] + "€")
+    with col5: 
+        st.metric("🏆 Net Worth", format_currency(portfolio.get_net_worth()))
 
     # --- Infos supplémentaires ---
     additional_info = []
@@ -413,11 +418,45 @@ def show_summary(portfolio):
                 fig = create_monthly_transactions_chart(df_history)
                 st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
+            mapping_type_dictionnary = {
+                'CASH_ADD': '💰 Cash addition',
+                'CASH_WITHDRAW': '💸 Cash withdrawal',
+                'FINANCIAL_INVESTMENT_BUY': '📈 Investment purchase',
+                'REAL_ESTATE_INVESTMENT_BUY': '🏠 Real estate purchase',
+                'INVESTMENT_SELL': '📉 Investment sale',
+                'INVESTMENT_UPDATE': '🔄 Price update',
+                'CREDIT_ADD': '🏦 New credit',
+                'CREDIT_PAYMENT': '💳 Credit payment',
+                'CREDIT_INTEREST': '📊 Credit interest'
+            }
+
+            # Créer un mapping inversé pour retrouver la clé originale
+            reverse_mapping = {v: k for k, v in mapping_type_dictionnary.items()}
+
             # Filters
             col1, col2 = st.columns(2)
             with col1:
-                type_filter = st.selectbox("Filter by type",
-                                         ["All"] + list(df_history['type'].unique()))
+                # Obtenir les types uniques du DataFrame
+                unique_types = df_history['type'].unique()
+                
+                # Mapper les types vers leurs labels affichables
+                display_options = ["All"] + [mapping_type_dictionnary.get(t, t) for t in unique_types]
+                
+                # Créer la selectbox avec les labels affichables
+                type_filter_display = st.selectbox("Filter by type", display_options)
+                
+                # Convertir le choix affiché vers la valeur originale pour le filtrage
+                if type_filter_display == "All":
+                    type_filter = "All"
+                else:
+                    type_filter = reverse_mapping.get(type_filter_display, type_filter_display)
+
+            # Utiliser type_filter pour filtrer votre DataFrame
+            if type_filter != "All":
+                df_history[df_history['type'] == type_filter]
+            else:
+                df_history
+
             with col2:
                 date_filter = st.date_input("Minimum date", value=None)
 
@@ -430,16 +469,7 @@ def show_summary(portfolio):
 
             # Improved table display
             display_df = filtered_df.copy()
-            display_df['Type'] = display_df['type'].map({
-                'CASH_ADD': '💰 Cash addition',
-                'CASH_WITHDRAW': '💸 Cash withdrawal',
-                'INVESTMENT_BUY': '📈 Investment purchase',
-                'INVESTMENT_SELL': '📉 Investment sale',
-                'INVESTMENT_UPDATE': '🔄 Price update',
-                'CREDIT_ADD': '🏦 New credit',
-                'CREDIT_PAYMENT': '💳 Credit payment',
-                'CREDIT_INTEREST': '📊 Credit interest'
-            })
+            display_df['Type'] = display_df['type'].map(mapping_type_dictionnary)
             display_df['Amount'] = display_df['amount'].apply(lambda x: f"{x:.2f}€" if x > 0 else "")
             display_df['Date'] = pd.to_datetime(display_df['date']).dt.strftime('%d/%m/%Y %H:%M')
 
@@ -1624,9 +1654,9 @@ def display_kpi_row(portfolio):
 
 def display_dashboard_charts(portfolio):
     """Affiche les graphiques principaux du dashboard"""
-    import streamlit as st
+
     from portfolio_package.visualizations import (
-        create_portfolio_vs_cac40_chart,
+        create_financial_portfolio_vs_cac40_chart,
         create_portfolio_pie_chart,
         create_performance_chart_filtered
     )
@@ -1634,7 +1664,7 @@ def display_dashboard_charts(portfolio):
     st.markdown("<div style='margin-top:-1rem;'></div>", unsafe_allow_html=True)
 
     # Graphique principal en pleine largeur
-    fig_evolution = create_portfolio_vs_cac40_chart(portfolio)
+    fig_evolution = create_financial_portfolio_vs_cac40_chart(portfolio)
     st.plotly_chart(
         fig_evolution,
         use_container_width=True,

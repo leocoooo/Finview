@@ -356,7 +356,7 @@ def create_performance_chart(portfolio):
         fig = go.Figure()
         fig.add_annotation(text="No investments", x=0.5, y=0.5,
                            font=dict(size=16, color=THEME['text_secondary']), showarrow=False)
-        fig.update_layout(**get_base_layout("📈 Investment Performance", 400))
+        fig.update_layout(**get_base_layout("📈 Investment Performance Per Asset", 400))
         return fig
     
     names = list(investments.keys())
@@ -432,7 +432,7 @@ def create_performance_chart(portfolio):
     
     fig.add_hline(y=0, line=dict(color='rgba(255,255,255,0.4)', dash='dash', width=2), opacity=0.7)
     
-    layout = get_base_layout("📈 Investment Performance", 450)
+    layout = get_base_layout("📈 Investment Performance Per Asset", 450)
     layout['yaxis'] = dict(title='Performance (%)', gridcolor=THEME['grid'], ticksuffix='%')
     layout['xaxis'] = dict(showgrid=False, tickangle=-30 if len(names)>6 else 0)
     layout['showlegend'] = False
@@ -440,31 +440,43 @@ def create_performance_chart(portfolio):
     return fig
 
 
-def get_portfolio_value_at_date(portfolio, date):
-    """Calcule la valeur totale du portefeuille à une date donnée."""
+def get_financial_portfolio_value_at_date(portfolio, date):
+    """Calcule la valeur totale des investissements financiers à une date donnée"""
     total = 0.0
-
-    # Trésorerie (approximation simple : prend la valeur actuelle)
-    #total += portfolio.cash
-
-    # Valeur des investissements financiers
+    
     for inv in portfolio.financial_investments.values():
         if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
-            total += inv.current_value * inv.quantity
-
-    # Valeur des investissements immobiliers
-    #for inv in portfolio.real_estate_investments.values():
-        #if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
-            #total += inv.current_value * inv.quantity
-
-    # On pourrait ajouter ici la valeur nette des crédits si tu veux les inclure
+            price_at_date = inv.initial_value
+            quantity_at_date = 0.0
+            
+            # Parcourir l'historique des transactions pour cet investissement
+            for transaction in portfolio.transaction_history:
+                trans_date = pd.to_datetime(transaction["date"])
+                
+                if trans_date > date:
+                    continue
+                
+                if transaction.get("name") == inv.name:
+                    trans_type = transaction["type"]
+                    
+                    if trans_type == "FINANCIAL_INVESTMENT_BUY":
+                        price_at_date = transaction.get("price", inv.initial_value)
+                        quantity_at_date = transaction.get("quantity", 0)
+                    
+                    elif trans_type == "INVESTMENT_UPDATE":
+                        price_at_date = transaction.get("price", price_at_date)
+                    
+                    elif trans_type == "INVESTMENT_SELL":
+                        quantity_at_date -= transaction.get("quantity", 0)
+            
+            total += price_at_date * quantity_at_date
+    
     return total
 
 
 def get_portfolio_monthly_history(portfolio):
     """
-    Reconstruit l'historique mensuel du portefeuille.
-    Retourne un DataFrame avec les colonnes ['date', 'value', 'invested'].
+    Reconstruit l'historique mensuel du portefeuille de manière optimisée.
     """
     if not hasattr(portfolio, "transaction_history") or len(portfolio.transaction_history) == 0:
         return pd.DataFrame(columns=["date", "value", "invested"])
@@ -477,7 +489,50 @@ def get_portfolio_monthly_history(portfolio):
     end_date = datetime.now()
     monthly_dates = pd.date_range(start=start_date, end=end_date, freq="MS")
 
-    values = [get_portfolio_value_at_date(portfolio, d) for d in monthly_dates]
+    # OPTIMISATION : Créer un dictionnaire {nom_investissement: [(date, price, quantity)]}
+    investment_states = {}
+    
+    for _, transaction in df.iterrows():
+        trans_type = transaction["type"]
+        name = transaction.get("name")
+        
+        if name and trans_type in ["FINANCIAL_INVESTMENT_BUY", "INVESTMENT_UPDATE", "INVESTMENT_SELL"]:
+            if name not in investment_states:
+                investment_states[name] = []
+            
+            investment_states[name].append({
+                'date': transaction['date'],
+                'type': trans_type,
+                'price': transaction.get('price'),
+                'quantity': transaction.get('quantity')
+            })
+    
+    # Calculer les valeurs mensuelles
+    values = []
+    for target_date in monthly_dates:
+        total = 0.0
+        
+        for name, states in investment_states.items():
+            price = None
+            quantity = 0.0
+            
+            for state in states:
+                if state['date'] > target_date:
+                    break
+                
+                if state['type'] == 'FINANCIAL_INVESTMENT_BUY':
+                    price = state['price']
+                    quantity = state['quantity']
+                elif state['type'] == 'INVESTMENT_UPDATE':
+                    price = state['price']
+                elif state['type'] == 'INVESTMENT_SELL':
+                    quantity -= state['quantity']
+            
+            if price is not None and quantity > 0:
+                total += price * quantity
+        
+        values.append(total)
+    
     invested = [get_total_invested_at_date(portfolio, d) for d in monthly_dates]
 
     history_df = pd.DataFrame({
@@ -488,7 +543,7 @@ def get_portfolio_monthly_history(portfolio):
     return history_df
 
 
-def create_portfolio_vs_cac40_chart(portfolio):
+def create_financial_portfolio_vs_cac40_chart(portfolio):
     """Graphique comparant le portfolio (sans immobilier) au CAC40"""
     import yfinance as yf
 
@@ -603,7 +658,7 @@ def create_portfolio_vs_cac40_chart(portfolio):
             side='left'
         ),
         'yaxis2': dict(
-            title=dict(text='Portfolio (€)', font=dict(color='#3B82F6')),
+            title=dict(text='Financial Portfolio value (€)', font=dict(color='#3B82F6')),
             tickfont=dict(color='#3B82F6'),
             overlaying='y',
             side='right'
@@ -623,6 +678,7 @@ def create_portfolio_vs_cac40_chart(portfolio):
     fig.update_layout(**layout)
 
     return fig
+
 
 def create_performance_chart_filtered(portfolio):
     """Performance chart pour assets sélectionnés"""
@@ -811,7 +867,6 @@ def display_portfolio_pie(portfolio):
     st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
 
-
 def display_financial_investments(portfolio):
     st.plotly_chart(create_financial_investments_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
@@ -870,6 +925,7 @@ def create_kpi_metrics(portfolio):
         'total_credits': total_credits
     }
 
+
 def get_cac40_data():
     """Récupère les données du CAC40"""
     import yfinance as yf
@@ -879,6 +935,7 @@ def get_cac40_data():
     previous_value = hist['Close'].iloc[-2]
     change = ((current_value - previous_value) / previous_value) * 100
     return current_value, change
+
 
 def get_dji_data():
     """Récupère les données du CAC40"""
@@ -894,6 +951,7 @@ def get_dji_data():
         return 6744.0, 0.0
     except:
         return 6744.0, 0.0
+
 
 def get_btc_data():
     """Récupère les données du CAC40"""
