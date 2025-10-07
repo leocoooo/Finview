@@ -12,7 +12,7 @@ from portfolio_package.patrimoine_prediction import simulate_portfolio_future, c
 # Import des visualisations externalisées
 from portfolio_package.visualizations import (
     display_portfolio_pie,
-    display_portfolio_evolution,
+    #display_portfolio_evolution,
     display_financial_investments,
     display_performance_chart,
     display_world_map,
@@ -1604,21 +1604,20 @@ def display_kpi_row(portfolio):
     with col3:
         st.metric(
             label="📊 BTC-USD",
-            value=f"{btc_value:.0f}",
+            value=format_currency(round(btc_value, -1)),
             delta=f"{btc_change:+.2f}%"
         )
-
     with col4:
         st.metric(
             label="📊 CAC40",
-            value=f"{cac40_value:.0f}",
+            value=format_currency(round(cac40_value,0)),
             delta=f"{cac40_change:+.2f}%"
         )
 
     with col5:
         st.metric(
             label="📊 DJI",
-            value=f"{dji_value:.0f}",
+            value=format_currency(round(dji_value, 0)),
             delta=f"{dji_change:+.2f}%"
         )
 
@@ -1627,36 +1626,93 @@ def display_dashboard_charts(portfolio):
     """Affiche les graphiques principaux du dashboard"""
     import streamlit as st
     from portfolio_package.visualizations import (
-        #create_portfolio_vs_cac40_chart,
+        create_portfolio_vs_cac40_chart,
         create_portfolio_pie_chart,
         create_performance_chart_filtered
     )
+    #st.markdown("<style>div.block-container{padding-top:0.5rem;padding-bottom:0rem;}</style>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:-1rem;'></div>", unsafe_allow_html=True)
 
     # Graphique principal en pleine largeur
-    #st.subheader("📈 Portfolio Evolution vs Market")
-    #fig_evolution = create_portfolio_vs_cac40_chart(portfolio)
-    #st.plotly_chart(fig_evolution, use_container_width=True, config={'displayModeBar': False})
-
-    # Deux graphiques côte à côte
+    fig_evolution = create_portfolio_vs_cac40_chart(portfolio)
+    st.plotly_chart(
+        fig_evolution,
+        use_container_width=True,
+        config={"displayModeBar": False,
+        "staticPlot": False,
+        "responsive": True,
+        "height": 290   # 👈 tu peux définir la hauteur ici maintenan
+        },
+    )
     col1, col2 = st.columns(2)
-
     with col1:
-        st.subheader("")
         fig_pie = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False, "height": 390}
+        )
 
     with col2:
-        st.subheader("")
         fig_perf = create_performance_chart_filtered(portfolio)
-        st.plotly_chart(fig_perf, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig_perf, use_container_width=True, config={"displayModeBar": False, "height": 390})
 
 
 def show_portfolio_charts(portfolio):
     """Fonction principale pour l'onglet Portfolio"""
     import streamlit as st
 
+    #remove_streamlit_spacing()
+
     # KPIs en haut
     display_kpi_row(portfolio)
 
     # Graphiques
     display_dashboard_charts(portfolio)
+
+
+def remove_streamlit_spacing():
+    """Réduit les espaces entre les éléments Streamlit"""
+    import streamlit as st
+
+    st.markdown("""
+        <style>
+        /* Réduire l'espace entre les graphiques */
+        .element-container {
+            margin-bottom: -1rem !important;
+        }
+
+        /* Réduire l'espace des graphiques Plotly */
+        .js-plotly-plot {
+            margin-bottom: -1rem !important;
+        }
+
+        /* Réduire l'espace vertical général */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 0rem !important;
+        }
+
+        /* Réduire l'espace entre métriques */
+        [data-testid="stMetricValue"] {
+            margin-bottom: 0rem !important;
+        }
+
+        /* Réduire l'espace des dividers */
+        hr {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Réduire l'espace entre colonnes */
+        [data-testid="column"] {
+            padding: 0.5rem !important;
+        }
+
+        /* Réduire l'espace des subheaders */
+        h3 {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
+

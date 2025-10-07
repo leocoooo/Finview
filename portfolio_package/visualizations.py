@@ -264,13 +264,14 @@ def create_portfolio_pie_chart(portfolio):
         pull=[0.02]*len(values)
     )])
 
+
     total_value = sum(values)
     fig.add_annotation(text=f"<b>{format_currency(total_value)}</b>", x=0.5, y=0.52,
                        font=dict(size=28, color=THEME['text_primary']), showarrow=False)
     fig.add_annotation(text="Total Portfolio Value", x=0.5, y=0.45,
                        font=dict(size=13, color=THEME['text_secondary']), showarrow=False)
 
-    layout = get_base_layout(" ", 500)
+    layout = get_base_layout("", 500)
     layout['showlegend'] = True
     layout['legend'] = {
         'orientation': 'v',
@@ -300,20 +301,22 @@ def create_financial_investments_chart(portfolio):
     values = [getattr(inv, 'get_total_value', lambda:0)() for inv in investments.values()]
     
     # Palette de couleurs professionnelles légèrement plus vives
+    # Palette de couleurs flashy et vibrantes
     professional_colors = [
-        'rgba(90, 130, 170, 0.85)',   # Bleu acier
-        'rgba(100, 160, 120, 0.85)',  # Vert sauge
-        'rgba(150, 110, 150, 0.85)',  # Violet doux
-        'rgba(160, 140, 90, 0.85)',   # Or mat
-        'rgba(80, 150, 160, 0.85)',   # Cyan profond
-        'rgba(170, 100, 110, 0.85)',  # Rose poudré
-        'rgba(110, 120, 170, 0.85)',  # Indigo
-        'rgba(130, 160, 100, 0.85)',  # Olive clair
-        'rgba(160, 100, 150, 0.85)',  # Orchidée
-        'rgba(90, 150, 150, 0.85)',   # Turquoise mat
-        'rgba(170, 140, 90, 0.85)',   # Terracotta
-        'rgba(140, 100, 140, 0.85)',  # Prune
+        '#FF1744',  # Rouge éclatant
+        '#00E676',  # Vert néon
+        '#2979FF',  # Bleu électrique
+        '#FFC400',  # Jaune or vif
+        '#E040FB',  # Violet néon
+        '#00E5FF',  # Cyan brillant
+        '#FF6E40',  # Orange corail
+        '#76FF03',  # Vert citron
+        '#F50057',  # Rose magenta
+        '#00B8D4',  # Turquoise vif
+        '#FFEA00',  # Jaune citron
+        '#AA00FF',  # Violet profond
     ]
+
     colors = professional_colors * ((len(values)//len(professional_colors))+1)
     colors = colors[:len(values)]
     
@@ -362,18 +365,18 @@ def create_performance_chart(portfolio):
     
     # Palette de couleurs vives avec transparence
     vibrant_colors = [
-        'rgba(255, 23, 68, 0.7)',    # Rouge vif
-        'rgba(0, 230, 118, 0.7)',    # Vert émeraude
-        'rgba(41, 121, 255, 0.7)',   # Bleu électrique
-        'rgba(255, 196, 0, 0.7)',    # Jaune doré
-        'rgba(224, 64, 251, 0.7)',   # Violet vif
-        'rgba(0, 229, 255, 0.7)',    # Cyan lumineux
-        'rgba(255, 110, 64, 0.7)',   # Orange corail
-        'rgba(118, 255, 3, 0.7)',    # Vert lime
-        'rgba(213, 0, 249, 0.7)',    # Magenta
-        'rgba(0, 176, 255, 0.7)',    # Bleu ciel vif
-        'rgba(255, 171, 0, 0.7)',    # Ambre
-        'rgba(221, 44, 0, 0.7)',     # Rouge foncé vif
+        'rgba(255, 23, 68, 0.95)',  # Rouge vif
+        'rgba(0, 230, 118, 0.95)',  # Vert émeraude
+        'rgba(41, 121, 255, 0.95)',  # Bleu électrique
+        'rgba(255, 196, 0, 0.95)',  # Jaune doré
+        'rgba(224, 64, 251, 0.95)',  # Violet vif
+        'rgba(0, 229, 255, 0.95)',  # Cyan lumineux
+        'rgba(255, 110, 64, 0.95)',  # Orange corail
+        'rgba(118, 255, 3, 0.95)',  # Vert lime
+        'rgba(213, 0, 249, 0.95)',  # Magenta
+        'rgba(0, 176, 255, 0.95)',  # Bleu ciel vif
+        'rgba(255, 171, 0, 0.95)',  # Ambre
+        'rgba(221, 44, 0, 0.95)',  # Rouge foncé vif
     ]
     colors = vibrant_colors * ((len(values)//len(vibrant_colors))+1)
     colors = colors[:len(values)]
@@ -417,7 +420,7 @@ def create_performance_chart(portfolio):
     fig.add_trace(go.Bar(
         x=names, y=perfs,
         marker=dict(
-            color=bar_colors,
+            color=colors,
             line=dict(color='rgba(255,255,255,0.15)', width=1)
         ),
         text=[f"{p:+.1f}%" for p in perfs],
@@ -442,7 +445,7 @@ def get_portfolio_value_at_date(portfolio, date):
     total = 0.0
 
     # Trésorerie (approximation simple : prend la valeur actuelle)
-    total += portfolio.cash
+    #total += portfolio.cash
 
     # Valeur des investissements financiers
     for inv in portfolio.financial_investments.values():
@@ -450,9 +453,9 @@ def get_portfolio_value_at_date(portfolio, date):
             total += inv.current_value * inv.quantity
 
     # Valeur des investissements immobiliers
-    for inv in portfolio.real_estate_investments.values():
-        if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
-            total += inv.current_value * inv.quantity
+    #for inv in portfolio.real_estate_investments.values():
+        #if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
+            #total += inv.current_value * inv.quantity
 
     # On pourrait ajouter ici la valeur nette des crédits si tu veux les inclure
     return total
@@ -484,122 +487,128 @@ def get_portfolio_monthly_history(portfolio):
     })
     return history_df
 
-def create_portfolio_evolution_chart(portfolio):
-    """
-    Crée un graphique d'évolution basé sur l'historique mensuel réel du portefeuille.
-    """
 
-    THEME = {
-        'financial': '#3B82F6',
-        'positive': '#10B981',
-        'grid': 'rgba(255,255,255,0.1)',
-        'text_primary': '#FFFFFF',
-        'text_secondary': '#9CA3AF'
-    }
+def create_portfolio_vs_cac40_chart(portfolio):
+    """Graphique comparant le portfolio (sans immobilier) au CAC40"""
+    import yfinance as yf
 
     df = get_portfolio_monthly_history(portfolio)
     if df.empty:
         fig = go.Figure()
-        fig.add_annotation(
-            text="Pas de données disponibles",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16, color=THEME['text_secondary'])
-        )
+        fig.add_annotation(text="Pas de données", x=0.5, y=0.5, showarrow=False)
         return fig
 
+    # Filtrer pour exclure l'immobilier
     dates = df["date"]
-    values = df["value"]
+    values_no_real_estate = df["value"] - df.get("real_estate_value", 0)
 
-    initial_value = values.iloc[0]
-    current_value = values.iloc[-1]
+    print(f"📅 Date début portfolio: {dates.iloc[0]}")
+    print(f"📅 Date fin portfolio: {dates.iloc[-1]}")
+    print(f"📊 Nombre de points: {len(dates)}")
 
-    total_days = (dates.iloc[-1] - dates.iloc[0]).days
-    years_actual = total_days / 365 if total_days > 0 else 1
+    # Récupérer les vraies données du CAC40
+    cac40_series = None
+    try:
+        print("🔄 Tentative de récupération CAC40...")
+        ticker = yf.Ticker("^FCHI")
 
-    total_gain = current_value - initial_value
-    total_return = ((current_value / initial_value) - 1) * 100 if initial_value > 0 else 0
-    annualized = ((current_value / initial_value) ** (1 / years_actual) - 1) * 100 if initial_value > 0 else 0
+        # Convertir explicitement en datetime
+        start_date = pd.to_datetime(dates.iloc[0])
+        end_date = pd.to_datetime(dates.iloc[-1])
 
-    # === Graphique
+        # Ajouter des marges
+        start_date = start_date - pd.Timedelta(days=30)
+        end_date = end_date + pd.Timedelta(days=1)
+
+        print(f"🔍 Requête: {start_date.date()} à {end_date.date()}")
+
+        # Récupérer les données
+        cac40_hist = ticker.history(start=start_date, end=end_date)
+
+        # Supprimer la timezone pour éviter les erreurs de comparaison
+        if cac40_hist.index.tz is not None:
+            cac40_hist.index = cac40_hist.index.tz_localize(None)
+
+        print(f"📥 Lignes reçues: {len(cac40_hist)}")
+
+        if len(cac40_hist) > 0:
+
+            print(f"✓ Première date: {cac40_hist.index[0]}")
+            print(f"✓ Dernière date: {cac40_hist.index[-1]}")
+            print(f"✓ Première valeur: {cac40_hist['Close'].iloc[0]:.2f}")
+            print(f"✓ Dernière valeur: {cac40_hist['Close'].iloc[-1]:.2f}")
+
+            # Aligner avec les dates du portfolio
+            cac40_values = []
+            for date in dates:
+                date_pd = pd.to_datetime(date)
+                # Trouver la date la plus proche (avant ou le jour même)
+                mask = cac40_hist.index <= date_pd
+                if mask.any():
+                    closest_idx = cac40_hist.index[mask][-1]
+                    cac40_values.append(cac40_hist.loc[closest_idx, 'Close'])
+                else:
+                    cac40_values.append(None)
+
+            cac40_series = pd.Series(cac40_values, index=dates)
+            # Remplir les valeurs manquantes
+            cac40_series = cac40_series.fillna(method='ffill').fillna(method='bfill')
+
+            print(f"✅ Série créée: {cac40_series.notna().sum()}/{len(cac40_series)} valeurs")
+            print(f"   Première: {cac40_series.iloc[0]:.2f}")
+            print(f"   Dernière: {cac40_series.iloc[-1]:.2f}")
+        else:
+            print("⚠️ Aucune ligne reçue de yfinance")
+
+    except Exception as e:
+        print(f"❌ ERREUR: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # Créer le graphique
     fig = go.Figure()
 
-    # Ligne principale
+    # CAC40 (axe gauche)
+    if cac40_series is not None and not cac40_series.empty:
+        print("✅ Ajout trace CAC40")
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=cac40_series,
+            name='CAC40',
+            line=dict(color='#F59E0B', width=2),
+            yaxis='y'
+        ))
+    else:
+        print("❌ Pas de trace CAC40")
+
+    # Portfolio (axe droit)
+    print("✅ Ajout trace Portfolio")
     fig.add_trace(go.Scatter(
         x=dates,
-        y=values,
-        mode='lines',
-        name='Portfolio Value',
-        line=dict(color=THEME['financial'], width=3),
+        y=values_no_real_estate,
+        name='Portfolio',
+        line=dict(color='#3B82F6', width=3),
         fill='tozeroy',
         fillcolor='rgba(59,130,246,0.1)',
-        hovertemplate='<b>%{x|%d/%m/%Y}</b><br>Valeur: %{customdata}€<extra></extra>',
-        customdata=[format_currency(v)[:-1] for v in values]
+        yaxis='y2'
     ))
 
-    # Point actuel
-    fig.add_trace(go.Scatter(
-        x=[dates.iloc[-1]],
-        y=[current_value],
-        mode='markers',
-        name="Current Value",
-        marker=dict(
-            size=12,
-            color=THEME['positive'],
-            line=dict(color='white', width=2)
+    layout = get_base_layout(" ", 400)
+    layout.update({
+        'xaxis_title': "Date",
+        'hovermode': 'x unified',
+        'yaxis': dict(
+            title=dict(text='CAC40 (points)', font=dict(color='#F59E0B')),
+            tickfont=dict(color='#F59E0B'),
+            side='left'
         ),
-        hovertemplate=f'<b>Aujourd\'hui</b><br>Valeur: {format_currency(current_value)}<extra></extra>'
-    ))
-
-    # Annotation
-    #annotation_text = (
-        #f"<b>📈 Historique réel</b><br>"
-        #f"Période: {total_days} jours<br>"
-        #f"Gain: {total_gain:+,.0f}€ ({total_return:+.1f}%)<br>"
-        #f"Rendement annualisé: {annualized:+.1f}%"
-    #)
-
-    #fig.add_annotation(
-        #text=annotation_text,
-        #x=0.02, y=0.98,
-        #xanchor='left', yanchor='top',
-        #xref='paper', yref='paper',
-        #showarrow=False,
-        #bgcolor='rgba(0,0,0,0.7)',
-        #bordercolor=THEME['financial'],
-        #borderwidth=2,
-        #borderpad=10,
-        #font=dict(size=11, color='white')
-    #)
-
-    # Layout
-    fig.update_layout(**get_base_layout("📈 Portfolio Evolution", 500))
-    fig.update_layout(
-        # title={
-        #     'text': f"📈 Portfolio Evolution",
-        #     'x': 0.2,
-        #     'xanchor': 'center',
-        #     'font': {'size': 20, 'color': THEME['text_primary']}
-        # },
-        xaxis=dict(
-            title="Date",
-            showgrid=True,
-            gridcolor=THEME['grid'],
-            gridwidth=1
+        'yaxis2': dict(
+            title=dict(text='Portfolio (€)', font=dict(color='#3B82F6')),
+            tickfont=dict(color='#3B82F6'),
+            overlaying='y',
+            side='right'
         ),
-        yaxis=dict(
-            title="Value (€)",
-            showgrid=True,
-            gridcolor=THEME['grid'],
-            ticksuffix='€',
-            gridwidth=1,
-            tickformat=' '
-        ),
-        height=450,
-        hovermode='x unified',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Arial, sans-serif", size=12, color=THEME['text_primary']),
-        legend=dict(
+        'legend': dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
@@ -609,19 +618,54 @@ def create_portfolio_evolution_chart(portfolio):
             bordercolor='rgba(255,255,255,0.2)',
             borderwidth=1
         ),
-        margin=dict(l=60, r=30, t=80, b=60),
-        separators=' ,'
-    )
+        'margin': dict(l=60, r=60, t=50, b=40)
+    })
+    fig.update_layout(**layout)
 
     return fig
 
+def create_performance_chart_filtered(portfolio):
+    """Performance chart pour assets sélectionnés"""
+    investments = getattr(portfolio, "financial_investments", {})
 
-def display_portfolio_evolution(portfolio):
-    import streamlit as st
-    from portfolio_package.visualizations import create_portfolio_evolution_chart
+    # Filtrer uniquement les assets demandés
+    selected = ['China Tech ETF', 'Tesla Stock', 'Apple Stock', 'Nvidia Stock']
+    filtered_investments = {k: v for k, v in investments.items() if k in selected}
 
-    fig = create_portfolio_evolution_chart(portfolio)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    if not filtered_investments:
+        fig = go.Figure()
+        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
+        layout = get_base_layout(" ", 300)
+        layout.update({
+            'margin': dict(l=40, r=20, t=30, b=30)
+        })
+        return fig
+
+    names = list(filtered_investments.keys())
+    perfs = [inv.get_gain_loss_percentage() for inv in filtered_investments.values()]
+
+    colors = ['#FF1744', '#00E676', '#2979FF', '#FFC400'][:len(names)]
+
+    fig = go.Figure(data=[go.Bar(
+        x=names,
+        y=perfs,
+        marker=dict(
+            color=colors,
+            line=dict(color='rgba(255,255,255,0.2)', width=1)
+        ),
+        text=[f"{p:+.1f}%" for p in perfs],
+        textposition='outside'
+    )])
+
+    layout = get_base_layout(" ", 400)
+    layout.update({
+        'yaxis_title': "Performance (%)",
+        'xaxis_title': "",
+        'showlegend': False,
+        'margin': dict(l=40, r=20, t=30, b=30)
+    })
+
+    return fig
 
 
 def create_world_investment_map(portfolio):
@@ -763,13 +807,9 @@ def display_predictions(results):
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
-# === Streamlit wrappers ===
 def display_portfolio_pie(portfolio):
     st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
-
-def display_portfolio_evolution(portfolio, years=1):
-    st.plotly_chart(create_portfolio_evolution_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
 
 
 def display_financial_investments(portfolio):
@@ -788,12 +828,6 @@ def display_world_map(portfolio):
         'displaylogo': False,
         'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
     })
-
-
-def display_predictions(results):
-    """Affiche les prédictions sous forme de graphique"""
-    fig = create_prediction_chart(results)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
 def get_total_invested_at_date(portfolio, date):
@@ -836,21 +870,15 @@ def create_kpi_metrics(portfolio):
         'total_credits': total_credits
     }
 
-
 def get_cac40_data():
     """Récupère les données du CAC40"""
-    try:
-        import yfinance as yf
-        ticker = yf.Ticker("^FCHI")
-        hist = ticker.history(period="5d")
-        if len(hist) >= 2:
-            current_value = hist['Close'].iloc[-1]
-            previous_value = hist['Close'].iloc[-2]
-            change = ((current_value - previous_value) / previous_value) * 100
-            return current_value, change
-        return 7500.0, 0.0
-    except:
-        return 7500.0, 0.0
+    import yfinance as yf
+    ticker = yf.Ticker("^FCHI")
+    hist = ticker.history(period="5d")
+    current_value = hist['Close'].iloc[-1]
+    previous_value = hist['Close'].iloc[-2]
+    change = ((current_value - previous_value) / previous_value) * 100
+    return current_value, change
 
 def get_dji_data():
     """Récupère les données du CAC40"""
@@ -881,45 +909,4 @@ def get_btc_data():
         return 125512.0, 0.0
     except:
         return 125512.0, 0.0
-
-
-def create_performance_chart_filtered(portfolio):
-    """Performance chart pour assets sélectionnés"""
-    investments = getattr(portfolio, "financial_investments", {})
-
-    # Filtrer uniquement les assets demandés
-    selected = ['Europe ETF', 'Tesla Stock', 'Apple Stock', 'Nvidia Stock']
-    filtered_investments = {k: v for k, v in investments.items() if k in selected}
-
-    if not filtered_investments:
-        fig = go.Figure()
-        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
-        fig.update_layout(**get_base_layout(" ", 500))
-        return fig
-
-    names = list(filtered_investments.keys())
-    perfs = [inv.get_gain_loss_percentage() for inv in filtered_investments.values()]
-
-    colors = ['#FF1744', '#00E676', '#2979FF', '#FFC400'][:len(names)]
-
-    fig = go.Figure(data=[go.Bar(
-        x=names,
-        y=perfs,
-        marker=dict(
-            color=colors,
-            line=dict(color='rgba(255,255,255,0.2)', width=1)
-        ),
-        text=[f"{p:+.1f}%" for p in perfs],
-        textposition='outside'
-    )])
-
-    layout = get_base_layout(" ", 450)
-    layout.update({
-        'yaxis_title': "Performance (%)",
-        'xaxis_title': "",
-        'showlegend': False
-    })
-    fig.update_layout(**layout)
-
-    return fig
 
