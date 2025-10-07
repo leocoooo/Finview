@@ -446,50 +446,28 @@ def get_financial_portfolio_value_at_date(portfolio, date):
     
     for inv in portfolio.financial_investments.values():
         if hasattr(inv, "purchase_date") and inv.purchase_date <= date:
-            # Prix et quantité initiaux
             price_at_date = inv.initial_value
             quantity_at_date = 0.0
             
             # Parcourir l'historique des transactions pour cet investissement
             for transaction in portfolio.transaction_history:
-                trans_date = transaction["date"]
-                if isinstance(trans_date, str):
-                    trans_date = pd.to_datetime(trans_date)
+                trans_date = pd.to_datetime(transaction["date"])
                 
-                # Ne prendre que les transactions jusqu'à la date demandée
                 if trans_date > date:
                     continue
                 
-                trans_type = transaction["type"]
-                description = transaction.get("description", "")
-                
-                # Vérifier si c'est une transaction concernant cet investissement
-                if inv.name not in description:
-                    continue
-                
-                if trans_type == "FINANCIAL_INVESTMENT_BUY":
-                    # Extraire "Purchase of X units"
-                    import re
-                    match = re.search(r'Purchase of ([\d.]+) units', description)
-                    if match:
-                        quantity_at_date = float(match.group(1))
-                        # Le prix unitaire = amount / quantity
-                        price_at_date = transaction["amount"] / quantity_at_date
-                
-                elif trans_type == "INVESTMENT_UPDATE":
-                    # Extraire "XXX.XX€ → YYY.YY€"
-                    import re
-                    match = re.search(r'→ ([\d.]+)€', description)
-                    if match:
-                        price_at_date = float(match.group(1))
-                
-                elif trans_type == "INVESTMENT_SELL":
-                    # Extraire "Sold X units"
-                    import re
-                    match = re.search(r'Sold ([\d.]+) units', description)
-                    if match:
-                        quantity_sold = float(match.group(1))
-                        quantity_at_date -= quantity_sold
+                if transaction.get("name") == inv.name:
+                    trans_type = transaction["type"]
+                    
+                    if trans_type == "FINANCIAL_INVESTMENT_BUY":
+                        price_at_date = transaction.get("price", inv.initial_value)
+                        quantity_at_date = transaction.get("quantity", 0)
+                    
+                    elif trans_type == "INVESTMENT_UPDATE":
+                        price_at_date = transaction.get("price", price_at_date)
+                    
+                    elif trans_type == "INVESTMENT_SELL":
+                        quantity_at_date -= transaction.get("quantity", 0)
             
             total += price_at_date * quantity_at_date
     
@@ -498,14 +476,12 @@ def get_financial_portfolio_value_at_date(portfolio, date):
 
 def get_portfolio_monthly_history(portfolio):
     """
-    Reconstruit l'historique mensuel du portefeuille.
-    Retourne un DataFrame avec les colonnes ['date', 'value', 'invested'].
+    Reconstruit l'historique mensuel du portefeuille de manière optimisée.
     """
     if not hasattr(portfolio, "transaction_history") or len(portfolio.transaction_history) == 0:
         return pd.DataFrame(columns=["date", "value", "invested"])
 
     df = pd.DataFrame(portfolio.transaction_history)
-    print(df)
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values("date")
 
@@ -513,7 +489,50 @@ def get_portfolio_monthly_history(portfolio):
     end_date = datetime.now()
     monthly_dates = pd.date_range(start=start_date, end=end_date, freq="MS")
 
-    values = [get_financial_portfolio_value_at_date(portfolio, d) for d in monthly_dates]
+    # OPTIMISATION : Créer un dictionnaire {nom_investissement: [(date, price, quantity)]}
+    investment_states = {}
+    
+    for _, transaction in df.iterrows():
+        trans_type = transaction["type"]
+        name = transaction.get("name")
+        
+        if name and trans_type in ["FINANCIAL_INVESTMENT_BUY", "INVESTMENT_UPDATE", "INVESTMENT_SELL"]:
+            if name not in investment_states:
+                investment_states[name] = []
+            
+            investment_states[name].append({
+                'date': transaction['date'],
+                'type': trans_type,
+                'price': transaction.get('price'),
+                'quantity': transaction.get('quantity')
+            })
+    
+    # Calculer les valeurs mensuelles
+    values = []
+    for target_date in monthly_dates:
+        total = 0.0
+        
+        for name, states in investment_states.items():
+            price = None
+            quantity = 0.0
+            
+            for state in states:
+                if state['date'] > target_date:
+                    break
+                
+                if state['type'] == 'FINANCIAL_INVESTMENT_BUY':
+                    price = state['price']
+                    quantity = state['quantity']
+                elif state['type'] == 'INVESTMENT_UPDATE':
+                    price = state['price']
+                elif state['type'] == 'INVESTMENT_SELL':
+                    quantity -= state['quantity']
+            
+            if price is not None and quantity > 0:
+                total += price * quantity
+        
+        values.append(total)
+    
     invested = [get_total_invested_at_date(portfolio, d) for d in monthly_dates]
 
     history_df = pd.DataFrame({

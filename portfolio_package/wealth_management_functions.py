@@ -18,19 +18,22 @@ def _add_financial_investment_with_date(self, name: str, initial_value: float, q
     total_cost = initial_value * quantity
     if total_cost <= self.cash:
         self.cash -= total_cost
-        
+       
         # Création de l'investissement financier avec localisation
         investment = FinancialInvestment(name, initial_value, initial_value, quantity, investment_type, location)
         investment.purchase_date = date
-        
+       
         # Enregistrement de l'investissement
         self.financial_investments[name] = investment
-        
-        # Historique de la transaction
+       
+        # Historique de la transaction (AVEC name, price, quantity)
         self.transaction_history.append({
             'date': date.strftime('%Y-%m-%d %H:%M:%S'),
             'type': 'FINANCIAL_INVESTMENT_BUY',
             'amount': total_cost,
+            'name': name,  # AJOUT
+            'price': initial_value,  # AJOUT
+            'quantity': quantity,  # AJOUT
             'description': f'Purchase of {quantity} units of {name} ({investment_type}) in {location if location else "unspecified location"}'
         })
 
@@ -70,7 +73,9 @@ def _update_investment_with_date(self, name: str, new_value: float, date: dateti
         self.transaction_history.append({
             'date': date.strftime('%Y-%m-%d %H:%M:%S'),
             'type': 'INVESTMENT_UPDATE',
-            'amount': 0,
+            'amount': new_value,  # CHANGEMENT: mettre le nouveau prix au lieu de 0
+            'name': name,  # AJOUT
+            'price': new_value,  # AJOUT
             'description': f'{name}: {old_value:.2f}€ → {new_value:.2f}€'
         })
 
