@@ -12,7 +12,7 @@ from portfolio_package.patrimoine_prediction import simulate_portfolio_future, c
 # Import des visualisations externalisées
 from portfolio_package.visualizations import (
     display_portfolio_pie,
-    display_portfolio_evolution,
+    #display_portfolio_evolution,
     display_financial_investments,
     display_performance_chart,
     display_world_map,
@@ -731,9 +731,6 @@ def show_dashboard_tabs(portfolio):
 
 
 # === SOUS-PAGES VISUALISATION ===
-def show_portfolio_charts(portfolio):
-    display_portfolio_pie(portfolio)
-    display_portfolio_evolution(portfolio)
 
 
 def show_assets_analytics(portfolio):
@@ -1576,4 +1573,146 @@ def show_news():
             st.caption(f"📊 {len(filtered_international_earnings)} international publications upcoming")
         elif search_company and not filtered_french_earnings:
             st.info(f"No international companies found matching '{search_company}'")
+
+
+def display_kpi_row(portfolio):
+    """Affiche la rangée de KPIs en haut du dashboard"""
+    from portfolio_package.visualizations import create_kpi_metrics, get_cac40_data, get_dji_data, get_btc_data
+
+    kpis = create_kpi_metrics(portfolio)
+    cac40_value, cac40_change = get_cac40_data()
+    dji_value, dji_change = get_dji_data()
+    btc_value, btc_change = get_btc_data()
+
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.metric(
+            label="💰 Net Worth",
+            value=format_currency(kpis['net_worth']),
+            delta=None
+        )
+
+    with col2:
+        st.metric(
+            label="📈 Investments",
+            value=format_currency(kpis['investment_value']),
+            delta=f"{kpis['investment_change']:+.1f}%"
+        )
+
+    with col3:
+        st.metric(
+            label="📊 BTC-USD",
+            value=format_currency(round(btc_value, -1)),
+            delta=f"{btc_change:+.2f}%"
+        )
+    with col4:
+        st.metric(
+            label="📊 CAC40",
+            value=format_currency(round(cac40_value,0)),
+            delta=f"{cac40_change:+.2f}%"
+        )
+
+    with col5:
+        st.metric(
+            label="📊 DJI",
+            value=format_currency(round(dji_value, 0)),
+            delta=f"{dji_change:+.2f}%"
+        )
+
+
+def display_dashboard_charts(portfolio):
+    """Affiche les graphiques principaux du dashboard"""
+    import streamlit as st
+    from portfolio_package.visualizations import (
+        create_portfolio_vs_cac40_chart,
+        create_portfolio_pie_chart,
+        create_performance_chart_filtered
+    )
+    #st.markdown("<style>div.block-container{padding-top:0.5rem;padding-bottom:0rem;}</style>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top:-1rem;'></div>", unsafe_allow_html=True)
+
+    # Graphique principal en pleine largeur
+    fig_evolution = create_portfolio_vs_cac40_chart(portfolio)
+    st.plotly_chart(
+        fig_evolution,
+        use_container_width=True,
+        config={"displayModeBar": False,
+        "staticPlot": False,
+        "responsive": True,
+        "height": 290   # 👈 tu peux définir la hauteur ici maintenan
+        },
+    )
+    col1, col2 = st.columns(2)
+    with col1:
+        fig_pie = create_portfolio_pie_chart(portfolio)
+        st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False, "height": 390}
+        )
+
+    with col2:
+        fig_perf = create_performance_chart_filtered(portfolio)
+        st.plotly_chart(fig_perf, use_container_width=True, config={"displayModeBar": False, "height": 390})
+
+
+def show_portfolio_charts(portfolio):
+    """Fonction principale pour l'onglet Portfolio"""
+    import streamlit as st
+
+    #remove_streamlit_spacing()
+
+    # KPIs en haut
+    display_kpi_row(portfolio)
+
+    # Graphiques
+    display_dashboard_charts(portfolio)
+
+
+def remove_streamlit_spacing():
+    """Réduit les espaces entre les éléments Streamlit"""
+    import streamlit as st
+
+    st.markdown("""
+        <style>
+        /* Réduire l'espace entre les graphiques */
+        .element-container {
+            margin-bottom: -1rem !important;
+        }
+
+        /* Réduire l'espace des graphiques Plotly */
+        .js-plotly-plot {
+            margin-bottom: -1rem !important;
+        }
+
+        /* Réduire l'espace vertical général */
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 0rem !important;
+        }
+
+        /* Réduire l'espace entre métriques */
+        [data-testid="stMetricValue"] {
+            margin-bottom: 0rem !important;
+        }
+
+        /* Réduire l'espace des dividers */
+        hr {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Réduire l'espace entre colonnes */
+        [data-testid="column"] {
+            padding: 0.5rem !important;
+        }
+
+        /* Réduire l'espace des subheaders */
+        h3 {
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+
 

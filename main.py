@@ -31,7 +31,7 @@ from portfolio_package.interface_functions import (
 # Page configuration
 st.set_page_config(
     page_title="Portfolio Manager",
-    page_icon="💰",
+    page_icon="logo/FullLogo.png",
     layout="wide"
 )
 
