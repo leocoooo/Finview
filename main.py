@@ -13,7 +13,8 @@ from portfolio_package.wealth_management_functions import (
 
 from portfolio_package.create_demo_portfolio import (create_demo_portfolio_bis, 
                                                      create_demo_portfolio,
-                                                     create_demo_portfolio_3)
+                                                     create_demo_portfolio_3, 
+                                                     create_demo_portfolio_4)
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 
@@ -64,7 +65,7 @@ def main():
         portfolio=st.session_state.portfolio,
         save_portfolio_func=save_portfolio,
         Portfolio=Portfolio,
-        create_demo_portfolio_func=create_demo_portfolio_3,
+        create_demo_portfolio_func=create_demo_portfolio_4,
         generate_pdf_func=generate_portfolio_pdf
     )
 
