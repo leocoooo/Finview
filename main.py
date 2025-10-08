@@ -11,10 +11,7 @@ from portfolio_package.wealth_management_functions import (
     _pay_credit_with_date,
 )
 
-from portfolio_package.create_demo_portfolio import (create_demo_portfolio_bis, 
-                                                     create_demo_portfolio,
-                                                     create_demo_portfolio_3, 
-                                                     create_demo_portfolio_4)
+from portfolio_package.create_demo_portfolio import create_demo_portfolio_4
 
 from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
 

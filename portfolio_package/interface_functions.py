@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 import yfinance as yf
+import os
 import json
 from datetime import datetime
 
@@ -11,13 +12,15 @@ from portfolio_package.patrimoine_prediction import simulate_portfolio_future, c
 
 # Import des visualisations externalisées
 from portfolio_package.visualizations import (
-    display_portfolio_pie,
+    create_financial_portfolio_vs_benchmark_chart,
     #display_portfolio_evolution,
     display_financial_investments,
     display_performance_chart,
     display_world_map,
-    display_predictions
+    display_predictions,
+    render_portfolio_comparison
     )
+
 
 
 # === UTILITAIRES ===
@@ -246,7 +249,6 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
                     pdf_data = f.read()
 
                 # Clean up temporary file
-                import os
                 try:
                     os.remove(pdf_filename)
                 except:
@@ -755,9 +757,13 @@ def show_dashboard_tabs(portfolio):
     """Dashboard avec onglets graphiques"""
     st.header("📈 Dashboard")
     tab1, tab2, tab3 = st.tabs(["📊 Portfolio", "💎 Assets", "🌍 Investments Map"])
-    with tab1: show_portfolio_charts(portfolio)
-    with tab2: show_assets_analytics(portfolio)
-    with tab3: show_world_map(portfolio)
+
+    with tab1: 
+        show_portfolio_charts(portfolio)
+    with tab2: 
+        show_assets_analytics(portfolio)
+    with tab3: 
+        show_world_map(portfolio)
 
 
 # === SOUS-PAGES VISUALISATION ===
@@ -1656,7 +1662,6 @@ def display_dashboard_charts(portfolio):
     """Affiche les graphiques principaux du dashboard"""
 
     from portfolio_package.visualizations import (
-        create_financial_portfolio_vs_cac40_chart,
         create_portfolio_pie_chart,
         create_performance_chart_filtered
     )
@@ -1664,16 +1669,22 @@ def display_dashboard_charts(portfolio):
     st.markdown("<div style='margin-top:-1rem;'></div>", unsafe_allow_html=True)
 
     # Graphique principal en pleine largeur
-    fig_evolution = create_financial_portfolio_vs_cac40_chart(portfolio)
-    st.plotly_chart(
-        fig_evolution,
-        use_container_width=True,
-        config={"displayModeBar": False,
-        "staticPlot": False,
-        "responsive": True,
-        "height": 290   # 👈 tu peux définir la hauteur ici maintenan
-        },
-    )
+    # fig_evolution = create_financial_portfolio_vs_cac40_chart(portfolio)
+    render_portfolio_comparison(portfolio)
+    # fig_evolution = create_financial_portfolio_vs_benchmark_chart(
+    #     portfolio, 
+    #     benchmark_ticker="^GSPC",
+    #     benchmark_name="S&P 500"
+    # )
+    # st.plotly_chart(
+    #     fig_evolution,
+    #     use_container_width=True,
+    #     config={"displayModeBar": False,
+    #     "staticPlot": False,
+    #     "responsive": True,
+    #     "height": 290   # 👈 tu peux définir la hauteur ici maintenan
+    #     },
+    # )
     col1, col2 = st.columns(2)
     with col1:
         fig_pie = create_portfolio_pie_chart(portfolio)
@@ -1687,9 +1698,10 @@ def display_dashboard_charts(portfolio):
 
 def show_portfolio_charts(portfolio):
     """Fonction principale pour l'onglet Portfolio"""
-    import streamlit as st
 
-    #remove_streamlit_spacing()
+    if not portfolio.investments:
+        st.info("No portfolio to analyze")
+        return
 
     # KPIs en haut
     display_kpi_row(portfolio)
