@@ -757,6 +757,7 @@ def show_dashboard_tabs(portfolio):
     """Dashboard avec onglets graphiques"""
     st.header("📈 Dashboard")
     tab1, tab2, tab3 = st.tabs(["📊 Portfolio", "💎 Assets", "🌍 Investments Map"])
+
     with tab1: 
         show_portfolio_charts(portfolio)
     with tab2: 
@@ -1698,7 +1699,9 @@ def display_dashboard_charts(portfolio):
 def show_portfolio_charts(portfolio):
     """Fonction principale pour l'onglet Portfolio"""
 
-    #remove_streamlit_spacing()
+    if not portfolio.investments:
+        st.info("No portfolio to analyze")
+        return
 
     # KPIs en haut
     display_kpi_row(portfolio)
