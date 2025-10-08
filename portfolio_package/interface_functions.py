@@ -181,12 +181,12 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     st.sidebar.markdown("---")
 
     # Save/Load Section
-    st.sidebar.subheader("💾 Import / Export Portfolio")
+    st.sidebar.subheader("💾 Import Portfolio")
 
-    # Save Button
-    if st.sidebar.button("💾 Save", help="Automatic save on every change", use_container_width=True):
-        if save_portfolio_func(portfolio):
-            st.sidebar.success("✅ Saved!")
+    # # Save Button
+    # if st.sidebar.button("💾 Save", help="Automatic save on every change", use_container_width=True):
+    #     if save_portfolio_func(portfolio):
+    #         st.sidebar.success("✅ Saved!")
 
     # Import JSON file
     uploaded_file = st.sidebar.file_uploader(
@@ -241,7 +241,7 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
 
     # PDF Export if function is provided
     if generate_pdf_func:
-        if st.sidebar.button("📄 Generate and download PDF", use_container_width=True):
+        if st.sidebar.button("📄 Generate and download portfolio analysis", use_container_width=True):
             pdf_filename = f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             try:
                 generate_pdf_func(portfolio, filename=pdf_filename)
