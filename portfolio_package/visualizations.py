@@ -310,7 +310,7 @@ def create_financial_investments_chart(portfolio):
         '#E040FB',  # Violet néon
         '#00E5FF',  # Cyan brillant
         '#FF6E40',  # Orange corail
-        '#76FF03',  # Vert citron
+        # '#76FF03',  # Vert citron
         '#F50057',  # Rose magenta
         '#00B8D4',  # Turquoise vif
         '#FFEA00',  # Jaune citron
@@ -658,7 +658,7 @@ def create_financial_portfolio_vs_cac40_chart(portfolio):
             side='left'
         ),
         'yaxis2': dict(
-            title=dict(text='Financial Portfolio value (€)', font=dict(color='#3B82F6')),
+            title=dict(text='Financial Portfolio value ù(€)', font=dict(color='#3B82F6')),
             tickfont=dict(color='#3B82F6'),
             overlaying='y',
             side='right'

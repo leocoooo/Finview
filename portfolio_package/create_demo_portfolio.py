@@ -962,8 +962,8 @@ def create_demo_portfolio_4():
     portfolio._update_investment_with_date("US Residential REIT", 55.0, current_date)  # -26.7%
     portfolio._update_investment_with_date("Paris Office SCPI", 175.0, current_date)  # -16.7%
 
-    # === YEAR 4 - JUNE - Gradual recovery begins ===
-    current_date += timedelta(days=90)
+    # === YEAR 4 - APRIL - Gradual recovery begins ===
+    current_date += timedelta(days=30)
     portfolio._update_investment_with_date("Apple Stock", 130.0, current_date)  # Partial recovery
     portfolio._update_investment_with_date("Bitcoin", 35000.0, current_date)  # Still below pre-crash
     portfolio._update_investment_with_date("Amazon Stock", 2800.0, current_date)
