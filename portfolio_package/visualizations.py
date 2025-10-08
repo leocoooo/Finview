@@ -3,7 +3,8 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
-from portfolio_package.patrimoine_prediction import create_prediction_chart
+# from portfolio_package.patrimoine_prediction import create_prediction_chart
+import yfinance as yf
 
 # === Theme & helpers ===
 THEME = {
@@ -543,143 +544,6 @@ def get_portfolio_monthly_history(portfolio):
     return history_df
 
 
-def create_financial_portfolio_vs_cac40_chart(portfolio):
-    """Graphique comparant le portfolio (sans immobilier) au CAC40"""
-    import yfinance as yf
-
-    df = get_portfolio_monthly_history(portfolio)
-    if df.empty:
-        fig = go.Figure()
-        fig.add_annotation(text="Pas de données", x=0.5, y=0.5, showarrow=False)
-        return fig
-
-    # Filtrer pour exclure l'immobilier
-    dates = df["date"]
-    values_no_real_estate = df["value"] - df.get("real_estate_value", 0)
-
-    print(f"📅 Date début portfolio: {dates.iloc[0]}")
-    print(f"📅 Date fin portfolio: {dates.iloc[-1]}")
-    print(f"📊 Nombre de points: {len(dates)}")
-
-    # Récupérer les vraies données du CAC40
-    cac40_series = None
-    try:
-        print("🔄 Tentative de récupération CAC40...")
-        ticker = yf.Ticker("^FCHI")
-
-        # Convertir explicitement en datetime
-        start_date = pd.to_datetime(dates.iloc[0])
-        end_date = pd.to_datetime(dates.iloc[-1])
-
-        # Ajouter des marges
-        start_date = start_date - pd.Timedelta(days=30)
-        end_date = end_date + pd.Timedelta(days=1)
-
-        print(f"🔍 Requête: {start_date.date()} à {end_date.date()}")
-
-        # Récupérer les données
-        cac40_hist = ticker.history(start=start_date, end=end_date)
-
-        # Supprimer la timezone pour éviter les erreurs de comparaison
-        if cac40_hist.index.tz is not None:
-            cac40_hist.index = cac40_hist.index.tz_localize(None)
-
-        print(f"📥 Lignes reçues: {len(cac40_hist)}")
-
-        if len(cac40_hist) > 0:
-
-            print(f"✓ Première date: {cac40_hist.index[0]}")
-            print(f"✓ Dernière date: {cac40_hist.index[-1]}")
-            print(f"✓ Première valeur: {cac40_hist['Close'].iloc[0]:.2f}")
-            print(f"✓ Dernière valeur: {cac40_hist['Close'].iloc[-1]:.2f}")
-
-            # Aligner avec les dates du portfolio
-            cac40_values = []
-            for date in dates:
-                date_pd = pd.to_datetime(date)
-                # Trouver la date la plus proche (avant ou le jour même)
-                mask = cac40_hist.index <= date_pd
-                if mask.any():
-                    closest_idx = cac40_hist.index[mask][-1]
-                    cac40_values.append(cac40_hist.loc[closest_idx, 'Close'])
-                else:
-                    cac40_values.append(None)
-
-            cac40_series = pd.Series(cac40_values, index=dates)
-            # Remplir les valeurs manquantes
-            cac40_series = cac40_series.fillna(method='ffill').fillna(method='bfill')
-
-            print(f"✅ Série créée: {cac40_series.notna().sum()}/{len(cac40_series)} valeurs")
-            print(f"   Première: {cac40_series.iloc[0]:.2f}")
-            print(f"   Dernière: {cac40_series.iloc[-1]:.2f}")
-        else:
-            print("⚠️ Aucune ligne reçue de yfinance")
-
-    except Exception as e:
-        print(f"❌ ERREUR: {type(e).__name__}: {e}")
-        import traceback
-        traceback.print_exc()
-
-    # Créer le graphique
-    fig = go.Figure()
-
-    # CAC40 (axe gauche)
-    if cac40_series is not None and not cac40_series.empty:
-        print("✅ Ajout trace CAC40")
-        fig.add_trace(go.Scatter(
-            x=dates,
-            y=cac40_series,
-            name='CAC40',
-            line=dict(color='#F59E0B', width=2),
-            yaxis='y'
-        ))
-    else:
-        print("❌ Pas de trace CAC40")
-
-    # Portfolio (axe droit)
-    print("✅ Ajout trace Portfolio")
-    fig.add_trace(go.Scatter(
-        x=dates,
-        y=values_no_real_estate,
-        name='Portfolio',
-        line=dict(color='#3B82F6', width=3),
-        fill='tozeroy',
-        fillcolor='rgba(59,130,246,0.1)',
-        yaxis='y2'
-    ))
-
-    layout = get_base_layout(" ", 400)
-    layout.update({
-        'xaxis_title': "Date",
-        'hovermode': 'x unified',
-        'yaxis': dict(
-            title=dict(text='CAC40 (points)', font=dict(color='#F59E0B')),
-            tickfont=dict(color='#F59E0B'),
-            side='left'
-        ),
-        'yaxis2': dict(
-            title=dict(text='Financial Portfolio value ù(€)', font=dict(color='#3B82F6')),
-            tickfont=dict(color='#3B82F6'),
-            overlaying='y',
-            side='right'
-        ),
-        'legend': dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            bgcolor='rgba(0,0,0,0.5)',
-            bordercolor='rgba(255,255,255,0.2)',
-            borderwidth=1
-        ),
-        'margin': dict(l=60, r=60, t=50, b=40)
-    })
-    fig.update_layout(**layout)
-
-    return fig
-
-
 def create_performance_chart_filtered(portfolio):
     """Performance chart pour assets sélectionnés"""
     investments = getattr(portfolio, "financial_investments", {})
@@ -848,43 +712,6 @@ def create_world_investment_map(portfolio):
     return fig
 
 
-def display_predictions(results):
-    """
-    Wrapper minimal pour afficher le graphique de prédiction.
-    On utilise ici la fonction create_prediction_chart fournie par le module
-    patrimoine_prediction (déjà présent dans ton projet).
-    """
-    try:
-        from portfolio_package.patrimoine_prediction import create_prediction_chart
-    except Exception:
-        st.error("Module de prédiction introuvable")
-        return
-    fig = create_prediction_chart(results)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-
-
-def display_portfolio_pie(portfolio):
-    st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
-
-
-def display_financial_investments(portfolio):
-    st.plotly_chart(create_financial_investments_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
-
-
-def display_performance_chart(portfolio):
-    st.plotly_chart(create_performance_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
-
-
-def display_world_map(portfolio):
-    fig = create_world_investment_map(portfolio)
-    fig.update_layout(height=700)
-    st.plotly_chart(fig, use_container_width=True, config={
-        'displayModeBar': True,
-        'displaylogo': False,
-        'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
-    })
-
-
 def get_total_invested_at_date(portfolio, date):
     """
     Calcule le total investi dans le portefeuille jusqu'à une certaine date.
@@ -928,7 +755,7 @@ def create_kpi_metrics(portfolio):
 
 def get_cac40_data():
     """Récupère les données du CAC40"""
-    import yfinance as yf
+    
     ticker = yf.Ticker("^FCHI")
     hist = ticker.history(period="5d")
     current_value = hist['Close'].iloc[-1]
@@ -940,7 +767,7 @@ def get_cac40_data():
 def get_dji_data():
     """Récupère les données du CAC40"""
     try:
-        import yfinance as yf
+        
         ticker = yf.Ticker("^DJI")
         hist = ticker.history(period="5d")
         if len(hist) >= 2:
@@ -956,7 +783,7 @@ def get_dji_data():
 def get_btc_data():
     """Récupère les données du CAC40"""
     try:
-        import yfinance as yf
+        
         ticker = yf.Ticker("BTC-USD")
         hist = ticker.history(period="5d")
         if len(hist) >= 2:
@@ -968,3 +795,253 @@ def get_btc_data():
     except:
         return 125512.0, 0.0
 
+
+def display_predictions(results):
+    """
+    Wrapper minimal pour afficher le graphique de prédiction.
+    On utilise ici la fonction create_prediction_chart fournie par le module
+    patrimoine_prediction (déjà présent dans ton projet).
+    """
+    try:
+        from portfolio_package.patrimoine_prediction import create_prediction_chart
+    except Exception:
+        st.error("Module de prédiction introuvable")
+        return
+    fig = create_prediction_chart(results)
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+
+def display_portfolio_pie(portfolio):
+    st.plotly_chart(create_portfolio_pie_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
+
+
+def display_financial_investments(portfolio):
+    st.plotly_chart(create_financial_investments_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
+
+
+def display_performance_chart(portfolio):
+    st.plotly_chart(create_performance_chart(portfolio), use_container_width=True, config={'displayModeBar': False})
+
+
+def display_world_map(portfolio):
+    fig = create_world_investment_map(portfolio)
+    fig.update_layout(height=700)
+    st.plotly_chart(fig, use_container_width=True, config={
+        'displayModeBar': True,
+        'displaylogo': False,
+        'modeBarButtonsToRemove': ['pan2d', 'lasso2d', 'select2d']
+    })
+
+
+def create_financial_portfolio_vs_benchmark_chart(portfolio, benchmark_ticker="^FCHI", benchmark_name="CAC40"):
+    """
+    Graphique comparant le portfolio (sans immobilier) à un benchmark choisi
+    
+    Args:
+        portfolio: Le portfolio à analyser
+        benchmark_ticker: Le ticker Yahoo Finance (ex: "^FCHI", "^DJI", "^GSPC", "BTC-USD")
+        benchmark_name: Le nom à afficher (ex: "CAC40", "Dow Jones", "S&P 500", "Bitcoin")
+    """
+    
+
+    df = get_portfolio_monthly_history(portfolio)
+    if df.empty:
+        fig = go.Figure()
+        fig.add_annotation(text="No data", x=0.5, y=0.5, showarrow=False)
+        return fig
+
+    # Filtrer pour exclure l'immobilier
+    dates = df["date"]
+    values_no_real_estate = df["value"] - df.get("real_estate_value", 0)
+
+    # Récupérer les données du benchmark
+    benchmark_series = None
+    try:
+        
+        ticker = yf.Ticker(benchmark_ticker)
+
+        # Convertir explicitement en datetime
+        start_date = pd.to_datetime(dates.iloc[0])
+        end_date = pd.to_datetime(dates.iloc[-1])
+
+        # Ajouter des marges
+        start_date = start_date - pd.Timedelta(days=30)
+        end_date = end_date + pd.Timedelta(days=1)
+
+        # Récupérer les données
+        benchmark_hist = ticker.history(start=start_date, end=end_date)
+
+        # Supprimer la timezone pour éviter les erreurs de comparaison
+        if benchmark_hist.index.tz is not None:
+            benchmark_hist.index = benchmark_hist.index.tz_localize(None)
+
+        print(f"📥 Lignes reçues: {len(benchmark_hist)}")
+
+        if len(benchmark_hist) > 0:
+
+            # Aligner avec les dates du portfolio
+            benchmark_values = []
+            for date in dates:
+                date_pd = pd.to_datetime(date)
+                # Trouver la date la plus proche (avant ou le jour même)
+                mask = benchmark_hist.index <= date_pd
+                if mask.any():
+                    closest_idx = benchmark_hist.index[mask][-1]
+                    benchmark_values.append(benchmark_hist.loc[closest_idx, 'Close'])
+                else:
+                    benchmark_values.append(None)
+
+            benchmark_series = pd.Series(benchmark_values, index=dates)
+            # Remplir les valeurs manquantes
+            benchmark_series = benchmark_series.fillna(method='ffill').fillna(method='bfill')
+
+        else:
+            print("⚠️ Aucune ligne reçue de yfinance")
+
+    except Exception as e:
+        print(f"❌ ERREUR: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # Créer le graphique
+    fig = go.Figure()
+
+    # Benchmark (axe gauche)
+    if benchmark_series is not None and not benchmark_series.empty:
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=benchmark_series,
+            name=benchmark_name,
+            line=dict(color='#F59E0B', width=2),
+            yaxis='y'
+        ))
+    else:
+        print(f"❌ Pas de trace {benchmark_name}")
+
+    # Portfolio (axe droit)
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=values_no_real_estate,
+        name='Portfolio',
+        line=dict(color='#3B82F6', width=3),
+        fill='tozeroy',
+        fillcolor='rgba(59,130,246,0.1)',
+        yaxis='y2'
+    ))
+
+    layout = get_base_layout(" ", 400)
+    layout.update({
+        'xaxis_title': "Date",
+        'hovermode': 'x unified',
+        'yaxis': dict(
+            title=dict(text=f'{benchmark_name}', font=dict(color='#F59E0B')),
+            tickfont=dict(color='#F59E0B'),
+            side='left'
+        ),
+        'yaxis2': dict(
+            title=dict(text='Financial Portfolio value (€)', font=dict(color='#3B82F6')),
+            tickfont=dict(color='#3B82F6'),
+            overlaying='y',
+            side='right'
+        ),
+        'legend': dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            bgcolor='rgba(0,0,0,0.5)',
+            bordercolor='rgba(255,255,255,0.2)',
+            borderwidth=1
+        ),
+        'margin': dict(l=60, r=60, t=50, b=40)
+    })
+    fig.update_layout(**layout)
+
+    return fig
+
+
+# Dictionnaire des benchmarks disponibles
+AVAILABLE_BENCHMARKS = {
+    "CAC 40": "^FCHI",
+    "S&P 500": "^GSPC",
+    "Dow Jones": "^DJI",
+    "NASDAQ": "^IXIC",
+    "DAX": "^GDAXI",
+    "FTSE 100": "^FTSE",
+    "Nikkei 225": "^N225",
+    "Bitcoin": "BTC-USD",
+    "Ethereum": "ETH-USD",
+    "Gold": "GC=F",
+    "Crude Oil": "CL=F"
+}
+
+
+# Exemple d'utilisation dans Streamlit
+def render_portfolio_comparison(portfolio):
+    """
+    Interface Streamlit pour afficher la comparaison avec sélection du benchmark
+    """
+    
+    # Selectbox pour choisir le benchmark
+    selected_benchmark = st.selectbox(
+        "Choosing a comparison benchmark",
+        options=list(AVAILABLE_BENCHMARKS.keys()),
+        index=0  # CAC 40 par défaut
+    )
+    
+    # Récupérer le ticker correspondant
+    ticker = AVAILABLE_BENCHMARKS[selected_benchmark]
+    
+    # Créer et afficher le graphique
+    fig = create_financial_portfolio_vs_benchmark_chart(
+        portfolio, 
+        benchmark_ticker=ticker,
+        benchmark_name=selected_benchmark
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# Alternative: Fonction pour obtenir les données d'un benchmark spécifique
+def get_benchmark_data(ticker, period="5d"):
+    """
+    Récupère les données d'un benchmark
+    
+    Args:
+        ticker: Le ticker Yahoo Finance
+        period: Période de récupération (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)
+    
+    Returns:
+        tuple: (current_value, change_percentage)
+    """
+    try:
+        
+        ticker_obj = yf.Ticker(ticker)
+        hist = ticker_obj.history(period=period)
+        if len(hist) >= 2:
+            current_value = hist['Close'].iloc[-1]
+            previous_value = hist['Close'].iloc[-2]
+            change = ((current_value - previous_value) / previous_value) * 100
+            return current_value, change
+        return None, 0.0
+    except Exception as e:
+        print(f"Erreur lors de la récupération de {ticker}: {e}")
+        return None, 0.0
+
+
+# Exemple d'utilisation pour les KPIs
+def create_benchmark_kpi_card(benchmark_name, ticker):
+    """Crée une carte KPI pour un benchmark"""
+    import streamlit as st
+    
+    current_value, change = get_benchmark_data(ticker)
+    
+    if current_value:
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            st.metric(
+                label=benchmark_name,
+                value=f"{current_value:,.2f}",
+                delta=f"{change:+.2f}%"
+            )
