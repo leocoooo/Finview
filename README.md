@@ -216,12 +216,6 @@ Cette organisation permet de maintenir le code lisible, modulaire et facile à m
 Projet académique – M2 MOSEF
 Développé dans le cadre du cours Base de Données & Dashboard
 
----
-
-## Auteurs
-
-- Colin (@leocoooo)
-- Contributeurs du projet M2 MOSEF
 
 ---
 
