@@ -1292,6 +1292,56 @@ Cash represents money you can use instantly to:
 - Indicates investment profitability
 - Typically between 2% and 8% depending on property type
 """,
+            "📘 PEA (Plan d'Épargne en Actions)": """
+**PEA** (Plan d'Épargne en Actions) 📘
+- French tax-advantaged investment account
+- Invests in European stocks and equity funds
+- Tax-free capital gains and dividends after 5 years
+- Maximum deposit: €150,000
+- Example: Ideal for long-term stock investments with tax benefits
+""",
+            "🏢 PEA-PME": """
+**PEA-PME** 🏢
+- Dedicated to small and mid-cap companies
+- Same tax benefits as standard PEA
+- Maximum deposit: €75,000 (in addition to standard PEA)
+- Supports European SMEs and mid-cap growth
+- Can be combined with a standard PEA
+""",
+            "📋 Assurance-vie (Life Insurance)": """
+**Assurance-vie** (Life Insurance) 📋
+- Most popular French savings product
+- Flexible investment: bonds, stocks, euros fund
+- Tax benefits after 8 years
+- No deposit limit
+- Estate planning advantages (succession)
+- Example: Multisupport life insurance contracts
+""",
+            "💼 Compte-titres ordinaire (CTO)": """
+**Compte-titres ordinaire** (CTO) 💼
+- Standard brokerage account
+- No deposit limits
+- Access to all financial markets worldwide
+- No tax advantages (taxed annually)
+- Most flexible investment account
+- Example: For international diversification beyond PEA limits
+""",
+            "💚 Livret A": """
+**Livret A** 💚
+- Risk-free savings account guaranteed by French state
+- Tax-free interest (currently around 3%)
+- Maximum deposit: €22,950
+- Instant liquidity (withdraw anytime)
+- Ideal for emergency fund
+""",
+            "🏡 PEL (Plan d'Épargne Logement)": """
+**PEL** (Plan d'Épargne Logement) 🏡
+- Savings plan for real estate projects
+- Fixed interest rate for 4 to 10 years
+- Access to subsidized mortgage rates
+- Tax benefits depending on opening date
+- Example: Save for a future home purchase
+""",
             "💰 Remaining Balance": """
 **Remaining Balance** 💰
 - Total amount still owed on the credit
@@ -1340,6 +1390,36 @@ Cash represents money you can use instantly to:
 - Average performance per year over several years
 - Allows comparison of different investments
 - Smooths out short-term variations
+""",
+            "🎲 Monte Carlo Simulation": """
+**Monte Carlo Simulation** 🎲
+
+**Definition**: Statistical method that uses random sampling to predict possible future outcomes of a portfolio.
+
+**How it works:**
+1. **Historical Data**: Uses average returns and volatility (standard deviation) of each asset
+2. **Random Generation**: Creates thousands of possible scenarios by randomly drawing returns following a normal distribution
+3. **Portfolio Evolution**: For each scenario, calculates how the portfolio evolves day by day, year by year
+4. **Statistical Analysis**: Aggregates all scenarios to identify probabilities and ranges of outcomes
+
+**Calculation:**
+- For each asset: `Daily return = average return + (volatility × random factor)`
+- Random factor follows a normal distribution (Gaussian bell curve)
+- Each simulation represents a possible trajectory among thousands
+- Final result: probability distribution of potential portfolio values
+
+**Example**: With 1,000 simulations over 10 years:
+- **Best 10%**: Most optimistic scenarios
+- **Median (50%)**: Middle scenario, half above/half below
+- **Worst 10%**: Most pessimistic scenarios
+
+**Why use it?**
+- Visualizes the range of possibilities, not just a single prediction
+- Accounts for asset volatility and market uncertainties
+- Helps prepare for different scenarios (bull market, bear market, crisis)
+- More realistic than a simple linear projection
+
+💡 **Important**: Past performance does not guarantee future results. Black swan events (COVID, 2008 crisis) can exceed simulation parameters.
 """
         }
 
@@ -1494,49 +1574,65 @@ def show_news():
         # Curated financial news articles
         st.subheader("🔥 Top Financial News")
 
-        # Article 1: CAC 40 Results
+        # Article 1: Political Crisis Impact on CAC 40
         with st.container():
-            st.markdown("### 📊 CAC 40: Half-year 2025 earnings season ends in pain")
+            st.markdown("### 📊 CAC 40: Political crisis causes volatility, recovery follows")
             st.markdown("""
-            The first half 2025 earnings season for CAC 40 companies disappointed markets with numerous stock penalties.
-            Teleperformance (-20.7%), Renault (-18.5%) and STMicroelectronics (-16.62%) were particularly affected by downward revised forecasts.
-            Despite a strong year start with +12% in January-February, the index suffered from US customs tariffs in April.
+            The resignation of Prime Minister Sébastien Lecornu on October 6, 2025, caused the CAC 40 to drop 2% immediately.
+            Banks were particularly affected with drops of 4-5% (Société Générale, Crédit Agricole, BNP Paribas).
+            However, the index recovered strongly on October 8, gaining 1.07% to close at 8,060 points.
+            Legrand was the top performer with +3.56%, while the index broke through the 7,950 points resistance level.
             """)
-            st.markdown("🔗 **Source:** [TradingSat - CAC 40 Results](https://www.tradingsat.com/cac-40-FR0003500008/actualites/cac-40-quels-groupes-du-cac-40-ont-le-mieux-et-le-moins-bien-resiste-a-la-terrible-saison-des-resultats-semestriels-1143776.html)")
-            st.markdown("📅 **Date:** August 2025")
+            st.markdown("🔗 **Source:** [MoneyVox - Bourse du 8 octobre 2025](https://www.moneyvox.fr/bourse/actualites/105412/societe-generale-se-reprend-le-cac-40-surprend-le-journal-de-la-bourse-du-8-octobre-2025)")
+            st.markdown("📅 **Date:** October 8, 2025")
             st.markdown("---")
 
         # Article 2: French Economic Outlook
         with st.container():
-            st.markdown("### 📉 French Economy: Declining inflation, slight unemployment rise")
+            st.markdown("### 📉 French Economy: Growth revised upward, contained inflation")
             st.markdown("""
-            The Bank of France forecasts 1% inflation for 2025 (down from 2% in 2024), thanks notably to falling energy prices.
-            The unemployment rate is expected to reach 7.6% mid-2025 according to Insee, with approximately 112,000 job losses.
-            Economic growth is revised to 0.7% for 2025, down from 1.1% in 2024.
+            INSEE data published in late August 2025 shows French GDP growth revised from 0.6% to 0.8% year-over-year (vs 1.5% in EU).
+            Inflation remains contained at 1.2% (compared to 2.2% in the EU), benefiting the purchasing power of households.
+            CAC 40 companies are expected to see a 9% increase in earnings for 2025 according to analysts.
+            The OECD anticipates a global slowdown, with world GDP at 3.2% in 2025 falling to 2.9% in 2026.
             """)
-            st.markdown("🔗 **Source:** [France Info - Economic Forecasts 2025](https://www.franceinfo.fr/economie/croissance/croissance-inflation-chomage-a-quoi-faut-il-s-attendre-pour-l-economie-francaise-en-2025_6990509.html)")
-            st.markdown("📅 **Date:** September 2025")
+            st.markdown("🔗 **Source:** [Neofa - Tour d'horizon des marchés](https://neofa.com/fr/actualite-financiere-du-06-octobre-2025/)")
+            st.markdown("📅 **Date:** October 6, 2025")
             st.markdown("---")
 
-        # Article 3: S&P 500 Earnings
+        # Article 3: S&P 500 Reaches New Highs
         with st.container():
-            st.markdown("### 💼 S&P 500: Ninth consecutive quarter of earnings growth")
+            st.markdown("### 💼 S&P 500: New record highs in early October 2025")
             st.markdown("""
-            The third quarter earnings season begins with major US banks (JPMorgan Chase, Citigroup, Wells Fargo).
-            FactSet estimates 7.9% earnings growth for S&P 500 companies, marking the ninth consecutive quarter of growth.
-            Investors closely monitor publication calendars on MarketBeat, Yahoo Finance and Nasdaq.
+            The S&P 500 reached its highest level on October 3, 2025 at 6,750.87 USD, up 18.09% year-to-date.
+            Between October 1-6, the index posted a 0.80% return and set several new records despite a partial federal government shutdown.
+            The rally is supported by expectations of an accommodative Fed and AI optimism, with NVIDIA leading the index.
+            However, the S&P 500's P/E ratio of 24-25 (vs historical average of 16-17) raises concerns about elevated valuations.
             """)
-            st.markdown("🔗 **Source:** [MarketBeat - S&P 500 Earnings Calendar](https://www.marketbeat.com/earnings/latest/)")
+            st.markdown("🔗 **Source:** [Boursorama - S&P 500 Progress](https://www.boursorama.com/bourse/actualites/le-s-p-500-et-le-nasdaq-progressent-avant-les-remarques-de-la-fed-6c68eba4f6f5b702a4a2e4ed7eb81078)")
+            st.markdown("📅 **Date:** October 8, 2025")
+            st.markdown("---")
+
+        # Article 4: Ferrari Stock Volatility
+        with st.container():
+            st.markdown("### 🏎️ Ferrari: Historic drop after disappointing 2030 targets")
+            st.markdown("""
+            Ferrari's stock experienced its biggest drop since its 2016 IPO, plunging 14% after announcing medium-term targets.
+            Royal Bank of Canada noted that 2030 operating result guidance implies only 6% average annual growth.
+            The company updated 2025 guidance: revenues of at least €7.1B, adjusted EBITDA of at least €2.72B, and EPS of at least €8.8.
+            By 2030, Ferrari's lineup will be 40% combustion, 40% hybrid, and 20% electric, including the "Elettrica" model in 2026 at ~€500,000.
+            """)
+            st.markdown("🔗 **Source:** [TradingSat - Ferrari Stock Drops](https://www.tradingsat.com/actualites/marches-financiers/plombee-par-des-objectifs-decevants-l-action-ferrari-s-effondre-de-14-et-se-dirige-vers-la-plus-forte-chute-de-son-histoire-boursiere-1148073.html)")
             st.markdown("📅 **Date:** October 2025")
             st.markdown("---")
 
-        # Article 4: CAC 40 Dividends
+        # Article 5: CAC 40 Dividends
         with st.container():
             st.markdown("### 💰 CAC 40 Dividends: €73.9 billion expected in 2025")
             st.markdown("""
             CAC 40 companies are expected to pay €73.9 billion in dividends for the 2024 fiscal year.
-            Despite a mixed earnings season, major French groups maintain their shareholder distribution policies.
-            Publication and payment calendars are available on Boursorama and ABC Bourse.
+            Despite political uncertainty and mixed earnings, major French groups maintain their shareholder distribution policies.
+            The strong earnings growth (+9% expected in 2025) supports continued generous dividend payments to investors.
             """)
             st.markdown("🔗 **Source:** [Boursorama - Dividend Calendar](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
             st.markdown("📅 **Date:** 2025")
@@ -1918,8 +2014,8 @@ def show_news():
                           for company, date in sorted(filtered_french_earnings.items(),
                                                      key=lambda x: pd.to_datetime(x[1], format='%d/%m/%Y'))]
             st.dataframe(pd.DataFrame(french_data), use_container_width=True, hide_index=True)
-            st.caption(f"📊 {len(filtered_french_earnings)} publications françaises à venir")
-            st.markdown("🔗 [Calendrier complet sur Boursorama](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
+            st.caption("📊 40 French publications upcoming")
+            st.markdown("🔗 [Full calendar on Boursorama](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
         elif search_company:
             st.info(f"No French companies found matching '{search_company}'")
 
