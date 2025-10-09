@@ -1,7 +1,9 @@
 from fpdf import FPDF
 import plotly.express as px
+import plotly.graph_objects as go
 import os
 from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
+from portfolio_package.visualizations import create_portfolio_pie_chart, create_performance_chart_filtered, create_financial_portfolio_vs_benchmark_chart
 
 # Function to convert hex to RGB
 def hex_to_rgb(hex_color):
@@ -57,7 +59,78 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
     pdf.cell(0, 8, "Leo COLIN", ln=True, align="C")
     pdf.cell(0, 8, "Pierre QUINTIN de KERCADIO", ln=True, align="C")
 
-    # === PAGE 1: Portfolio Performance ===
+    # === PAGE 1: DASHBOARD OVERVIEW ===
+    if portfolio.investments:
+        pdf.add_page()
+
+        # Page background
+        pdf.set_fill_color(*background_color)
+        pdf.rect(0, 0, pdf.w, pdf.h, 'F')
+
+        # Logo at top left
+        if os.path.exists(full_logo_path):
+            pdf.image(full_logo_path, x=5, y=5, w=50)
+
+        # Page title
+        pdf.ln(15)
+        pdf.set_font("Arial", 'B', 16)
+        pdf.set_text_color(*text_color)
+        pdf.cell(0, 10, "Dashboard Overview", ln=True, align="C")
+        pdf.ln(5)
+
+        # White separator line
+        pdf.set_draw_color(*text_color)
+        pdf.set_line_width(0.5)
+        pdf.line(20, pdf.get_y(), pdf.w - 20, pdf.get_y())
+        pdf.ln(10)
+
+        # Generate dashboard charts
+        try:
+            # Portfolio pie chart (donut)
+            fig_pie = create_portfolio_pie_chart(portfolio)
+            fig_pie.update_layout(
+                width=1000,
+                height=550,
+                margin=dict(l=40, r=40, t=50, b=40)
+            )
+            fig_pie.write_image("dashboard_pie.png", scale=2)
+            pdf.image("dashboard_pie.png", x=20, y=pdf.get_y(), w=150, h=105)
+            pdf.ln(110)
+
+            # Performance chart filtered
+            fig_perf = create_performance_chart_filtered(portfolio)
+            fig_perf.update_layout(
+                width=1200,
+                height=450,
+                paper_bgcolor='#1d293d',
+                plot_bgcolor='#1d293d',
+                font=dict(color='#e2e8f0', size=12),
+                title=dict(
+                    text="📈 Key Assets Performance",
+                    font=dict(size=16, color='#e2e8f0'),
+                    x=0.5,
+                    xanchor='center'
+                ),
+                margin=dict(l=60, r=40, t=60, b=50)
+            )
+            fig_perf.write_image("dashboard_perf.png", scale=2)
+            pdf.image("dashboard_perf.png", x=10, y=pdf.get_y(), w=150, h=100)
+
+
+         
+            # Clean up temporary files
+            try:
+                os.remove("dashboard_pie.png")
+                os.remove("dashboard_perf.png")
+            except Exception:
+                pass
+
+        except Exception as e:
+            pdf.set_font("Arial", '', 11)
+            pdf.set_text_color(*text_color)
+            pdf.multi_cell(0, 6, f"Unable to generate dashboard charts: {str(e)}")
+
+    # === PAGE 3: Portfolio Performance Analysis ===
     pdf.add_page()
 
     # Page background
@@ -72,7 +145,7 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
     pdf.ln(15)  # space for logo
     pdf.set_font("Arial", 'B', 16)
     pdf.set_text_color(*text_color)
-    pdf.cell(0, 10, "Portfolio Performance", ln=True, align="C")
+    pdf.cell(0, 10, "Portfolio Performance Analysis", ln=True, align="C")
     pdf.ln(5)
 
     # White separator line
@@ -418,7 +491,7 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
             # Clean up temporary file
             try:
                 os.remove("prediction_chart.png")
-            except:
+            except Exception:
                 pass
 
         except Exception as e:

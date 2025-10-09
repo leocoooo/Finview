@@ -790,6 +790,14 @@ def show_assets_analytics(portfolio):
 def show_world_map(portfolio):
     if len(portfolio.financial_investments) + len(portfolio.real_estate_investments) > 0:
         display_world_map(portfolio)
+
+        # Legend for map
+        st.markdown("""
+            <div style='text-align: center; font-size: 14px; color: #94A3B8; margin-top: 10px;'>
+                <span style='color: #3B82F6; font-weight: bold;'>●</span> <b>Blue:</b> Financial investments &nbsp;&nbsp;&nbsp;
+                <span style='color: #F59E0B; font-weight: bold;'>●</span> <b>Orange:</b> Real estate investments
+            </div>
+        """, unsafe_allow_html=True)
     else:
         st.info("🌍 No investments to locate at the moment")
 
@@ -1087,28 +1095,41 @@ def show_predictions(portfolio):
 
             # Créer le tableau
             projection_data = []
-            initial = stats['initial']
+            percentiles = results['percentiles']
+            initial_value = results['initial_value']
+
+            # Helper function to calculate annualized return
+            def calc_annualized_return(initial, final, years):
+                if years == 0 or initial <= 0:
+                    return 0
+                return ((final / initial) ** (1 / years) - 1) * 100
 
             for year in range(results['years'] + 1):
-                row = {'Year': year}
+                row = {
+                    'Year': year,
+                    'P10 (Pessimistic)': format_currency(percentiles['p10'][year]),
+                    'P25 (Conservative)': format_currency(percentiles['p25'][year]),
+                    'P50 (Median)': format_currency(percentiles['p50'][year]),
+                    'P75 (Optimistic)': format_currency(percentiles['p75'][year]),
+                    'P90 (Very Optimistic)': format_currency(percentiles['p90'][year]),
+                    'Average': format_currency(percentiles['mean'][year])
+                }
 
-                for scenario, label in [
-                    ('p10', 'P10 Pessimistic'),
-                    ('p25', 'P25 Conservative'),
-                    ('p50', 'P50 Median'),
-                    ('p75', 'P75 Optimistic'),
-                    ('p90', 'P90 Very Optimistic'),
-                    ('mean', 'Average')
-                ]:
-                    value = percentiles_to_use[scenario][year]
-
-                    # Calculer variation vs année précédente
-                    if year > 0:
-                        prev_value = percentiles_to_use[scenario][year - 1]
-                        change_pct = ((value / prev_value) - 1) * 100 if prev_value > 0 else 0
-                        row[label] = f"{format_currency(value)} ({change_pct:+.1f}%)"
-                    else:
-                        row[label] = format_currency(value)
+                # Add annualized returns for each percentile
+                if year > 0:
+                    row['Annualized Return P10 (%)'] = f"{calc_annualized_return(initial_value, percentiles['p10'][year], year):+.1f}%"
+                    row['Annualized Return P25 (%)'] = f"{calc_annualized_return(initial_value, percentiles['p25'][year], year):+.1f}%"
+                    row['Annualized Return P50 (%)'] = f"{calc_annualized_return(initial_value, percentiles['p50'][year], year):+.1f}%"
+                    row['Annualized Return P75 (%)'] = f"{calc_annualized_return(initial_value, percentiles['p75'][year], year):+.1f}%"
+                    row['Annualized Return P90 (%)'] = f"{calc_annualized_return(initial_value, percentiles['p90'][year], year):+.1f}%"
+                    row['Annualized Return Avg (%)'] = f"{calc_annualized_return(initial_value, percentiles['mean'][year], year):+.1f}%"
+                else:
+                    row['Annualized Return P10 (%)'] = "—"
+                    row['Annualized Return P25 (%)'] = "—"
+                    row['Annualized Return P50 (%)'] = "—"
+                    row['Annualized Return P75 (%)'] = "—"
+                    row['Annualized Return P90 (%)'] = "—"
+                    row['Annualized Return Avg (%)'] = "—"
 
                 projection_data.append(row)
 
@@ -2007,6 +2028,14 @@ def display_dashboard_charts(portfolio):
     with col2:
         fig_perf = create_performance_chart_filtered(portfolio)
         st.plotly_chart(fig_perf, use_container_width=True, config={"displayModeBar": False, "height": 390})
+
+    # Legend for dashboard charts
+    st.markdown("""
+        <div style='text-align: center; font-size: 14px; color: #94A3B8; margin-top: 10px;'>
+            <span style='color: #3B82F6; font-weight: bold;'>●</span> <b>Blue:</b> Financial investments / Portfolio &nbsp;&nbsp;&nbsp;
+            <span style='color: #F59E0B; font-weight: bold;'>●</span> <b>Orange:</b> Real estate / Benchmark
+        </div>
+    """, unsafe_allow_html=True)
 
 
 def show_portfolio_charts(portfolio):
