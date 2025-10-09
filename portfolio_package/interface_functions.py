@@ -4,6 +4,7 @@ import yfinance as yf
 import os
 import json
 from datetime import datetime
+import time
 
 from portfolio_package.visualizations import create_monthly_transactions_chart
 from portfolio_package.save_load_ptf_functions import save_portfolio
@@ -787,13 +788,31 @@ def show_world_map(portfolio):
 
 def show_predictions(portfolio):
     st.header("🔮 Wealth Predictions")
+
     if not portfolio.investments:
         st.info("Add investments to see predictions")
         return
 
     years = st.selectbox("Prediction horizon", options=[1, 5, 10, 20, 30], index=2)
     num_simulations = st.selectbox("Number of simulations", options=[100, 500, 1000, 2000], index=2)
+
+    # Bouton de lancement
     run_prediction = st.button("🚀 Run", type="primary")
+
+    if run_prediction:
+        progress_text = "Prediction in progress. Please wait..."
+        my_bar = st.progress(0, text=progress_text)
+
+        # 🔁 Boucle de simulation du chargement
+        for percent_complete in range(100):
+            my_bar.progress(percent_complete)
+            time.sleep(0.03)  # Changer ça si on veut un chargement plus ou moins rapide
+            my_bar.progress(percent_complete + 1, text=progress_text)
+        time.sleep(1)
+
+        my_bar.empty()
+        st.success("✅ Prediction completed successfully!")
+
 
     if run_prediction:
         with st.spinner(f"Simulating {num_simulations} scenarios over {years} years..."):
