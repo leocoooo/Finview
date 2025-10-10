@@ -141,20 +141,29 @@ class Portfolio:
             self._log_transaction("INVESTMENT_UPDATE", 0, f"{name}: {old_value:.2f}€ → {new_value:.2f}€")
     
     def sell_investment(self, name: str, quantity: float = None):
-        if name not in self.investments:
+        # Vérifier dans quel dictionnaire se trouve l'investissement
+        if name in self.financial_investments:
+            investment = self.financial_investments[name]
+            investment_dict = self.financial_investments
+        elif name in self.real_estate_investments:
+            investment = self.real_estate_investments[name]
+            investment_dict = self.real_estate_investments
+        else:
             return False
 
-        investment = self.investments[name]
         if quantity is None or quantity >= investment.quantity:
+            # Vente complète
             sale_value = investment.get_total_value()
             self.cash += sale_value
             self._log_transaction("INVESTMENT_SELL", sale_value, f"Full sale of {name}")
-            del self.investments[name]
+            del investment_dict[name]  # Supprimer du bon dictionnaire
         else:
+            # Vente partielle
             sale_value = investment.current_value * quantity
             self.cash += sale_value
-            investment.quantity -= quantity
+            investment.quantity -= quantity  # La modification sera persistée car on modifie l'objet directement
             self._log_transaction("INVESTMENT_SELL", sale_value, f"Sale of {quantity} shares of {name}")
+        
         return True
     
     def add_credit(self, name: str, amount: float, interest_rate: float, monthly_payment: float = 0):

@@ -701,7 +701,7 @@ def manage_investments(portfolio):
                 if can_sell:
                     portfolio.sell_investment(inv_to_sell, sell_quantity)
                     save_portfolio(portfolio)
-                    st.success(f"Sale completed successfully!")
+                    st.success("Sale completed successfully!")
                     st.rerun()
                 else:
                     st.error("Insufficient quantity for sale!")
@@ -2029,13 +2029,13 @@ def display_dashboard_charts(portfolio):
         fig_perf = create_performance_chart_filtered(portfolio)
         st.plotly_chart(fig_perf, use_container_width=True, config={"displayModeBar": False, "height": 390})
 
-    # Legend for dashboard charts
-    st.markdown("""
-        <div style='text-align: center; font-size: 14px; color: #94A3B8; margin-top: 10px;'>
-            <span style='color: #3B82F6; font-weight: bold;'>●</span> <b>Blue:</b> Financial investments / Portfolio &nbsp;&nbsp;&nbsp;
-            <span style='color: #F59E0B; font-weight: bold;'>●</span> <b>Orange:</b> Real estate / Benchmark
-        </div>
-    """, unsafe_allow_html=True)
+    # # Legend for dashboard charts
+    # st.markdown("""
+    #     <div style='text-align: center; font-size: 14px; color: #94A3B8; margin-top: 10px;'>
+    #         <span style='color: #3B82F6; font-weight: bold;'>●</span> <b>Blue:</b> Financial investments / Portfolio &nbsp;&nbsp;&nbsp;
+    #         <span style='color: #F59E0B; font-weight: bold;'>●</span> <b>Orange:</b> Real estate / Benchmark
+    #     </div>
+    # """, unsafe_allow_html=True)
 
 
 def show_portfolio_charts(portfolio):
