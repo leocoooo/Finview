@@ -1201,18 +1201,14 @@ def show_definitions():
     st.header("📚 Financial Definitions")
     st.markdown("Welcome to the financial glossary! Browse the definitions of terms used in the application.")
 
-    # Onglets principaux
-    tab1, tab2 = st.tabs(["📖 General Definitions", "💹 Asset Returns Database"])
+    # Barre de recherche pour les définitions générales
+    search_general = st.text_input("🔍 Search for a term...", key="search_general", placeholder="Ex: SCPI, ETF, Diversification...")
 
-    with tab1:
-        # Barre de recherche pour les définitions générales
-        search_general = st.text_input("🔍 Search for a term...", key="search_general", placeholder="Ex: SCPI, ETF, Diversification...")
+    st.markdown("---")
 
-        st.markdown("---")
-
-        # Définitions organisées
-        all_sections = {
-            "💰 Cash": """
+    # Définitions organisées
+    all_sections = {
+        "💰 Cash": """
 **Definition**: Money immediately available in your portfolio.
 
 Cash represents money you can use instantly to:
@@ -1222,49 +1218,49 @@ Cash represents money you can use instantly to:
 
 💡 **Tip**: Always keep a cash reserve (3 to 6 months of expenses) for emergencies.
 """,
-            "📈 Stocks": """
+        "📈 Stocks": """
 **Stocks** 📊
 - Ownership shares in a company
 - High potential return
 - Medium to high risk
 - Example: Apple, Microsoft, Total
 """,
-            "📦 ETF (Exchange Traded Fund)": """
+        "📦 ETF (Exchange Traded Fund)": """
 **ETF** (Exchange Traded Fund) 📦
 - Diversified basket of stocks
 - Tracks a stock index
 - Low fees
 - Example: S&P 500, CAC 40, MSCI World
 """,
-            "💼 Bonds": """
+        "💼 Bonds": """
 **Bonds** 💼
 - Loan to a company or state
 - Fixed and predictable return
 - Low to medium risk
 - Example: French OATs, Corporate Bonds
 """,
-            "₿ Cryptocurrencies": """
+        "₿ Cryptocurrencies": """
 **Cryptocurrencies** ₿
 - Decentralized digital currency
 - Very high volatility
 - High gain potential
 - Example: Bitcoin, Ethereum
 """,
-            "🏦 Investment Funds": """
+        "🏦 Investment Funds": """
 **Investment Funds** 🏦
 - Portfolio managed by professionals
 - Automatic diversification
 - Management fees
 - Example: Mutual funds
 """,
-            "💎 Alternative Assets": """
+        "💎 Alternative Assets": """
 **Other Assets** 💎
 - Gold, commodities
 - Art, collectibles
 - Alternative investments
 - Private Equity
 """,
-            "🏢 SCPI (Société Civile de Placement Immobilier)": """
+        "🏢 SCPI (Société Civile de Placement Immobilier)": """
 **SCPI** (Société Civile de Placement Immobilier) 🏢
 - Collective real estate investment
 - Management delegated to professionals
@@ -1272,27 +1268,27 @@ Cash represents money you can use instantly to:
 - Accessible from a few hundred euros
 - Example: SCPI Corum, Primonial
 """,
-            "🌆 REIT (Real Estate Investment Trust)": """
+        "🌆 REIT (Real Estate Investment Trust)": """
 **REIT** (Real Estate Investment Trust) 🌆
 - American equivalent of SCPI
 - Listed on stock exchange, highly liquid
 - Invests in commercial real estate
 - Example: Simon Property Group
 """,
-            "🏡 Direct Real Estate": """
+        "🏡 Direct Real Estate": """
 **Direct Real Estate** 🏡
 - Physical property held directly
 - Rental management is your responsibility
 - Significant capital appreciation potential
 - Requires high initial capital
 """,
-            "📊 Rental Yield": """
+        "📊 Rental Yield": """
 **Rental Yield** 📊
 - Annual income generated / Property value × 100
 - Indicates investment profitability
 - Typically between 2% and 8% depending on property type
 """,
-            "📘 PEA (Plan d'Épargne en Actions)": """
+        "📘 PEA (Plan d'Épargne en Actions)": """
 **PEA** (Plan d'Épargne en Actions) 📘
 - French tax-advantaged investment account
 - Invests in European stocks and equity funds
@@ -1300,7 +1296,7 @@ Cash represents money you can use instantly to:
 - Maximum deposit: €150,000
 - Example: Ideal for long-term stock investments with tax benefits
 """,
-            "🏢 PEA-PME": """
+        "🏢 PEA-PME": """
 **PEA-PME** 🏢
 - Dedicated to small and mid-cap companies
 - Same tax benefits as standard PEA
@@ -1308,7 +1304,7 @@ Cash represents money you can use instantly to:
 - Supports European SMEs and mid-cap growth
 - Can be combined with a standard PEA
 """,
-            "📋 Assurance-vie (Life Insurance)": """
+        "📋 Assurance-vie (Life Insurance)": """
 **Assurance-vie** (Life Insurance) 📋
 - Most popular French savings product
 - Flexible investment: bonds, stocks, euros fund
@@ -1317,7 +1313,7 @@ Cash represents money you can use instantly to:
 - Estate planning advantages (succession)
 - Example: Multisupport life insurance contracts
 """,
-            "💼 Compte-titres ordinaire (CTO)": """
+        "💼 Compte-titres ordinaire (CTO)": """
 **Compte-titres ordinaire** (CTO) 💼
 - Standard brokerage account
 - No deposit limits
@@ -1326,7 +1322,7 @@ Cash represents money you can use instantly to:
 - Most flexible investment account
 - Example: For international diversification beyond PEA limits
 """,
-            "💚 Livret A": """
+        "💚 Livret A": """
 **Livret A** 💚
 - Risk-free savings account guaranteed by French state
 - Tax-free interest (currently around 3%)
@@ -1334,7 +1330,7 @@ Cash represents money you can use instantly to:
 - Instant liquidity (withdraw anytime)
 - Ideal for emergency fund
 """,
-            "🏡 PEL (Plan d'Épargne Logement)": """
+        "🏡 PEL (Plan d'Épargne Logement)": """
 **PEL** (Plan d'Épargne Logement) 🏡
 - Savings plan for real estate projects
 - Fixed interest rate for 4 to 10 years
@@ -1342,56 +1338,56 @@ Cash represents money you can use instantly to:
 - Tax benefits depending on opening date
 - Example: Save for a future home purchase
 """,
-            "💰 Remaining Balance": """
+        "💰 Remaining Balance": """
 **Remaining Balance** 💰
 - Total amount still owed on the credit
 - Decreases with each repayment
 - Principal + Remaining interest
 """,
-            "📈 Interest Rate": """
+        "📈 Interest Rate": """
 **Interest Rate** 📈
 - Annual cost of credit expressed in %
 - Can be fixed or variable
 - The lower the rate, the less expensive the credit
 - Example: 1.5% for a mortgage, 3-5% for consumer credit
 """,
-            "💸 Monthly Payment": """
+        "💸 Monthly Payment": """
 **Monthly Payment** 💸
 - Amount to repay each month
 - Includes a portion of principal and a portion of interest
 - Generally remains constant over the credit term
 """,
-            "📉 Amortization": """
+        "📉 Amortization": """
 **Amortization** 📉
 - Progressive repayment of borrowed principal
 - At the start: more interest, less principal
 - At the end: more principal, less interest
 """,
-            "🏆 Net Worth": """
+        "🏆 Net Worth": """
 **Net Worth** 🏆
 - Total wealth = (Cash + Investments) - Credits
 - Represents your real wealth
 - Key indicator of financial health
 """,
-            "📈 Performance": """
+        "📈 Performance": """
 **Performance** 📈
 - Percentage variation in investment value
 - (Current value - Initial value) / Initial value × 100
 - Example: +15% = 15% gain compared to purchase
 """,
-            "💾 Diversification": """
+        "💾 Diversification": """
 **Diversification** 💾
 - Distribution of investments across different assets
 - Reduces overall portfolio risk
 - "Don't put all your eggs in one basket"
 """,
-            "📅 Annualized Return": """
+        "📅 Annualized Return": """
 **Annualized Return** 📅
 - Average performance per year over several years
 - Allows comparison of different investments
 - Smooths out short-term variations
 """,
-            "🎲 Monte Carlo Simulation": """
+        "🎲 Monte Carlo Simulation": """
 **Monte Carlo Simulation** 🎲
 
 **Definition**: Statistical method that uses random sampling to predict possible future outcomes of a portfolio.
@@ -1421,142 +1417,31 @@ Cash represents money you can use instantly to:
 
 💡 **Important**: Past performance does not guarantee future results. Black swan events (COVID, 2008 crisis) can exceed simulation parameters.
 """
-        }
+    }
 
-        # Filtrer les sections selon la recherche
-        filtered_sections = {}
-        if search_general:
-            search_lower = search_general.lower()
-            for title, content in all_sections.items():
-                if search_lower in title.lower() or search_lower in content.lower():
-                    filtered_sections[title] = content
-        else:
-            filtered_sections = all_sections
+    # Filtrer les sections selon la recherche
+    filtered_sections = {}
+    if search_general:
+        search_lower = search_general.lower()
+        for title, content in all_sections.items():
+            if search_lower in title.lower() or search_lower in content.lower():
+                filtered_sections[title] = content
+    else:
+        filtered_sections = all_sections
 
-        # Afficher les sections filtrées
-        if filtered_sections:
-            for title, content in filtered_sections.items():
-                st.subheader(title)
-                st.markdown(content)
-                st.markdown("---")
-        else:
-            st.warning(f"No results found for '{search_general}'")
+    # Afficher les sections filtrées
+    if filtered_sections:
+        for title, content in filtered_sections.items():
+            st.subheader(title)
+            st.markdown(content)
+            st.markdown("---")
+    else:
+        st.warning(f"No results found for '{search_general}'")
 
-        st.info("""
+    st.info("""
 💡 **Need more information?**
 These definitions are simplifications for educational purposes.
 For personalized advice on your investments, consult a professional financial advisor.
-""")
-
-    with tab2:
-        st.markdown("""
-This database contains historical return parameters used for portfolio predictions.
-Each asset has an **average annual return** and a **volatility (standard deviation)**.
-""")
-
-        # Barre de recherche pour les actifs
-        search_asset = st.text_input(
-            "🔍 Search for an asset...",
-            key="search_asset",
-            placeholder="Ex: Bitcoin, S&P 500, SCPI..."
-        )
-
-        # Filtres par catégorie
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            category_filter = st.selectbox(
-                "Filter by category",
-                ["All", "Cryptocurrencies", "Stocks", "ETF", "Real Estate", "Bonds", "Commodities", "Funds & Cash"]
-            )
-
-        # Créer un DataFrame à partir de HISTORICAL_RETURNS
-        assets_data = []
-        for asset_name, params in HISTORICAL_RETURNS.items():
-            # Déterminer la catégorie
-            if any(x in asset_name for x in ['Bitcoin', 'Ethereum', 'Crypto', 'Altcoin']):
-                category = "Cryptocurrencies"
-            elif any(x in asset_name for x in ['Actions', 'Action']):
-                category = "Stocks"
-            elif 'ETF' in asset_name:
-                category = "ETF"
-            elif any(x in asset_name for x in ['SCPI', 'REIT', 'Immobilier']):
-                category = "Real Estate"
-            elif 'Obligation' in asset_name:
-                category = "Bonds"
-            elif any(x in asset_name for x in ['Or', 'Argent', 'Commodities', 'Private Equity']):
-                category = "Commodities"
-            else:
-                category = "Funds & Cash"
-
-            assets_data.append({
-                'Asset': asset_name,
-                'Category': category,
-                'Avg Return (%)': params['mean'],
-                'Volatility (%)': params['std'],
-                'Distribution': params['distribution']
-            })
-
-        df_assets = pd.DataFrame(assets_data)
-
-        # Appliquer les filtres
-        filtered_df = df_assets.copy()
-
-        if search_asset:
-            search_lower = search_asset.lower()
-            filtered_df = filtered_df[filtered_df['Asset'].str.lower().str.contains(search_lower)]
-
-        if category_filter != "All":
-            filtered_df = filtered_df[filtered_df['Category'] == category_filter]
-
-        # Trier par catégorie puis par rendement
-        filtered_df = filtered_df.sort_values(['Category', 'Avg Return (%)'], ascending=[True, False])
-
-        # Afficher les statistiques
-        st.markdown("---")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("📊 Total Assets", len(filtered_df))
-        with col2:
-            avg_return = filtered_df['Avg Return (%)'].mean()
-            st.metric("📈 Avg Return", f"{avg_return:.1f}%")
-        with col3:
-            max_return = filtered_df['Avg Return (%)'].max()
-            st.metric("🚀 Max Return", f"{max_return:.1f}%")
-        with col4:
-            avg_vol = filtered_df['Volatility (%)'].mean()
-            st.metric("📊 Avg Volatility", f"{avg_vol:.1f}%")
-
-        # Tableau des actifs
-        st.markdown("---")
-        st.subheader(f"📋 Asset Database ({len(filtered_df)} results)")
-
-        # Styling du DataFrame
-        def highlight_row(row):
-            if row['Avg Return (%)'] > 15:
-                return ['background-color: rgba(0, 255, 0, 0.1)'] * len(row)
-            elif row['Avg Return (%)'] < 5:
-                return ['background-color: rgba(255, 165, 0, 0.1)'] * len(row)
-            return [''] * len(row)
-
-        styled_df = filtered_df.style.apply(highlight_row, axis=1)
-
-        st.dataframe(
-            filtered_df,
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
-
-        # Légende
-        st.markdown("""
-**Legend:**
-- **Avg Return (%)**: Expected average annual return
-- **Volatility (%)**: Standard deviation (risk measure)
-- **Distribution**: Statistical distribution used for simulations
-  - `normal`: Normal distribution (traditional assets)
-  - `lognormal`: Log-normal distribution (high volatility assets)
-
-💡 **Note**: These values are estimates based on historical data and do not guarantee future performance.
 """)
 
 
