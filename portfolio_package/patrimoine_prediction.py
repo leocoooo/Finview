@@ -92,7 +92,7 @@ HISTORICAL_RETURNS = {
 
 # Probabilité d'événements de marché
 CRISIS_PARAMS = {
-    'crisis_probability': 0.12,  # 12% de chance de crise par an (environ une tous les 8 ans)
+    'crisis_probability': 0.05,  # 12% de chance de crise par an (environ une tous les 8 ans)
     'mild_correction_probability': 0.25,  # 25% de chance de correction modérée
     'crisis_impact': {
         'Actions': (-0.35, 0.15),  # Baisse de 20% à 50% pendant une crise
