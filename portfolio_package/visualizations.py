@@ -1045,3 +1045,7 @@ def create_benchmark_kpi_card(benchmark_name, ticker):
                 value=f"{current_value:,.2f}",
                 delta=f"{change:+.2f}%"
             )
+
+
+def show_welcome():
+    st.markdown("<h1 style='font-size: 48px;'>👋 Bienvenue Léo Colin !</h1>", unsafe_allow_html=True)

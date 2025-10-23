@@ -26,6 +26,7 @@ from portfolio_package.interface_functions import (
     show_definitions,
 )
 
+from portfolio_package.visualizations import show_welcome
 # Page configuration
 st.set_page_config(
     page_title="Portfolio Manager",
@@ -53,7 +54,7 @@ if 'portfolio' not in st.session_state:
 # Main interface
 def main():
     """Main interface with horizontal navigation at the top"""
-
+    show_welcome()
     # Create the horizontal menu and get the selected page
     action = create_horizontal_menu()
 
@@ -66,6 +67,9 @@ def main():
         generate_pdf_func=generate_portfolio_pdf
     )
 
+    #personnalisation_side_bar()
+
+
     # Get the portfolio
     portfolio = st.session_state.portfolio
 
@@ -74,13 +78,13 @@ def main():
         show_summary(portfolio)
     elif action == "💼 Wealth Management":
         show_wealth_management(portfolio)
-    elif action == "📈 Dashboard":
+    elif action == "📈 My Dashboard":
         show_dashboard_tabs(portfolio)
     elif action == "🔮 Predictions":
         show_predictions(portfolio)
-    elif action == "📰 Actuality":
+    elif action == "📰 News":
         show_news()
-    elif action == "📚 Definitions":
+    elif action == "📚 Learn More":
         show_definitions()
 
 

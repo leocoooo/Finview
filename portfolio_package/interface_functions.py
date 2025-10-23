@@ -134,10 +134,10 @@ def create_horizontal_menu():
     pages_config = [
         ("📊 Summary", "📊"),
         ("💼 Wealth Management", "💼"),
-        ("📈 Dashboard", "📈"),
+        ("📈 My Dashboard", "📈"),
         ("🔮 Predictions", "🔮"),
-        ("📰 Actuality", "📰"),
-        ("📚 Definitions", "📚")
+        ("📰 News", "📰"),
+        ("📚 Learn More", "📚")
     ]
 
     # Create columns for navigation
