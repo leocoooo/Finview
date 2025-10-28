@@ -1,5 +1,5 @@
 [project]
-name = "startup-dashboard"
+name = "finview"
 version = "0.1.0"
 description = ""
 authors = [
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "startup_dashboard", from = "src"}]
+packages = [{include = "finview", from = "src"}]
 
 
 [build-system]

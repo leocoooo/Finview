@@ -1,6 +1,6 @@
 import json 
 import os 
-from portfolio_package.models import Portfolio
+from src.finview.models import Portfolio
 import streamlit as st  
 
 def save_portfolio(portfolio, filename="saved_json_data/portfolio_data.json"):

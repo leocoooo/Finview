@@ -1,5 +1,5 @@
 from datetime import datetime
-from portfolio_package.models import Portfolio, Credit, FinancialInvestment, RealEstateInvestment
+from src.finview.models import Portfolio, Credit, FinancialInvestment, RealEstateInvestment
 
 # Helper methods for Portfolio with specific dates
 def _add_cash_with_date(self, amount: float, date: datetime, description: str = "Cash addition"):

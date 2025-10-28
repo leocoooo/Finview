@@ -1,9 +1,7 @@
-# yahoo_search.py
 import yfinance as yf
-import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 def search_and_display_asset(ticker_input):

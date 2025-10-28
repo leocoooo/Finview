@@ -7,29 +7,34 @@ from datetime import datetime
 import time
 
 
-from portfolio_package.patrimoine_prediction import (
+from src.finview.patrimoine_prediction import (
     simulate_portfolio_future,
     create_prediction_chart,
     create_statistics_summary
 )
 
-# ... reste de vos imports ...
-from portfolio_package.visualizations import create_monthly_transactions_chart
-from portfolio_package.save_load_ptf_functions import save_portfolio
-from portfolio_package.yahoo_search import asset_search_tab
-from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_statistics_summary, HISTORICAL_RETURNS
+from src.finview.visualizations import create_monthly_transactions_chart
+from src.finview.save_load_ptf_functions import save_portfolio
+from src.finview.yahoo_search import asset_search_tab
+
 
 # Import des visualisations externalisées
-from portfolio_package.visualizations import (
-    create_financial_portfolio_vs_benchmark_chart,
-    #display_portfolio_evolution,
+from src.finview.visualizations import (
     display_financial_investments,
     display_performance_chart,
     display_world_map,
-    display_predictions,
     render_portfolio_comparison
     )
 
+from src.finview.visualizations import (
+    create_portfolio_pie_chart,
+    create_performance_chart_filtered,
+    create_kpi_metrics, 
+    get_cac40_data, 
+    get_dji_data, 
+    get_btc_data
+
+)
 
 
 # === UTILITAIRES ===
@@ -759,7 +764,6 @@ def show_wealth_management(portfolio):
     with tab1: manage_cash(portfolio)
     with tab2: manage_investments(portfolio)
     with tab3: manage_credits(portfolio)
-
 
 
 def show_dashboard_tabs(portfolio):
@@ -1928,7 +1932,7 @@ def show_news():
 
 def display_kpi_row(portfolio):
     """Affiche la rangée de KPIs en haut du dashboard"""
-    from portfolio_package.visualizations import create_kpi_metrics, get_cac40_data, get_dji_data, get_btc_data
+
 
     kpis = create_kpi_metrics(portfolio)
     cac40_value, cac40_change = get_cac40_data()
@@ -1976,10 +1980,6 @@ def display_kpi_row(portfolio):
 def display_dashboard_charts(portfolio):
     """Affiche les graphiques principaux du dashboard"""
 
-    from portfolio_package.visualizations import (
-        create_portfolio_pie_chart,
-        create_performance_chart_filtered
-    )
     #st.markdown("<style>div.block-container{padding-top:0.5rem;padding-bottom:0rem;}</style>", unsafe_allow_html=True)
     st.markdown("<div style='margin-top:-1rem;'></div>", unsafe_allow_html=True)
 
@@ -2035,7 +2035,7 @@ def show_portfolio_charts(portfolio):
 
 def remove_streamlit_spacing():
     """Réduit les espaces entre les éléments Streamlit"""
-    import streamlit as st
+
 
     st.markdown("""
         <style>

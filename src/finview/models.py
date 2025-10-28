@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Dict, List
 
-from datetime import datetime
-
 
 class Investment:
     def __init__(self, name: str, initial_value: float, current_value: float, quantity: float = 1.0):

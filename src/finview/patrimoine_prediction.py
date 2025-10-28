@@ -2,9 +2,7 @@
 Module de prédiction du patrimoine basé sur des simulations Monte Carlo RÉALISTES
 """
 import numpy as np
-import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # ============================================================================
 # DONNÉES HISTORIQUES AJUSTÉES - Plus conservatrices et réalistes

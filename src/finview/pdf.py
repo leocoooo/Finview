@@ -1,9 +1,8 @@
 from fpdf import FPDF
 import plotly.express as px
-import plotly.graph_objects as go
 import os
-from portfolio_package.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
-from portfolio_package.visualizations import create_portfolio_pie_chart, create_performance_chart_filtered, create_financial_portfolio_vs_benchmark_chart
+from src.finview.patrimoine_prediction import simulate_portfolio_future, create_prediction_chart, create_statistics_summary
+from src.finview.visualizations import create_portfolio_pie_chart, create_performance_chart_filtered
 
 # Function to convert hex to RGB
 def hex_to_rgb(hex_color):
@@ -26,7 +25,8 @@ def generate_portfolio_pdf(portfolio, filename="portfolio.pdf", logo_path="../lo
     pdf.set_fill_color(*background_color)
     pdf.rect(0, 0, pdf.w, pdf.h, 'F')
 
-    # Absolute path to logo (going up one level from portfolio_package to project root)
+    # Absolute path to logo (going up one level from src.finview
+    # to project root)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     full_logo_path = os.path.join(script_dir, logo_path)
 
