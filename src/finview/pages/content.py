@@ -198,7 +198,13 @@ def _display_earnings_table(earnings_dict, label):
         )
     ]
     height = 400 if label == "International" else None
-    st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True, height=height)
+    # Streamlit requires height to be either an int (pixels) or 'stretch'.
+    # If height is None, omit the parameter to let Streamlit choose default sizing.
+    df = pd.DataFrame(data)
+    if height is None:
+        st.dataframe(df, use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(df, use_container_width=True, hide_index=True, height=height)
 
 """
 Content page - Financial news and definitions

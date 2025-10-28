@@ -15,7 +15,7 @@ class Credit:
         self.current_balance = initial_amount
         self.interest_rate = interest_rate  # Annual interest rate in %
         self.monthly_payment = monthly_payment
-        self.creation_date = datetime.now()
+        self.creation_date = datetime.datetime.now()
     
     def make_payment(self, amount: float) -> None:
         """Make a payment on the credit"""

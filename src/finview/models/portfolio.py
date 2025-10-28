@@ -238,7 +238,7 @@ class Portfolio:
     def _log_transaction(self, transaction_type: str, amount: float, description: str) -> None:
         """Internal method to log transactions"""
         self.transaction_history.append({
-            'date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'type': transaction_type,
             'amount': amount,
             'description': description

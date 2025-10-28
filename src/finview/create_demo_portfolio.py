@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from src.finview.models import Portfolio
+from src.finview.models.portfolio import Portfolio
 
 
 def create_demo_portfolio_4():

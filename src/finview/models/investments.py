@@ -8,7 +8,7 @@ class Investment:
         self.initial_value = initial_value
         self.current_value = current_value
         self.quantity = quantity
-        self.purchase_date = datetime.now()
+        self.purchase_date = datetime.datetime.now()
 
     def update_value(self, new_value: float) -> None:
         """Update the current value of the investment"""

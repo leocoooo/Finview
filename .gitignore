@@ -16,3 +16,5 @@ saved_json_data
 # Ne pas enregistrer les pdf générés ni les png (les graohiques du pdf généré)
 *.pdf 
 *.png
+
+.old/
