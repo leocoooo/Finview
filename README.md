@@ -440,8 +440,6 @@ Développé dans le cadre du cours Base de Données & Dashboard
 ### Documentation des modules
 - [operations/README.md](src/finview/operations/README.md) - Guide complet du module d'opérations
 - [market/README.md](src/finview/market/README.md) - Guide du module de recherche d'actifs
-- [MIGRATION_COMPLETE.md](MIGRATION_COMPLETE.md) - Historique de la refactorisation
-- [REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md) - Résumé des améliorations
 
 ### Technologies
 - [Streamlit](https://docs.streamlit.io) - Documentation officielle
