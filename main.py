@@ -65,7 +65,7 @@ def main():
     elif action == "🔮 Predictions":
         show_predictions(portfolio)
 
-    elif action == "📰 Actuality":
+    elif action == "📰 News":
         show_news()
 
     elif action == "📚 Definitions":

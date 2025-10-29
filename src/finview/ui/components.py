@@ -30,7 +30,7 @@ def create_horizontal_menu():
         ("💼 Wealth Management", "💼"),
         ("📈 Dashboard", "📈"),
         ("🔮 Predictions", "🔮"),
-        ("📰 Actuality", "📰"),
+        ("📰 News", "📰"),
         ("📚 Definitions", "📚")
     ]
 
