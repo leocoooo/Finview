@@ -1,20 +1,13 @@
 import streamlit as st
-from src.finview.pdf import generate_portfolio_pdf
 
-from src.finview.models.portfolio import Portfolio
-
-from src.finview.wealth_management_functions import (
-    _add_investment_with_date,
-    _update_investment_with_date,
-    _sell_investment_with_date,
-    _add_credit_with_date,
-    _pay_credit_with_date,
+# Imports depuis le package principal
+from src.finview import (
+    Portfolio,
+    create_demo_portfolio_4,
+    generate_portfolio_pdf
 )
 
-from src.finview.create_demo_portfolio import create_demo_portfolio_4
-
-from src.finview.save_load_ptf_functions import save_portfolio, load_portfolio
-
+from src.finview.ui.portfolio_persistence import save_portfolio, load_portfolio
 from src.finview.ui.components import create_horizontal_menu, create_sidebar_actions
 from src.finview.pages.summary import show_summary
 from src.finview.pages.management import show_wealth_management
@@ -28,17 +21,7 @@ st.set_page_config(
     page_title="Portfolio Manager",
     page_icon="logo/FullLogo.png",
     layout="wide"
-
 )
-
-
-# Adding methods to the Portfolio class
-Portfolio._add_investment_with_date = _add_investment_with_date
-Portfolio._update_investment_with_date = _update_investment_with_date
-Portfolio._sell_investment_with_date = _sell_investment_with_date
-Portfolio._add_credit_with_date = _add_credit_with_date
-Portfolio._pay_credit_with_date = _pay_credit_with_date
-
 
 
 # State initialization with automatic save/load

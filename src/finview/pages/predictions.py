@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from src.finview.ui.formatting import format_currency
-from src.finview.patrimoine_prediction import (
+from src.finview.predictions import (
     simulate_portfolio_future,
     create_prediction_chart,
     create_statistics_summary,

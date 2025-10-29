@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from src.finview.ui.formatting import format_currency, format_percentage
-from src.finview.visualizations import create_monthly_transactions_chart
+from src.finview.charts import create_monthly_transactions_chart
 
 
 def show_summary(portfolio):

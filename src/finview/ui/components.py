@@ -97,11 +97,20 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     if uploaded_file is not None:
         try:
             data = json.load(uploaded_file)
-            st.session_state.portfolio = Portfolio.from_dict(data)
-            st.sidebar.success("✅ Imported!")
+            imported_portfolio = Portfolio.from_dict(data)
+            
+            # Directly update session state with imported portfolio
+            st.session_state.portfolio = imported_portfolio
+            
+            # Save to disk for persistence
+            save_portfolio_func(imported_portfolio)
+            
+            st.sidebar.success("✅ Portfolio imported successfully!")
             st.rerun()
+            
         except Exception as e:
-            st.sidebar.error(f"Import error: {e}")
+            st.sidebar.error(f"❌ Import error: {str(e)}")
+
 
     st.sidebar.markdown("---")
 
@@ -109,14 +118,16 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     st.sidebar.subheader("🎭 Test Data")
 
     if st.sidebar.button("Create demo portfolio", help="Creates a simulated 6-month history", use_container_width=True):
-        st.session_state.portfolio = create_demo_portfolio_func()
-        save_portfolio_func(st.session_state.portfolio)
+        demo_portfolio = create_demo_portfolio_func()
+        st.session_state.portfolio = demo_portfolio
+        save_portfolio_func(demo_portfolio)
         st.sidebar.success("🎉 Demo portfolio created!")
         st.rerun()
 
     if st.sidebar.button("Reset portfolio", use_container_width=True):
-        st.session_state.portfolio = Portfolio(initial_cash=0)
-        save_portfolio_func(st.session_state.portfolio)
+        reset_portfolio = Portfolio(initial_cash=0)
+        st.session_state.portfolio = reset_portfolio
+        save_portfolio_func(reset_portfolio)
         st.sidebar.success("🔄 Portfolio reset!")
         st.rerun()
 

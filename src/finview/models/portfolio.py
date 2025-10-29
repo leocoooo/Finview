@@ -301,7 +301,7 @@ class Portfolio:
                 inv_data.get('investment_type', 'Stock'),
                 inv_data.get('location', '')
             )
-            investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
+            investment.purchase_date = datetime.datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.financial_investments[name] = investment
 
         # Restore real estate investments
@@ -315,7 +315,7 @@ class Portfolio:
                 inv_data.get('location', ''),
                 inv_data.get('rental_yield', 0.0)
             )
-            investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
+            investment.purchase_date = datetime.datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.real_estate_investments[name] = investment
 
         # Backward compatibility with old 'investments' format
@@ -328,7 +328,7 @@ class Portfolio:
                 inv_data.get('investment_type', 'Stock'),
                 inv_data.get('location', '')
             )
-            investment.purchase_date = datetime.fromisoformat(inv_data['purchase_date'])
+            investment.purchase_date = datetime.datetime.fromisoformat(inv_data['purchase_date'])
             portfolio.financial_investments[name] = investment
 
         # Restore credits
@@ -340,7 +340,7 @@ class Portfolio:
                 credit_data['monthly_payment']
             )
             credit.current_balance = credit_data['current_balance']
-            credit.creation_date = datetime.fromisoformat(credit_data['creation_date'])
+            credit.creation_date = datetime.datetime.fromisoformat(credit_data['creation_date'])
             portfolio.credits[name] = credit
 
         # Restore transaction history

@@ -6,8 +6,8 @@ import streamlit as st
 import yfinance as yf
 
 from src.finview.ui.formatting import format_currency
-from src.finview.save_load_ptf_functions import save_portfolio
-from src.finview.yahoo_search import asset_search_tab
+from src.finview.ui.portfolio_persistence import save_portfolio
+from src.finview.market import asset_search_tab
 
 
 def show_wealth_management(portfolio):

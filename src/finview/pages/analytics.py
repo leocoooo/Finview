@@ -5,7 +5,7 @@ Analytics/Dashboard page - Portfolio visualizations and performance charts
 import streamlit as st
 
 from src.finview.ui.formatting import format_currency
-from src.finview.visualizations import (
+from src.finview.charts import (
     display_financial_investments,
     display_performance_chart,
     display_world_map,
