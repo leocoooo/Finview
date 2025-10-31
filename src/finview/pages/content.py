@@ -3,9 +3,19 @@ Content page - Financial news and definitions
 Part 1: News section
 """
 
+import os
 import pandas as pd
 import streamlit as st
 import yfinance as yf
+from dotenv import load_dotenv
+from src.finview.news import (
+    get_cached_business_news,
+    format_article,
+    format_published_date
+)
+
+# Charger les variables d'environnement
+load_dotenv()
 
 
 def show_news():
@@ -26,72 +36,77 @@ def show_news():
 
 
 def _show_latest_news():
-    """Affiche les dernières actualités financières"""
+    """Affiche les dernières actualités financières depuis l'API NewsAPI"""
     st.subheader("🔥 Top Financial News")
-
-    # Article 1: Political Crisis Impact on CAC 40
-    with st.container():
-        st.markdown("### 📊 CAC 40: Political crisis causes volatility, recovery follows")
-        st.markdown("""
-        The resignation of Prime Minister Sébastien Lecornu on October 6, 2025, caused the CAC 40 to drop 2% immediately.
-        Banks were particularly affected with drops of 4-5% (Société Générale, Crédit Agricole, BNP Paribas).
-        However, the index recovered strongly on October 8, gaining 1.07% to close at 8,060 points.
-        Legrand was the top performer with +3.56%, while the index broke through the 7,950 points resistance level.
-        """)
-        st.markdown("🔗 **Source:** [MoneyVox - Bourse du 8 octobre 2025](https://www.moneyvox.fr/bourse/actualites/105412/societe-generale-se-reprend-le-cac-40-surprend-le-journal-de-la-bourse-du-8-octobre-2025)")
-        st.markdown("📅 **Date:** October 8, 2025")
-        st.markdown("---")
-
-    # Article 2: French Economic Outlook
-    with st.container():
-        st.markdown("### 📉 French Economy: Growth revised upward, contained inflation")
-        st.markdown("""
-        INSEE data published in late August 2025 shows French GDP growth revised from 0.6% to 0.8% year-over-year (vs 1.5% in EU).
-        Inflation remains contained at 1.2% (compared to 2.2% in the EU), benefiting the purchasing power of households.
-        CAC 40 companies are expected to see a 9% increase in earnings for 2025 according to analysts.
-        The OECD anticipates a global slowdown, with world GDP at 3.2% in 2025 falling to 2.9% in 2026.
-        """)
-        st.markdown("🔗 **Source:** [Neofa - Tour d'horizon des marchés](https://neofa.com/fr/actualite-financiere-du-06-octobre-2025/)")
-        st.markdown("📅 **Date:** October 6, 2025")
-        st.markdown("---")
-
-    # Article 3: S&P 500 Reaches New Highs
-    with st.container():
-        st.markdown("### 💼 S&P 500: New record highs in early October 2025")
-        st.markdown("""
-        The S&P 500 reached its highest level on October 3, 2025 at 6,750.87 USD, up 18.09% year-to-date.
-        Between October 1-6, the index posted a 0.80% return and set several new records despite a partial federal government shutdown.
-        The rally is supported by expectations of an accommodative Fed and AI optimism, with NVIDIA leading the index.
-        However, the S&P 500's P/E ratio of 24-25 (vs historical average of 16-17) raises concerns about elevated valuations.
-        """)
-        st.markdown("🔗 **Source:** [Boursorama - S&P 500 Progress](https://www.boursorama.com/bourse/actualites/le-s-p-500-et-le-nasdaq-progressent-avant-les-remarques-de-la-fed-6c68eba4f6f5b702a4a2e4ed7eb81078)")
-        st.markdown("📅 **Date:** October 8, 2025")
-        st.markdown("---")
-
-    # Article 4: Ferrari Stock Volatility
-    with st.container():
-        st.markdown("### 🏎️ Ferrari: Historic drop after disappointing 2030 targets")
-        st.markdown("""
-        Ferrari's stock experienced its biggest drop since its 2016 IPO, plunging 14% after announcing medium-term targets.
-        Royal Bank of Canada noted that 2030 operating result guidance implies only 6% average annual growth.
-        The company updated 2025 guidance: revenues of at least €7.1B, adjusted EBITDA of at least €2.72B, and EPS of at least €8.8.
-        By 2030, Ferrari's lineup will be 40% combustion, 40% hybrid, and 20% electric, including the "Elettrica" model in 2026 at ~€500,000.
-        """)
-        st.markdown("🔗 **Source:** [TradingSat - Ferrari Stock Drops](https://www.tradingsat.com/actualites/marches-financiers/plombee-par-des-objectifs-decevants-l-action-ferrari-s-effondre-de-14-et-se-dirige-vers-la-plus-forte-chute-de-son-histoire-boursiere-1148073.html)")
-        st.markdown("📅 **Date:** October 2025")
-        st.markdown("---")
-
-    # Article 5: CAC 40 Dividends
-    with st.container():
-        st.markdown("### 💰 CAC 40 Dividends: €73.9 billion expected in 2025")
-        st.markdown("""
-        CAC 40 companies are expected to pay €73.9 billion in dividends for the 2024 fiscal year.
-        Despite political uncertainty and mixed earnings, major French groups maintain their shareholder distribution policies.
-        The strong earnings growth (+9% expected in 2025) supports continued generous dividend payments to investors.
-        """)
-        st.markdown("🔗 **Source:** [Boursorama - Dividend Calendar](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
-        st.markdown("📅 **Date:** 2025")
-        st.markdown("---")
+    
+    # Récupérer la clé API
+    api_key = os.getenv('NEWS_API_KEY')
+    
+    if not api_key:
+        st.error("❌ Clé API NewsAPI non configurée. Ajoutez NEWS_API_KEY dans votre fichier .env")
+        st.info("💡 Obtenez votre clé gratuite sur https://newsapi.org/")
+        return
+    
+    # Récupérer les actualités business
+    with st.spinner("📡 Récupération des actualités..."):
+        news_data = get_cached_business_news(api_key=api_key, country="us", page_size=10)
+    
+    if not news_data:
+        st.warning("⚠️ Impossible de récupérer les actualités. Veuillez réessayer plus tard.")
+        st.info("� Vérifiez votre connexion internet et votre quota API (100 requêtes/jour en gratuit)")
+        return
+    
+    articles = news_data.get('articles', [])
+    total_results = news_data.get('totalResults', 0)
+    
+    if not articles:
+        st.info("� Aucune actualité disponible pour le moment.")
+        return
+    
+    # Afficher les informations
+    st.caption(f"📊 {total_results} actualités disponibles • Affichage des {len(articles)} plus récentes")
+    st.caption("🔄 Données mises en cache pendant 30 minutes")
+    st.markdown("---")
+    
+    # Afficher chaque article
+    for i, article_raw in enumerate(articles, 1):
+        article = format_article(article_raw)
+        
+        with st.container():
+            # Titre avec numéro
+            st.markdown(f"### {i}. {article['title']}")
+            
+            # Description
+            if article['description'] and article['description'] != 'Pas de description disponible':
+                st.markdown(article['description'])
+            
+            # Métadonnées
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown(f"� **Source:** {article['source']}")
+            
+            with col2:
+                if article['author'] and article['author'] != 'Auteur inconnu':
+                    st.markdown(f"✍️ **Auteur:** {article['author']}")
+            
+            with col3:
+                if article['published_at']:
+                    date_formatted = format_published_date(article['published_at'])
+                    st.markdown(f"📅 **Date:** {date_formatted}")
+            
+            # Lien vers l'article
+            if article['url'] != '#':
+                st.markdown(f"🔗 [Lire l'article complet]({article['url']})")
+            
+            # Image si disponible
+            if article['image_url']:
+                try:
+                    st.image(article['image_url'], use_container_width=True)
+                except Exception:
+                    pass  # Ignorer les erreurs d'image
+            
+            st.markdown("---")
 
     # Add market indices widget
     st.markdown("---")
