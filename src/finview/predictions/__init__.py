@@ -10,7 +10,7 @@ en utilisant des simulations Monte Carlo réalistes incluant :
 """
 
 from .monte_carlo import simulate_portfolio_future, create_statistics_summary
-from .visualizations import create_prediction_chart
+from .visualization_prediction import create_prediction_chart
 from .utils import get_asset_return_params, get_asset_category
 
 __all__ = [

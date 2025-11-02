@@ -152,7 +152,7 @@ def create_financial_portfolio_vs_benchmark_chart(portfolio, benchmark_ticker="^
 
             benchmark_series = pd.Series(benchmark_values, index=dates)
             # Remplir les valeurs manquantes
-            benchmark_series = benchmark_series.fillna(method='ffill').fillna(method='bfill')
+            benchmark_series = benchmark_series.ffill().bfill()
         else:
             print("⚠️ Aucune ligne reçue de yfinance")
 
@@ -243,4 +243,4 @@ def render_portfolio_comparison(portfolio):
         benchmark_name=selected_benchmark
     )
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig)

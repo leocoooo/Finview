@@ -1,6 +1,6 @@
 """
 Content page - Financial news and definitions
-Part 1: News section
+Part 1: Financial news and market overview
 """
 
 import os
@@ -473,223 +473,223 @@ def show_definitions():
         st.warning(f"No results found for '{search_general}'")
 
     st.info("""
-💡 **Need more information?**
-These definitions are simplifications for educational purposes.
-For personalized advice on your investments, consult a professional financial advisor.
-""")
+            💡 **Need more information?**
+            These definitions are simplifications for educational purposes.
+            For personalized advice on your investments, consult a professional financial advisor.
+            """)
 
 
 def _get_financial_definitions():
     """Returns all financial definitions"""
     return {
         "💰 Cash": """
-**Definition**: Money immediately available in your portfolio.
+        **Definition**: Money immediately available in your portfolio.
 
-Cash represents money you can use instantly to:
-- Make new investments
-- Pay credits
-- Handle unexpected expenses
+        Cash represents money you can use instantly to:
+        - Make new investments
+        - Pay credits
+        - Handle unexpected expenses
 
-💡 **Tip**: Always keep a cash reserve (3 to 6 months of expenses) for emergencies.
-""",
-        "📈 Stocks": """
-**Stocks** 📊
-- Ownership shares in a company
-- High potential return
-- Medium to high risk
-- Example: Apple, Microsoft, Total
-""",
-        "📦 ETF (Exchange Traded Fund)": """
-**ETF** (Exchange Traded Fund) 📦
-- Diversified basket of stocks
-- Tracks a stock index
-- Low fees
-- Example: S&P 500, CAC 40, MSCI World
-""",
-        "💼 Bonds": """
-**Bonds** 💼
-- Loan to a company or state
-- Fixed and predictable return
-- Low to medium risk
-- Example: French OATs, Corporate Bonds
-""",
-        "₿ Cryptocurrencies": """
-**Cryptocurrencies** ₿
-- Decentralized digital currency
-- Very high volatility
-- High gain potential
-- Example: Bitcoin, Ethereum
-""",
-        "🏦 Investment Funds": """
-**Investment Funds** 🏦
-- Portfolio managed by professionals
-- Automatic diversification
-- Management fees
-- Example: Mutual funds
-""",
-        "💎 Alternative Assets": """
-**Other Assets** 💎
-- Gold, commodities
-- Art, collectibles
-- Alternative investments
-- Private Equity
-""",
-        "🏢 SCPI (Société Civile de Placement Immobilier)": """
-**SCPI** (Société Civile de Placement Immobilier) 🏢
-- Collective real estate investment
-- Management delegated to professionals
-- Regular rental income (4-6% per year)
-- Accessible from a few hundred euros
-- Example: SCPI Corum, Primonial
-""",
-        "🌆 REIT (Real Estate Investment Trust)": """
-**REIT** (Real Estate Investment Trust) 🌆
-- American equivalent of SCPI
-- Listed on stock exchange, highly liquid
-- Invests in commercial real estate
-- Example: Simon Property Group
-""",
-        "🏡 Direct Real Estate": """
-**Direct Real Estate** 🏡
-- Physical property held directly
-- Rental management is your responsibility
-- Significant capital appreciation potential
-- Requires high initial capital
-""",
-        "📊 Rental Yield": """
-**Rental Yield** 📊
-- Annual income generated / Property value × 100
-- Indicates investment profitability
-- Typically between 2% and 8% depending on property type
-""",
-        "📘 PEA (Plan d'Épargne en Actions)": """
-**PEA** (Plan d'Épargne en Actions) 📘
-- French tax-advantaged investment account
-- Invests in European stocks and equity funds
-- Tax-free capital gains and dividends after 5 years
-- Maximum deposit: €150,000
-- Example: Ideal for long-term stock investments with tax benefits
-""",
-        "🏢 PEA-PME": """
-**PEA-PME** 🏢
-- Dedicated to small and mid-cap companies
-- Same tax benefits as standard PEA
-- Maximum deposit: €75,000 (in addition to standard PEA)
-- Supports European SMEs and mid-cap growth
-- Can be combined with a standard PEA
-""",
-        "📋 Assurance-vie (Life Insurance)": """
-**Assurance-vie** (Life Insurance) 📋
-- Most popular French savings product
-- Flexible investment: bonds, stocks, euros fund
-- Tax benefits after 8 years
-- No deposit limit
-- Estate planning advantages (succession)
-- Example: Multisupport life insurance contracts
-""",
-        "💼 Compte-titres ordinaire (CTO)": """
-**Compte-titres ordinaire** (CTO) 💼
-- Standard brokerage account
-- No deposit limits
-- Access to all financial markets worldwide
-- No tax advantages (taxed annually)
-- Most flexible investment account
-- Example: For international diversification beyond PEA limits
-""",
-        "💚 Livret A": """
-**Livret A** 💚
-- Risk-free savings account guaranteed by French state
-- Tax-free interest (currently around 3%)
-- Maximum deposit: €22,950
-- Instant liquidity (withdraw anytime)
-- Ideal for emergency fund
-""",
-        "🏡 PEL (Plan d'Épargne Logement)": """
-**PEL** (Plan d'Épargne Logement) 🏡
-- Savings plan for real estate projects
-- Fixed interest rate for 4 to 10 years
-- Access to subsidized mortgage rates
-- Tax benefits depending on opening date
-- Example: Save for a future home purchase
-""",
-        "💰 Remaining Balance": """
-**Remaining Balance** 💰
-- Total amount still owed on the credit
-- Decreases with each repayment
-- Principal + Remaining interest
-""",
-        "📈 Interest Rate": """
-**Interest Rate** 📈
-- Annual cost of credit expressed in %
-- Can be fixed or variable
-- The lower the rate, the less expensive the credit
-- Example: 1.5% for a mortgage, 3-5% for consumer credit
-""",
-        "💸 Monthly Payment": """
-**Monthly Payment** 💸
-- Amount to repay each month
-- Includes a portion of principal and a portion of interest
-- Generally remains constant over the credit term
-""",
-        "📉 Amortization": """
-**Amortization** 📉
-- Progressive repayment of borrowed principal
-- At the start: more interest, less principal
-- At the end: more principal, less interest
-""",
-        "🏆 Net Worth": """
-**Net Worth** 🏆
-- Total wealth = (Cash + Investments) - Credits
-- Represents your real wealth
-- Key indicator of financial health
-""",
-        "📈 Performance": """
-**Performance** 📈
-- Percentage variation in investment value
-- (Current value - Initial value) / Initial value × 100
-- Example: +15% = 15% gain compared to purchase
-""",
-        "💾 Diversification": """
-**Diversification** 💾
-- Distribution of investments across different assets
-- Reduces overall portfolio risk
-- "Don't put all your eggs in one basket"
-""",
-        "📅 Annualized Return": """
-**Annualized Return** 📅
-- Average performance per year over several years
-- Allows comparison of different investments
-- Smooths out short-term variations
-""",
-        "🎲 Monte Carlo Simulation": """
-**Monte Carlo Simulation** 🎲
+        💡 **Tip**: Always keep a cash reserve (3 to 6 months of expenses) for emergencies.
+        """,
+                "📈 Stocks": """
+        **Stocks** 📊
+        - Ownership shares in a company
+        - High potential return
+        - Medium to high risk
+        - Example: Apple, Microsoft, Total
+        """,
+                "📦 ETF (Exchange Traded Fund)": """
+        **ETF** (Exchange Traded Fund) 📦
+        - Diversified basket of stocks
+        - Tracks a stock index
+        - Low fees
+        - Example: S&P 500, CAC 40, MSCI World
+        """,
+                "💼 Bonds": """
+        **Bonds** 💼
+        - Loan to a company or state
+        - Fixed and predictable return
+        - Low to medium risk
+        - Example: French OATs, Corporate Bonds
+        """,
+                "₿ Cryptocurrencies": """
+        **Cryptocurrencies** ₿
+        - Decentralized digital currency
+        - Very high volatility
+        - High gain potential
+        - Example: Bitcoin, Ethereum
+        """,
+                "🏦 Investment Funds": """
+        **Investment Funds** 🏦
+        - Portfolio managed by professionals
+        - Automatic diversification
+        - Management fees
+        - Example: Mutual funds
+        """,
+                "💎 Alternative Assets": """
+        **Other Assets** 💎
+        - Gold, commodities
+        - Art, collectibles
+        - Alternative investments
+        - Private Equity
+        """,
+                "🏢 SCPI (Société Civile de Placement Immobilier)": """
+        **SCPI** (Société Civile de Placement Immobilier) 🏢
+        - Collective real estate investment
+        - Management delegated to professionals
+        - Regular rental income (4-6% per year)
+        - Accessible from a few hundred euros
+        - Example: SCPI Corum, Primonial
+        """,
+                "🌆 REIT (Real Estate Investment Trust)": """
+        **REIT** (Real Estate Investment Trust) 🌆
+        - American equivalent of SCPI
+        - Listed on stock exchange, highly liquid
+        - Invests in commercial real estate
+        - Example: Simon Property Group
+        """,
+                "🏡 Direct Real Estate": """
+        **Direct Real Estate** 🏡
+        - Physical property held directly
+        - Rental management is your responsibility
+        - Significant capital appreciation potential
+        - Requires high initial capital
+        """,
+                "📊 Rental Yield": """
+        **Rental Yield** 📊
+        - Annual income generated / Property value × 100
+        - Indicates investment profitability
+        - Typically between 2% and 8% depending on property type
+        """,
+                "📘 PEA (Plan d'Épargne en Actions)": """
+        **PEA** (Plan d'Épargne en Actions) 📘
+        - French tax-advantaged investment account
+        - Invests in European stocks and equity funds
+        - Tax-free capital gains and dividends after 5 years
+        - Maximum deposit: €150,000
+        - Example: Ideal for long-term stock investments with tax benefits
+        """,
+                "🏢 PEA-PME": """
+        **PEA-PME** 🏢
+        - Dedicated to small and mid-cap companies
+        - Same tax benefits as standard PEA
+        - Maximum deposit: €75,000 (in addition to standard PEA)
+        - Supports European SMEs and mid-cap growth
+        - Can be combined with a standard PEA
+        """,
+                "📋 Assurance-vie (Life Insurance)": """
+        **Assurance-vie** (Life Insurance) 📋
+        - Most popular French savings product
+        - Flexible investment: bonds, stocks, euros fund
+        - Tax benefits after 8 years
+        - No deposit limit
+        - Estate planning advantages (succession)
+        - Example: Multisupport life insurance contracts
+        """,
+                "💼 Compte-titres ordinaire (CTO)": """
+        **Compte-titres ordinaire** (CTO) 💼
+        - Standard brokerage account
+        - No deposit limits
+        - Access to all financial markets worldwide
+        - No tax advantages (taxed annually)
+        - Most flexible investment account
+        - Example: For international diversification beyond PEA limits
+        """,
+                "💚 Livret A": """
+        **Livret A** 💚
+        - Risk-free savings account guaranteed by French state
+        - Tax-free interest (currently around 3%)
+        - Maximum deposit: €22,950
+        - Instant liquidity (withdraw anytime)
+        - Ideal for emergency fund
+        """,
+                "🏡 PEL (Plan d'Épargne Logement)": """
+        **PEL** (Plan d'Épargne Logement) 🏡
+        - Savings plan for real estate projects
+        - Fixed interest rate for 4 to 10 years
+        - Access to subsidized mortgage rates
+        - Tax benefits depending on opening date
+        - Example: Save for a future home purchase
+        """,
+                "💰 Remaining Balance": """
+        **Remaining Balance** 💰
+        - Total amount still owed on the credit
+        - Decreases with each repayment
+        - Principal + Remaining interest
+        """,
+                "📈 Interest Rate": """
+        **Interest Rate** 📈
+        - Annual cost of credit expressed in %
+        - Can be fixed or variable
+        - The lower the rate, the less expensive the credit
+        - Example: 1.5% for a mortgage, 3-5% for consumer credit
+        """,
+                "💸 Monthly Payment": """
+        **Monthly Payment** 💸
+        - Amount to repay each month
+        - Includes a portion of principal and a portion of interest
+        - Generally remains constant over the credit term
+        """,
+                "📉 Amortization": """
+        **Amortization** 📉
+        - Progressive repayment of borrowed principal
+        - At the start: more interest, less principal
+        - At the end: more principal, less interest
+        """,
+                "🏆 Net Worth": """
+        **Net Worth** 🏆
+        - Total wealth = (Cash + Investments) - Credits
+        - Represents your real wealth
+        - Key indicator of financial health
+        """,
+                "📈 Performance": """
+        **Performance** 📈
+        - Percentage variation in investment value
+        - (Current value - Initial value) / Initial value × 100
+        - Example: +15% = 15% gain compared to purchase
+        """,
+                "💾 Diversification": """
+        **Diversification** 💾
+        - Distribution of investments across different assets
+        - Reduces overall portfolio risk
+        - "Don't put all your eggs in one basket"
+        """,
+                "📅 Annualized Return": """
+        **Annualized Return** 📅
+        - Average performance per year over several years
+        - Allows comparison of different investments
+        - Smooths out short-term variations
+        """,
+                "🎲 Monte Carlo Simulation": """
+        **Monte Carlo Simulation** 🎲
 
-**Definition**: Statistical method that uses random sampling to predict possible future outcomes of a portfolio.
+        **Definition**: Statistical method that uses random sampling to predict possible future outcomes of a portfolio.
 
-**How it works:**
-1. **Historical Data**: Uses average returns and volatility (standard deviation) of each asset
-2. **Random Generation**: Creates thousands of possible scenarios by randomly drawing returns following a normal distribution
-3. **Portfolio Evolution**: For each scenario, calculates how the portfolio evolves day by day, year by year
-4. **Statistical Analysis**: Aggregates all scenarios to identify probabilities and ranges of outcomes
+        **How it works:**
+        1. **Historical Data**: Uses average returns and volatility (standard deviation) of each asset
+        2. **Random Generation**: Creates thousands of possible scenarios by randomly drawing returns following a normal distribution
+        3. **Portfolio Evolution**: For each scenario, calculates how the portfolio evolves day by day, year by year
+        4. **Statistical Analysis**: Aggregates all scenarios to identify probabilities and ranges of outcomes
 
-**Calculation:**
-- For each asset: `Daily return = average return + (volatility × random factor)`
-- Random factor follows a normal distribution (Gaussian bell curve)
-- Each simulation represents a possible trajectory among thousands
-- Final result: probability distribution of potential portfolio values
+        **Calculation:**
+        - For each asset: `Daily return = average return + (volatility × random factor)`
+        - Random factor follows a normal distribution (Gaussian bell curve)
+        - Each simulation represents a possible trajectory among thousands
+        - Final result: probability distribution of potential portfolio values
 
-**Example**: With 1,000 simulations over 10 years:
-- **Best 10%**: Most optimistic scenarios
-- **Median (50%)**: Middle scenario, half above/half below
-- **Worst 10%**: Most pessimistic scenarios
+        **Example**: With 1,000 simulations over 10 years:
+        - **Best 10%**: Most optimistic scenarios
+        - **Median (50%)**: Middle scenario, half above/half below
+        - **Worst 10%**: Most pessimistic scenarios
 
-**Why use it?**
-- Visualizes the range of possibilities, not just a single prediction
-- Accounts for asset volatility and market uncertainties
-- Helps prepare for different scenarios (bull market, bear market, crisis)
-- More realistic than a simple linear projection
+        **Why use it?**
+        - Visualizes the range of possibilities, not just a single prediction
+        - Accounts for asset volatility and market uncertainties
+        - Helps prepare for different scenarios (bull market, bear market, crisis)
+        - More realistic than a simple linear projection
 
-💡 **Important**: Past performance does not guarantee future results. Black swan events (COVID, 2008 crisis) can exceed simulation parameters.
-"""
-    }
+        💡 **Important**: Past performance does not guarantee future results. Black swan events (COVID, 2008 crisis) can exceed simulation parameters.
+        """
+            }
 

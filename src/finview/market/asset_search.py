@@ -149,10 +149,10 @@ def get_ticker_suggestions() -> Dict[str, str]:
         dict: Catégorie -> liste de tickers exemples
     """
     return {
-        'Actions US': ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA'],
-        'Actions FR': ['MC.PA', 'OR.PA', 'SAN.PA', 'AIR.PA'],
+        'US Stocks': ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA'],
+        'French Stocks': ['MC.PA', 'OR.PA', 'SAN.PA', 'AIR.PA'],
         'Indices': ['^GSPC', '^DJI', '^IXIC', '^FCHI'],
         'Cryptos': ['BTC-USD', 'ETH-USD', 'BNB-USD'],
-        'ETF': ['SPY', 'QQQ', 'VOO', 'VTI'],
-        'Matières premières': ['GC=F', 'SI=F', 'CL=F']
+        'ETFs': ['SPY', 'QQQ', 'VOO', 'VTI'],
+        'Raw Materials': ['GC=F', 'SI=F', 'CL=F']
     }

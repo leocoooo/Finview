@@ -53,7 +53,7 @@ def display_ticker_suggestions():
     """
     Affiche des suggestions de tickers valides
     """
-    with st.expander("💡 Exemples de tickers valides"):
+    with st.expander("💡 Examples of Tickers"):
         suggestions = get_ticker_suggestions()
         
         cols = st.columns(2)
@@ -80,7 +80,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
     Returns:
         dict: Informations de l'actif à ajouter au portfolio, ou None
     """
-    st.subheader("🔍 Rechercher un actif")
+    st.subheader("🔍 Search an asset")
     
     # Initialiser les variables de session
     if 'searched_ticker' not in st.session_state:
@@ -95,16 +95,16 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
     
     with col1:
         ticker_input = st.text_input(
-            "Entrez le ticker Yahoo Finance",
+            "Enter Yahoo Finance ticker",
             placeholder="Ex: AAPL, GOOGL, ^GSPC, BTC-USD",
-            help="Tapez le symbole de l'actif sur Yahoo Finance",
+            help="Type the asset symbol on Yahoo Finance",
             key="ticker_search_input"
         )
     
     with col2:
         st.write("")  # Espaceur
         st.write("")  # Espaceur
-        search_button = st.button("🔍 Rechercher", width='stretch')
+        search_button = st.button("🔍 Search", width='stretch')
     
     # Afficher les suggestions
     display_ticker_suggestions()
@@ -112,13 +112,13 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
     # Déclencher la recherche
     if search_button or (ticker_input and ticker_input != st.session_state.last_search):
         if ticker_input:
-            with st.spinner(f"Recherche de {ticker_input}..."):
+            with st.spinner(f"Searching for {ticker_input}..."):
                 asset = search_asset(ticker_input)
                 
                 if asset is None:
                     st.error(
-                        f"❌ Aucune donnée trouvée pour le ticker '{ticker_input.upper()}'. "
-                        "Veuillez vérifier l'orthographe ou essayer un autre ticker."
+                        f"❌ No data found for ticker '{ticker_input.upper()}'. "
+                        "Please check the spelling or try another ticker."
                     )
                     st.session_state.searched_ticker = None
                     st.session_state.searched_asset_info = None
@@ -127,7 +127,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
                     info = get_asset_info(asset)
                     
                     if not info:
-                        st.error("❌ Impossible de récupérer les informations de l'actif")
+                        st.error("❌ Unable to retrieve asset information")
                         st.session_state.searched_ticker = None
                         st.session_state.searched_asset_info = None
                     else:
@@ -143,7 +143,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
                         
                         if hist_data is not None and not hist_data.empty:
                             fig = create_price_chart(hist_data, info['name'], info['ticker'])
-                            st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
+                            st.plotly_chart(fig)
                         elif error:
                             st.warning(f"⚠️ {error}")
             
@@ -152,7 +152,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
     # Section d'ajout au portfolio si un actif a été trouvé
     if st.session_state.searched_ticker and st.session_state.searched_asset_info:
         st.markdown("---")
-        st.subheader("➕ Ajouter au portefeuille")
+        st.subheader("➕ Add to portfolio")
         
         info = st.session_state.searched_asset_info
         
@@ -160,27 +160,27 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
         
         with col1:
             inv_quantity = st.number_input(
-                "Quantité",
+                "Quantity",
                 min_value=0.0001,
                 value=1.0,
                 step=0.01,
                 key="search_quantity",
-                help="Nombre d'unités à acheter"
+                help="Number of units to buy"
             )
         
         with col2:
             inv_price = st.number_input(
-                "Prix unitaire",
+                "Unit Price",
                 value=float(info['current_price']),
                 min_value=0.01,
                 step=0.01,
                 key="search_price",
-                help="Prix par unité (pré-rempli avec le prix actuel)"
+                help="Price per unit (pre-filled with current price)"
             )
         
         # Type d'investissement
         investment_type = st.selectbox(
-            "Type d'investissement",
+            "Investment Type",
             options=["Stock", "ETF", "Crypto", "Bond", "Index", "Commodity", "Other"],
             index=0,
             key="search_inv_type"
@@ -188,12 +188,12 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
         
         # Calcul du coût total
         total_cost = inv_price * inv_quantity if inv_quantity > 0 else 0
-        
-        st.info(f"💰 **Coût total:** {total_cost:.2f} {info.get('currency', 'USD')}")
-        
-        # Bouton d'ajout
-        if st.button("✅ Ajouter au portefeuille", type="primary", width='stretch'):
-            # Créer le dictionnaire de retour
+
+        st.info(f"💰 **Total Cost:** {total_cost:.2f} {info.get('currency', 'USD')}")
+
+        # Add button
+        if st.button("✅ Add to Portfolio", type="primary", width='stretch'):
+            # Create return dictionary
             return {
                 'name': info['name'],
                 'ticker': info['ticker'],
@@ -231,6 +231,6 @@ def quick_search_widget(key_suffix: str = "") -> Optional[str]:
                 st.success(f"✅ {info['name']} - {info['current_price']:.2f} {info.get('currency', 'USD')}")
                 return info['ticker']
         else:
-            st.error("❌ Ticker introuvable")
+            st.error("❌ Ticker not found")
     
     return None

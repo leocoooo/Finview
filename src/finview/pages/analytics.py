@@ -6,12 +6,12 @@ import streamlit as st
 
 from src.finview.ui.formatting import format_currency
 from src.finview.charts import (
-    display_financial_investments,
-    display_performance_chart,
-    display_world_map,
     render_portfolio_comparison,
     create_portfolio_pie_chart,
     create_performance_chart_filtered,
+    create_performance_chart,
+    create_financial_investments_chart,
+    create_world_investment_map,
     create_kpi_metrics,
     get_cac40_data,
     get_dji_data,
@@ -101,11 +101,11 @@ def _display_dashboard_charts(portfolio):
     col1, col2 = st.columns(2)
     with col1:
         fig_pie = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig_pie, width='stretch', config={"displayModeBar": False, "height": 390})
+        st.plotly_chart(fig_pie)
 
     with col2:
         fig_perf = create_performance_chart_filtered(portfolio)
-        st.plotly_chart(fig_perf, width='stretch', config={"displayModeBar": False, "height": 390})
+        st.plotly_chart(fig_perf)
 
 
 def show_assets_analytics(portfolio):
@@ -114,15 +114,24 @@ def show_assets_analytics(portfolio):
         st.info("No investments to analyze")
         return
     
-    display_financial_investments(portfolio)
+    # Financial investments chart
+    fig_financial = create_financial_investments_chart(portfolio)
+    st.plotly_chart(fig_financial)
+    
     st.markdown("---")
-    display_performance_chart(portfolio)
+    
+    # Performance chart
+    fig_perf = create_performance_chart(portfolio)
+    st.plotly_chart(fig_perf)
 
 
 def show_world_map(portfolio):
     """Affiche la carte des investissements géolocalisés"""
     if len(portfolio.financial_investments) + len(portfolio.real_estate_investments) > 0:
-        display_world_map(portfolio)
+        # World map chart
+        fig_map = create_world_investment_map(portfolio)
+        fig_map.update_layout(height=700)
+        st.plotly_chart(fig_map)
 
         # Legend for map
         st.markdown("""

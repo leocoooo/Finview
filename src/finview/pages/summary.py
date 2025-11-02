@@ -166,7 +166,7 @@ def _show_transaction_history(portfolio):
 
     if len(monthly_transactions) > 0:
         fig = create_monthly_transactions_chart(df_history)
-        st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
+        st.plotly_chart(fig)
 
     # Transaction type mapping
     mapping_type_dictionnary = {
