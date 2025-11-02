@@ -29,7 +29,9 @@ Ce projet s'inscrit dans le cadre du cours M2 MOSEF – Base de Données & Dashb
 - **Import de données financières** : Récupération automatique des cours via Yahoo Finance
 - **Export/Import de données** : Sauvegarde et chargement de portfolios au format JSON
 - **Génération de PDF** : Création de rapports patrimoniaux complets
-- **Actualités financières** : Intégration de flux d'actualités
+- **Actualités financières en temps réel** : Flux d'actualités business via NewsAPI avec mise en cache
+- **Calendrier des résultats** : Suivi des publications financières des entreprises françaises et internationales
+- **Indices boursiers** : Affichage en temps réel des principaux indices mondiaux
 - **Glossaire financier** : Définitions et explications des termes financiers
 - **Portfolios de démonstration** : Génération de données fictives pour tester l'application
 
@@ -44,6 +46,8 @@ Ce projet s'inscrit dans le cadre du cours M2 MOSEF – Base de Données & Dashb
 - **[Pandas](https://pandas.pydata.org/)** (v2.3.2+) - Manipulation et analyse de données
 - **[FPDF](https://pyfpdf.readthedocs.io/)** (v1.7.2) - Génération de rapports PDF
 - **[Kaleido](https://github.com/plotly/Kaleido)** (v1.1+) - Export d'images statiques des graphiques Plotly
+- **[NewsAPI](https://newsapi.org/)** - Récupération d'actualités financières en temps réel
+- **[Python-dotenv](https://github.com/theskumar/python-dotenv)** - Gestion des variables d'environnement
 - **[Poetry](https://python-poetry.org/)** - Gestion des dépendances
 
 ---
@@ -84,6 +88,11 @@ Finview/
 │   │   ├── asset_display.py                # Visualisation actifs
 │   │   ├── asset_ui.py                     # Interface Streamlit
 │   │   └── README.md                       # Documentation du module
+│   ├── news/                               # Actualités financières
+│   │   ├── __init__.py
+│   │   ├── news_fetcher.py                 # Récupération des news via NewsAPI
+│   │   ├── news_cache.py                   # Système de cache pour les actualités
+│   │   └── test_api.py                     # Tests de l'API NewsAPI
 │   ├── predictions/                        # Prédictions et simulations
 │   │   ├── __init__.py
 │   │   ├── config.py                       # Configuration
@@ -149,6 +158,16 @@ Finview/
   - Visualisation de prix avec graphiques interactifs
   - Interface Streamlit complète pour recherche et ajout
   - Voir [market/README.md](src/finview/market/README.md) pour plus de détails
+
+- **news/** : Actualités financières en temps réel
+  - Intégration avec l'API NewsAPI pour récupérer les actualités business
+  - Affichage des top headlines par pays et catégorie
+  - Système de cache intelligent (30 minutes) pour optimiser les appels API
+  - Formatage et affichage des articles avec images et métadonnées
+  - Calendrier des résultats financiers (entreprises françaises et internationales)
+  - Affichage en temps réel des indices boursiers mondiaux
+  - Interface utilisateur intuitive avec onglets et recherche
+  - Voir [news/README.md](src/finview/news/README.md) pour plus de détails
 
 - **predictions/** : Modèles de prédiction et simulations
   - Simulations Monte Carlo pour évolution du patrimoine
@@ -312,6 +331,102 @@ asset_search_tab()
 
 ---
 
+## Actualités financières en temps réel
+
+Le module `news` permet de récupérer des actualités financières en temps réel via l'API NewsAPI :
+
+### Configuration
+
+1. **Obtenir une clé API gratuite** sur [NewsAPI.org](https://newsapi.org/)
+   - Plan gratuit : 100 requêtes/jour
+   - Accès aux actualités des dernières 24h
+
+2. **Configurer la clé API** dans un fichier `.env` à la racine du projet :
+   ```bash
+   NEWS_API_KEY=votre_cle_api_ici
+   ```
+
+### Utilisation programmatique
+
+```python
+from src.finview.news import (
+    fetch_financial_news,
+    get_news_articles,
+    get_cached_business_news,
+    format_article
+)
+
+# Récupérer les top headlines business (US)
+news_data = get_news_articles(
+    api_key="YOUR_API_KEY",
+    category="business",
+    country="us",
+    page_size=10
+)
+
+# Rechercher des actualités spécifiques
+financial_news = fetch_financial_news(
+    api_key="YOUR_API_KEY",
+    query="stock market OR finance",
+    language="en",
+    page_size=10
+)
+
+# Utiliser le cache (recommandé dans Streamlit)
+cached_news = get_cached_business_news(
+    api_key="YOUR_API_KEY",
+    country="us",
+    page_size=10
+)
+
+# Formater un article pour l'affichage
+if news_data and news_data['articles']:
+    article = format_article(news_data['articles'][0])
+    print(f"{article['title']} - {article['source']}")
+```
+
+### Fonctionnalités
+
+- **Top Headlines** : Actualités principales par catégorie (business, technology, etc.)
+- **Recherche personnalisée** : Recherche par mots-clés avec filtres de langue et tri
+- **Cache intelligent** : Mise en cache des résultats pendant 30 minutes pour optimiser les appels API
+- **Calendrier des résultats** : Dates de publication des résultats financiers pour 100+ entreprises
+- **Indices boursiers** : Affichage en temps réel des principaux indices mondiaux via yfinance
+
+### Interface Streamlit
+
+Dans l'application, les actualités sont accessibles via la page **Content** qui propose :
+
+1. **Onglet "Latest News"** :
+   - Top 10 des actualités business
+   - Affichage avec images, sources et dates
+   - Liens vers les articles complets
+   - Tableau de bord des indices mondiaux (S&P 500, CAC 40, Bitcoin, etc.)
+
+2. **Onglet "Upcoming Results"** :
+   - Calendrier des résultats financiers (earnings calendar)
+   - Entreprises françaises (CAC 40, SBF 120)
+   - Entreprises internationales (US, Europe, Asie)
+   - Fonction de recherche pour filtrer les entreprises
+
+### Architecture technique
+
+Le module utilise :
+- **subprocess + curl** : Appels API via curl pour respecter les contraintes académiques
+- **Streamlit @st.cache_data** : Cache de 30 minutes pour réduire les appels API
+- **Gestion d'erreurs robuste** : Timeout, validation JSON, messages d'erreur explicites
+- **Type hints complets** : Documentation et validation des paramètres
+
+### Limites de l'API gratuite
+
+- 100 requêtes par jour maximum
+- Actualités limitées aux dernières 24h
+- Certaines sources premium non accessibles
+
+💡 **Astuce** : Le système de cache permet de limiter les appels API. Une fois les news chargées, elles restent en cache pendant 30 minutes.
+
+---
+
 ## Tests et validation
 
 Le projet inclut plusieurs portfolios de démonstration pour tester les fonctionnalités :
@@ -384,10 +499,21 @@ Cette organisation permet de maintenir le code lisible, modulaire et facile à m
     poetry install
     ```
 
-4. **Activer l'environnement virtuel** (optionnel)
+4. **Configurer les variables d'environnement** (optionnel pour les actualités)
+    
+    Créer un fichier `.env` à la racine du projet :
+    ```bash
+    NEWS_API_KEY=votre_cle_api_newsapi
+    ```
+    
+    Pour obtenir une clé gratuite, rendez-vous sur [NewsAPI.org](https://newsapi.org/) (100 requêtes/jour)
+
+5. **Activer l'environnement virtuel** (optionnel)
     ```bash
     poetry shell
     ```
+
+> **Note** : Les actualités financières nécessitent une clé API NewsAPI. Sans cette clé, l'application fonctionnera normalement mais la section News affichera un message d'erreur.
 
 ---
 
@@ -416,6 +542,7 @@ L'application est organisée en plusieurs sections accessibles via le menu :
 - **💼 Management** : Gestion détaillée des investissements, crédits et liquidités
 - **📈 Analytics** : Tableaux de bord interactifs et analyses avancées
 - **🔮 Predictions** : Simulations et prédictions d'évolution patrimoniale
+- **📰 Content** : Actualités financières en temps réel et glossaire de termes financiers
 
 ### Barre latérale (Sidebar)
 
@@ -440,6 +567,7 @@ Développé dans le cadre du cours Base de Données & Dashboard
 ### Documentation des modules
 - [operations/README.md](src/finview/operations/README.md) - Guide complet du module d'opérations
 - [market/README.md](src/finview/market/README.md) - Guide du module de recherche d'actifs
+- [news/README.md](src/finview/news/README.md) - Guide du module d'actualités financières
 
 ### Technologies
 - [Streamlit](https://docs.streamlit.io) - Documentation officielle
