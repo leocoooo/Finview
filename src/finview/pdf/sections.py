@@ -2,7 +2,24 @@
 
 import os
 import plotly.express as px
-from .config import *
+from .config import (
+    # Logo dimensions
+    LOGO_WIDTH_COVER, LOGO_Y_COVER, FONT_SIZE_COVER_TITLE, FONT_SIZE_AUTHORS, FONT_SIZE_SECTION_TITLE,
+    FONT_SIZE_SECTION_SUBTITLE, FONT_SIZE_NORMAL, FONT_SIZE_SMALL,
+    FONT_SIZE_TABLE_SMALL, FONT_SIZE_TABLE_CONTENT, FONT_SIZE_NOTE,
+    # Colors
+    TEXT_COLOR, CHART_COLORS,
+    # Page layout
+    LINE_MARGIN, TITLE_LINE_WIDTH, TABLE_TRANSACTION_WIDTHS, TABLE_DETAILS_WIDTHS, TABLE_SCENARIOS_WIDTHS,
+    # Chart dimensions
+    CHART_PIE_WIDTH, CHART_PIE_HEIGHT, CHART_PERFORMANCE_WIDTH,
+    CHART_PERFORMANCE_HEIGHT, CHART_PREDICTION_WIDTH, CHART_PREDICTION_HEIGHT,
+    # Image dimensions in PDF
+    IMAGE_DASHBOARD_PIE, IMAGE_DASHBOARD_PERF, IMAGE_ALLOCATION_PIE,
+    IMAGE_PREDICTION,
+    # Authors
+    AUTHORS
+)
 from .components import (
     add_page_background, add_header_with_logo, add_section_title,
     add_separator_line, create_table_header, cleanup_temp_files,
@@ -64,7 +81,7 @@ def add_dashboard_page(pdf, portfolio, logo_path):
     
     pdf.add_page()
     add_page_background(pdf)
-    full_logo_path = add_header_with_logo(pdf, logo_path)
+    add_header_with_logo(pdf, logo_path)
     add_section_title(pdf, "Dashboard Overview")
     add_separator_line(pdf)
     
@@ -440,10 +457,9 @@ def add_advice_page(pdf, portfolio, logo_path):
     total_value = financial_total + real_estate_total
     
     if total_value > 0:
-        financial_pct = (financial_total / total_value) * 100
         real_estate_pct = (real_estate_total / total_value) * 100
     else:
-        financial_pct = real_estate_pct = 0
+        real_estate_pct = 0
     
     # Advice 1: Diversification
     pdf.set_font("Arial", 'B', FONT_SIZE_SECTION_SUBTITLE)

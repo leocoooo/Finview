@@ -56,7 +56,6 @@ def _show_latest_news():
         return
     
     articles = news_data.get('articles', [])
-    total_results = news_data.get('totalResults', 0)
     
     if not articles:
         st.info("📰 No news available at the moment.")
