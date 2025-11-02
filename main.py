@@ -1,47 +1,31 @@
 import streamlit as st
-from portfolio_package.pdf import generate_portfolio_pdf
 
-from portfolio_package.models import Portfolio
-
-from portfolio_package.wealth_management_functions import (
-    _add_investment_with_date,
-    _update_investment_with_date,
-    _sell_investment_with_date,
-    _add_credit_with_date,
-    _pay_credit_with_date,
+# Imports depuis le package principal
+from src.finview import (
+    Portfolio,
+    create_demo_portfolio_4,
+    generate_portfolio_pdf
 )
 
-from portfolio_package.create_demo_portfolio import create_demo_portfolio_4
-
-from portfolio_package.save_load_ptf_functions import save_portfolio, load_portfolio
-
-from portfolio_package.interface_functions import (
-    create_horizontal_menu,
-    create_sidebar_actions,
-    show_summary,
-    show_wealth_management,
-    show_dashboard_tabs,
-    show_predictions,
-    show_news,
-    show_definitions,
-)
+from src.finview.ui.portfolio_persistence import save_portfolio, load_portfolio
+from src.finview.ui.components import create_horizontal_menu, create_sidebar_actions
+from src.finview.pages.summary import show_summary
+from src.finview.pages.management import show_wealth_management
+from src.finview.pages.analytics import show_dashboard_tabs
+from src.finview.pages.predictions import show_predictions
+from src.finview.pages.content import show_news, show_definitions
 
 # Page configuration
+
 st.set_page_config(
     page_title="Portfolio Manager",
     page_icon="logo/FullLogo.png",
     layout="wide"
 )
 
-# Adding methods to the Portfolio class
-Portfolio._add_investment_with_date = _add_investment_with_date
-Portfolio._update_investment_with_date = _update_investment_with_date
-Portfolio._sell_investment_with_date = _sell_investment_with_date
-Portfolio._add_credit_with_date = _add_credit_with_date
-Portfolio._pay_credit_with_date = _pay_credit_with_date
-
 
 # State initialization with automatic save/load
+
 if 'portfolio' not in st.session_state:
     # Try to load an existing portfolio
     loaded_portfolio = load_portfolio()
@@ -53,7 +37,6 @@ if 'portfolio' not in st.session_state:
 # Main interface
 def main():
     """Main interface with horizontal navigation at the top"""
-
     # Create the horizontal menu and get the selected page
     action = create_horizontal_menu()
 
@@ -72,14 +55,19 @@ def main():
     # Route to the correct page based on selection
     if action == "📊 Summary":
         show_summary(portfolio)
+
     elif action == "💼 Wealth Management":
         show_wealth_management(portfolio)
+
     elif action == "📈 Dashboard":
         show_dashboard_tabs(portfolio)
+
     elif action == "🔮 Predictions":
         show_predictions(portfolio)
-    elif action == "📰 Actuality":
+
+    elif action == "📰 News":
         show_news()
+
     elif action == "📚 Definitions":
         show_definitions()
 
