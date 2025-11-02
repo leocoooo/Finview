@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  finview:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src  # Hot reload du code source
+    environment:
+      - NEWS_API_KEY=${NEWS_API_KEY}

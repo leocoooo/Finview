@@ -88,5 +88,6 @@ DIVERSIFICATION_MEDIUM = 5
 AUTHORS = [
     "Antonin BENARD",
     "Leo COLIN",
-    "Pierre QUINTIN de KERCADIO"
+    "Pierre QUINTIN de KERCADIO",
+    "Clément FOURNIER"
 ]
