@@ -53,12 +53,12 @@ def test_api():
     print()
     
     # Test 2: Recherche avec mots-clés
-    print("📰 Test 2: Recherche 'stock market'")
+    print("📰 Test 2: Recherche 'technology'")
     print("-" * 50)
     
     result2 = fetch_financial_news(
         api_key=api_key,
-        query="stock market",
+        query="technology",
         language="en",
         page_size=3
     )
