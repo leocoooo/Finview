@@ -13,7 +13,7 @@ __pycache__/
 # ne pas enregistrer les donnees que chaque utilisateur génère sur le depot distant 
 saved_json_data 
 
-# Ne pas enregistrer les pdf générés ni les png (les graohiques du pdf généré)
+# Ne pas enregistrer les pdf générés ni les png (les graphiques du pdf généré)
 *.pdf 
 *.png
 

@@ -50,7 +50,7 @@ def create_horizontal_menu():
             if st.button(
                 button_label,
                 key=f"nav_btn_{page_name}",
-                use_container_width=True,
+                width='stretch',
                 type=button_type
             ):
                 st.session_state.current_page = page_name
@@ -117,14 +117,14 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
     # Test Data Section
     st.sidebar.subheader("🎭 Test Data")
 
-    if st.sidebar.button("Create demo portfolio", help="Creates a simulated 6-month history", use_container_width=True):
+    if st.sidebar.button("Create demo portfolio", help="Creates a simulated 6-month history", width='stretch'):
         demo_portfolio = create_demo_portfolio_func()
         st.session_state.portfolio = demo_portfolio
         save_portfolio_func(demo_portfolio)
         st.sidebar.success("🎉 Demo portfolio created!")
         st.rerun()
 
-    if st.sidebar.button("Reset portfolio", use_container_width=True):
+    if st.sidebar.button("Reset portfolio", width='stretch'):
         reset_portfolio = Portfolio(initial_cash=0)
         st.session_state.portfolio = reset_portfolio
         save_portfolio_func(reset_portfolio)
@@ -145,12 +145,12 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
         data=json_str,
         file_name=f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
         mime="application/json",
-        use_container_width=True
+        width='stretch'
     )
 
     # PDF Export if function is provided
     if generate_pdf_func:
-        if st.sidebar.button("📄 Generate and download portfolio analysis", use_container_width=True):
+        if st.sidebar.button("📄 Generate and download portfolio analysis", width='stretch'):
             pdf_filename = f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             try:
                 generate_pdf_func(portfolio, filename=pdf_filename)
@@ -168,7 +168,7 @@ def create_sidebar_actions(portfolio, save_portfolio_func, Portfolio, create_dem
                     data=pdf_data,
                     file_name=pdf_filename,
                     mime="application/pdf",
-                    use_container_width=True,
+                    width='stretch',
                     key="pdf_download"
                 )
             except Exception as e:

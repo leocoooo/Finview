@@ -36,75 +36,70 @@ def show_news():
 
 
 def _show_latest_news():
-    """Affiche les dernières actualités financières depuis l'API NewsAPI"""
-    st.subheader("🔥 Top Financial News")
+    """Display the latest financial news from NewsAPI"""
     
-    # Récupérer la clé API
+    # Get API key
     api_key = os.getenv('NEWS_API_KEY')
     
     if not api_key:
-        st.error("❌ Clé API NewsAPI non configurée. Ajoutez NEWS_API_KEY dans votre fichier .env")
-        st.info("💡 Obtenez votre clé gratuite sur https://newsapi.org/")
+        st.error("❌ NewsAPI key not configured. Add NEWS_API_KEY to your .env file")
+        st.info("💡 Get your free key at https://newsapi.org/")
         return
     
-    # Récupérer les actualités business
-    with st.spinner("📡 Récupération des actualités..."):
+    # Fetch business news
+    with st.spinner("📡 Fetching news..."):
         news_data = get_cached_business_news(api_key=api_key, country="us", page_size=10)
     
     if not news_data:
-        st.warning("⚠️ Impossible de récupérer les actualités. Veuillez réessayer plus tard.")
-        st.info("� Vérifiez votre connexion internet et votre quota API (100 requêtes/jour en gratuit)")
+        st.warning("⚠️ Unable to fetch news. Please try again later.")
+        st.info("📡 Check your internet connection and API quota (100 requests/day on free tier)")
         return
     
     articles = news_data.get('articles', [])
     total_results = news_data.get('totalResults', 0)
     
     if not articles:
-        st.info("� Aucune actualité disponible pour le moment.")
+        st.info("📰 No news available at the moment.")
         return
+
     
-    # Afficher les informations
-    st.caption(f"📊 {total_results} actualités disponibles • Affichage des {len(articles)} plus récentes")
-    st.caption("🔄 Données mises en cache pendant 30 minutes")
-    st.markdown("---")
-    
-    # Afficher chaque article
+    # Display each article
     for i, article_raw in enumerate(articles, 1):
         article = format_article(article_raw)
         
         with st.container():
-            # Titre avec numéro
+            # Title with number
             st.markdown(f"### {i}. {article['title']}")
             
             # Description
-            if article['description'] and article['description'] != 'Pas de description disponible':
+            if article['description'] and article['description'] != 'No description available':
                 st.markdown(article['description'])
             
-            # Métadonnées
+            # Metadata
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.markdown(f"� **Source:** {article['source']}")
+                st.markdown(f"📰 **Source:** {article['source']}")
             
             with col2:
-                if article['author'] and article['author'] != 'Auteur inconnu':
-                    st.markdown(f"✍️ **Auteur:** {article['author']}")
+                if article['author'] and article['author'] != 'Unknown author':
+                    st.markdown(f"✍️ **Author:** {article['author']}")
             
             with col3:
                 if article['published_at']:
                     date_formatted = format_published_date(article['published_at'])
-                    st.markdown(f"📅 **Date:** {date_formatted}")
+                    st.markdown(f"📅 **Published:** {date_formatted}")
             
-            # Lien vers l'article
+            # Link to article
             if article['url'] != '#':
-                st.markdown(f"🔗 [Lire l'article complet]({article['url']})")
+                st.markdown(f"🔗 [Read full article]({article['url']})")
             
-            # Image si disponible
+            # Image if available
             if article['image_url']:
                 try:
-                    st.image(article['image_url'], use_container_width=True)
+                    st.image(article['image_url'])#, width='stretch')
                 except Exception:
-                    pass  # Ignorer les erreurs d'image
+                    pass  # Ignore image errors
             
             st.markdown("---")
 
@@ -151,7 +146,7 @@ def _show_latest_news():
 
 
 def _show_earnings_calendar():
-    """Affiche le calendrier des résultats d'entreprises"""
+    """Display the earnings calendar"""
     st.subheader("📅 Upcoming Earnings Announcements")
     st.markdown("Track upcoming earnings announcements from major companies.")
 
@@ -171,7 +166,7 @@ def _show_earnings_calendar():
     if filtered_french:
         st.markdown("#### 🇫🇷 French Companies (CAC 40 / SBF 120)")
         _display_earnings_table(filtered_french, "French")
-        st.caption(f"📊 {len(filtered_french)} French publications upcoming")
+        st.caption(f"📊 {len(filtered_french)} upcoming publications")
         st.markdown("🔗 [Full calendar on Boursorama](https://www.boursorama.com/bourse/actualites/calendriers/societes-cotees)")
     elif search_company:
         st.info(f"No French companies found matching '{search_company}'")
@@ -183,13 +178,13 @@ def _show_earnings_calendar():
     if filtered_intl:
         st.markdown("#### 🌍 International Companies (US, Europe, Asia)")
         _display_earnings_table(filtered_intl, "International")
-        st.caption(f"📊 {len(filtered_intl)} international publications upcoming")
+        st.caption(f"📊 {len(filtered_intl)} upcoming publications")
     elif search_company and not filtered_french:
         st.info(f"No international companies found matching '{search_company}'")
 
 
 def _filter_earnings(earnings_dict, search_term):
-    """Filtre le calendrier des résultats selon le terme de recherche"""
+    """Filter earnings calendar by search term"""
     if not search_term:
         return earnings_dict
     
@@ -201,11 +196,11 @@ def _filter_earnings(earnings_dict, search_term):
 
 
 def _display_earnings_table(earnings_dict, label):
-    """Affiche un tableau de calendrier de résultats"""
+    """Display earnings calendar table"""
     data = [
         {
-            "Company" if label == "International" else "Entreprise": company,
-            "Publication Date" if label == "International" else "Date de publication": date
+            "Company": company,
+            "Publication Date": date
         }
         for company, date in sorted(
             earnings_dict.items(),
@@ -217,9 +212,9 @@ def _display_earnings_table(earnings_dict, label):
     # If height is None, omit the parameter to let Streamlit choose default sizing.
     df = pd.DataFrame(data)
     if height is None:
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
     else:
-        st.dataframe(df, use_container_width=True, hide_index=True, height=height)
+        st.dataframe(df, width='stretch', hide_index=True, height=height)
 
 """
 Content page - Financial news and definitions
@@ -227,8 +222,8 @@ Part 2: Earnings calendars and definitions
 """
 
 def _get_french_earnings_calendar():
-    """Retourne le calendrier des résultats pour les entreprises françaises"""
-    # Utilisation d'un dictionnaire avec tuples (date, year) pour gérer les doublons
+    """Returns earnings calendar for French companies"""
+    # Using a dictionary with tuples (date, year) to handle duplicates
     # Format: company_name: [(date_2025, year_2025), (date_2026, year_2026)]
     return {
         # 2025
@@ -317,7 +312,7 @@ def _get_french_earnings_calendar():
 
 
 def _get_international_earnings_calendar():
-    """Retourne le calendrier des résultats pour les entreprises internationales"""
+    """Returns earnings calendar for international companies"""
     return {
         # 🇺🇸 US Tech Giants 2025
         "Apple (2025)": "30/01/2025",
@@ -450,15 +445,15 @@ def show_definitions():
     st.header("📚 Financial Definitions")
     st.markdown("Welcome to the financial glossary! Browse the definitions of terms used in the application.")
 
-    # Barre de recherche pour les définitions générales
+    # Search bar for general definitions
     search_general = st.text_input("🔍 Search for a term...", key="search_general", placeholder="Ex: SCPI, ETF, Diversification...")
 
     st.markdown("---")
 
-    # Définitions organisées
+    # Organized definitions
     all_sections = _get_financial_definitions()
 
-    # Filtrer les sections selon la recherche
+    # Filter sections by search
     filtered_sections = {}
     if search_general:
         search_lower = search_general.lower()
@@ -468,7 +463,7 @@ def show_definitions():
     else:
         filtered_sections = all_sections
 
-    # Afficher les sections filtrées
+    # Display filtered sections
     if filtered_sections:
         for title, content in filtered_sections.items():
             st.subheader(title)
@@ -485,7 +480,7 @@ For personalized advice on your investments, consult a professional financial ad
 
 
 def _get_financial_definitions():
-    """Retourne toutes les définitions financières"""
+    """Returns all financial definitions"""
     return {
         "💰 Cash": """
 **Definition**: Money immediately available in your portfolio.

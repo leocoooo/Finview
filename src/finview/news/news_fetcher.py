@@ -162,11 +162,11 @@ def format_article(article: Dict) -> Dict[str, str]:
         Article formaté avec les champs nécessaires
     """
     return {
-        'title': article.get('title', 'Sans titre'),
-        'description': article.get('description', 'Pas de description disponible'),
+        'title': article.get('title', 'No title'),
+        'description': article.get('description', 'No description available'),
         'url': article.get('url', '#'),
-        'source': article.get('source', {}).get('name', 'Source inconnue'),
-        'author': article.get('author', 'Auteur inconnu'),
+        'source': article.get('source', {}).get('name', 'Unknown source'),
+        'author': article.get('author', 'Unknown author'),
         'published_at': article.get('publishedAt', ''),
         'image_url': article.get('urlToImage', ''),
         'content': article.get('content', '')
@@ -181,17 +181,17 @@ def format_published_date(date_str: str) -> str:
         date_str: Date au format ISO (2025-10-31T10:00:00Z)
         
     Returns:
-        Date formatée (31 octobre 2025)
+        Date formatée (October 31, 2025)
     """
     try:
         dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
         
-        # Noms des mois en français
-        mois = [
-            'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-            'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+        # Month names in English
+        months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
         ]
         
-        return f"{dt.day} {mois[dt.month - 1]} {dt.year}"
+        return f"{months[dt.month - 1]} {dt.day}, {dt.year}"
     except Exception:
         return date_str

@@ -89,7 +89,7 @@ def _show_portfolio_vision(portfolio):
                 "Gain/Loss": gain_loss_str,
                 "Performance": format_percentage(inv.get_gain_loss_percentage())
             })
-        st.dataframe(pd.DataFrame(fin_data), use_container_width=True)
+        st.dataframe(pd.DataFrame(fin_data), width='stretch')
     else:
         st.info("No financial investments")
 
@@ -110,7 +110,7 @@ def _show_portfolio_vision(portfolio):
                 "Annual income": format_currency(annual_income) if annual_income > 0 else "N/A",
                 "Performance": format_percentage(inv.get_gain_loss_percentage())
             })
-        st.dataframe(pd.DataFrame(re_data), use_container_width=True)
+        st.dataframe(pd.DataFrame(re_data), width='stretch')
     else:
         st.info("No real estate investments")
 
@@ -124,7 +124,7 @@ def _show_portfolio_vision(portfolio):
                 "Rate": f"{credit.interest_rate:.1f}%" if credit.interest_rate != int(credit.interest_rate) else f"{int(credit.interest_rate)}%",
                 "Monthly payment": format_currency(credit.monthly_payment)
             })
-        st.dataframe(pd.DataFrame(credit_data), use_container_width=True)
+        st.dataframe(pd.DataFrame(credit_data), width='stretch')
     else:
         st.info("No credits")
 
@@ -166,7 +166,7 @@ def _show_transaction_history(portfolio):
 
     if len(monthly_transactions) > 0:
         fig = create_monthly_transactions_chart(df_history)
-        st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
 
     # Transaction type mapping
     mapping_type_dictionnary = {
@@ -222,7 +222,7 @@ def _show_transaction_history(portfolio):
     st.subheader(f"📋 Transactions ({len(filtered_df)} results)")
     st.dataframe(
         display_df[['Date', 'Type', 'Amount', 'description']].rename(columns={'description': 'Description'}),
-        use_container_width=True,
+        width='stretch',
         height=400
     )
 

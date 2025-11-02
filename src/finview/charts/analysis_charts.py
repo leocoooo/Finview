@@ -243,4 +243,4 @@ def render_portfolio_comparison(portfolio):
         benchmark_name=selected_benchmark
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')

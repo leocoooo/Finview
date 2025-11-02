@@ -104,7 +104,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
     with col2:
         st.write("")  # Espaceur
         st.write("")  # Espaceur
-        search_button = st.button("🔍 Rechercher", use_container_width=True)
+        search_button = st.button("🔍 Rechercher", width='stretch')
     
     # Afficher les suggestions
     display_ticker_suggestions()
@@ -143,7 +143,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
                         
                         if hist_data is not None and not hist_data.empty:
                             fig = create_price_chart(hist_data, info['name'], info['ticker'])
-                            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                            st.plotly_chart(fig, width='stretch', config={'displayModeBar': False})
                         elif error:
                             st.warning(f"⚠️ {error}")
             
@@ -192,7 +192,7 @@ def asset_search_tab() -> Optional[Dict[str, Any]]:
         st.info(f"💰 **Coût total:** {total_cost:.2f} {info.get('currency', 'USD')}")
         
         # Bouton d'ajout
-        if st.button("✅ Ajouter au portefeuille", type="primary", use_container_width=True):
+        if st.button("✅ Ajouter au portefeuille", type="primary", width='stretch'):
             # Créer le dictionnaire de retour
             return {
                 'name': info['name'],

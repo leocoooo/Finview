@@ -46,7 +46,7 @@ def show_predictions(portfolio):
         """)
 
     # Bouton de lancement
-    run_prediction = st.button("🚀 Run Prediction", type="primary", use_container_width=True)
+    run_prediction = st.button("🚀 Run Prediction", type="primary", width='stretch')
 
     if run_prediction:
         progress_text = "Running Monte Carlo simulations..."
@@ -92,7 +92,7 @@ def show_predictions(portfolio):
 def _show_prediction_chart(results, stats):
     """Affiche le graphique de prédiction"""
     fig = create_prediction_chart(results)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Métriques clés sous le graphique
     st.markdown("---")
@@ -246,7 +246,7 @@ def _show_key_metrics(stats, results):
 
     st.dataframe(
         style_dataframe(df_summary),
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
 
@@ -351,7 +351,7 @@ def _show_detailed_projections(results):
 
     st.dataframe(
         df_projections,
-        use_container_width=True,
+        width='stretch',
         height=min(600, (results['years'] + 2) * 35),
         hide_index=True
     )

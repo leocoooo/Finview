@@ -101,11 +101,11 @@ def _display_dashboard_charts(portfolio):
     col1, col2 = st.columns(2)
     with col1:
         fig_pie = create_portfolio_pie_chart(portfolio)
-        st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False, "height": 390})
+        st.plotly_chart(fig_pie, width='stretch', config={"displayModeBar": False, "height": 390})
 
     with col2:
         fig_perf = create_performance_chart_filtered(portfolio)
-        st.plotly_chart(fig_perf, use_container_width=True, config={"displayModeBar": False, "height": 390})
+        st.plotly_chart(fig_perf, width='stretch', config={"displayModeBar": False, "height": 390})
 
 
 def show_assets_analytics(portfolio):
