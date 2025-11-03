@@ -57,6 +57,7 @@ def fetch_financial_news(
             ['curl', '-s', url],  # -s pour silent (pas de barre de progression)
             capture_output=True,
             text=True,
+            encoding='utf-8',  # Spécifier l'encodage UTF-8
             timeout=10  # Timeout de 10 secondes
         )
         
@@ -125,6 +126,7 @@ def get_news_articles(
             ['curl', '-s', url],
             capture_output=True,
             text=True,
+            encoding='utf-8',  # Spécifier l'encodage UTF-8
             timeout=10
         )
         
