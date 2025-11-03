@@ -1,6 +1,6 @@
 """
 Récupération d'actualités financières via l'API NewsAPI
-Utilise des appels curl pour respecter les contraintes académiques
+Utilise des appels curl via subprocess plutot que request (contrainte ?)
 """
 
 import subprocess
