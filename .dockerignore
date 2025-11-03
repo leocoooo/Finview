@@ -1,0 +1,79 @@
+# Répertoires et fichiers à ignorer lors de la construction de l'image Docker
+
+# Environnements virtuels
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+
+# Outils de développement
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Fichiers système
+Thumbs.db
+.DS_Store
+
+# Données volumineuses
+*.log
+logs/
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Fichiers Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Fichiers de configuration CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Cache npm (si utilisé)
+node_modules/
