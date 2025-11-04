@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   finview:
     # Construire l'image à partir du Dockerfile du répertoire courant

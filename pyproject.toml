@@ -1,22 +1,27 @@
-[tool.poetry]
+[project]
 name = "finview"
 version = "0.1.0"
-description = "Application complète de gestion de patrimoine financier"
-authors = ["Colin <leocolin7002@gmail.com>"]
+description = ""
+authors = [
+    {name = "Colin",email = "leocolin7002@gmail.com"}
+]
 readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas (>=2.3.2,<3.0.0)",
+    "yfinance (>=0.2.66,<0.3.0)",
+    "openpyxl (>=3.1.5,<4.0.0)",
+    "streamlit (>=1.50.0,<2.0.0)",
+    "plotly (>=6.3.0,<7.0.0)",
+    "fpdf (>=1.7.2,<2.0.0)",
+    "ruff (>=0.13.2,<0.14.0)",
+    "kaleido (>=1.1.0,<2.0.0)",
+    "python-dotenv (>=1.0.0,<2.0.0)"
+]
+
+[tool.poetry]
 packages = [{include = "finview", from = "src"}]
 
-[tool.poetry.dependencies]
-python = "^3.13"
-pandas = ">=2.3.2,<3.0.0"
-yfinance = ">=0.2.66,<0.3.0"
-openpyxl = ">=3.1.5,<4.0.0"
-streamlit = ">=1.50.0,<2.0.0"
-plotly = ">=6.3.0,<7.0.0"
-fpdf = ">=1.7.2,<2.0.0"
-ruff = ">=0.13.2,<0.14.0"
-kaleido = ">=1.1.0,<2.0.0"
-python-dotenv = ">=1.0.0,<2.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -65,11 +65,6 @@ Dockerfile
 docker-compose.yml
 .dockerignore
 
-# Documentation
-README.md
-*.md
-docs/
-
 # Fichiers de configuration CI/CD
 .github/
 .gitlab-ci.yml
