@@ -1,13 +1,52 @@
-version: '3.8'
-
 services:
   finview:
-    build: .
+    # Construire l'image à partir du Dockerfile du répertoire courant
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Nom du conteneur pour un accès facile
+    container_name: finview_app
+    
+    # Ports exposés : port_hote:port_conteneur
+    # Accès via http://localhost:8501
     ports:
       - "8501:8501"
+    
+    # Charger les variables d'environnement depuis .env
     env_file:
       - .env
+    
+    # Volumes montés pour la persistance des données
     volumes:
-      - ./src:/app/src  # Hot reload du code source
+      # Code source - pour le développement (hot reload)
+      - ./src:/app/src
+      - ./main.py:/app/main.py
+      # Dossier de stockage des portfolios JSON
+      - ./saved_json_data:/app/saved_json_data
+      # Dossier de rapports PDF générés
+      - ./reports:/app/reports
+      # Cache Streamlit local pour éviter les recalculs
+      - .streamlit:/app/.streamlit
+
+      
+    
+    # Variables d'environnement
     environment:
-      - NEWS_API_KEY=${NEWS_API_KEY}
+      # Configuration Streamlit pour le conteneur
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_CLIENT_SHOWERRORDETAILS=true
+      # Clé API NewsAPI (à modifier ou passer via .env)
+      # - NEWS_API_KEY=${NEWS_API_KEY}
+    
+    # Policy de redémarrage
+    restart: unless-stopped
+    
+    # Ressources limitées (optionnel, à adapter selon votre système)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 2G
