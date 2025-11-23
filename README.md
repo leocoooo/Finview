@@ -182,7 +182,28 @@ NEWSAPI_KEY=your_api_key_here
 
 ## Utilisation des scripts
 - `install.sh` : Prépare l’environnement et construit l’image Docker
-- `get_news.sh` : Récupère les actualités via NewsAPI et les stocke dans `saved_json_data/news.json`
+- `get_news.sh` : Récupère les actualités via NewsAPI et les stocke dans `saved_json_data/news.json`.
+  
+   Utilisation :
+   ```bash
+   bash get_news.sh [CATEGORY] [COUNTRY] [PAGE_SIZE]
+   ```
+   - `CATEGORY` (défaut : business)
+   - `COUNTRY` (défaut : us)
+   - `PAGE_SIZE` (défaut : 10)
+
+   Si aucun argument n'est fourni, les valeurs par défaut sont utilisées.
+
+      Valeurs compatibles avec NewsAPI :
+      - CATEGORY : business, entertainment, general, health, science, sports, technology
+      - COUNTRY (quelques exemples) :
+         - fr : France
+         - us : United States
+         - gb : United Kingdom
+         - de : Germany
+         - it : Italy
+         - jp : Japan
+         - br : Brazil
 - `launch.sh` : Démarre l’application (via Docker)
 
 ---

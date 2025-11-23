@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 
 # Affichage d'en-tête
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   Finview - Récupération des actualités financières       ║${NC}"
+echo -e "${BLUE}║   Finview - Récupération des actualités financières        ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -35,8 +35,8 @@ if [ -z "$NEWS_API_KEY" ]; then
 fi
 
 # Paramètres de la requête
-CATEGORY="business"
-COUNTRY="us"
+CATEGORY="${1:-business}"
+COUNTRY="${2:-us}"
 PAGE_SIZE=10
 
 # Construction de l'URL
