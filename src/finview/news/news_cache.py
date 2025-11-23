@@ -5,25 +5,16 @@ Cache pour les actualités financières
 
 import streamlit as st
 from typing import Dict, Optional
-from .news_fetcher import get_news_articles
+from .news_fetcher import get_news_articles_from_file
 
 
 @st.cache_data(ttl=1800)  # Cache de 30 minutes
-def get_cached_business_news(api_key: str, country: str = "us", page_size: int = 10) -> Optional[Dict]:
+def get_cached_business_news(file_path: str = "saved_json_data/news.json") -> Optional[Dict]:
     """
-    Récupère les actualités business avec cache
-    
+    Récupère les actualités business depuis le fichier JSON avec cache
     Args:
-        api_key: Clé API NewsAPI
-        country: Code pays (us, fr, gb)
-        page_size: Nombre d'articles
-        
+        file_path: Chemin du fichier JSON
     Returns:
         Données de l'API ou None
     """
-    return get_news_articles(
-        api_key=api_key,
-        category="business",
-        country=country,
-        page_size=page_size
-    )
+    return get_news_articles_from_file(file_path=file_path)

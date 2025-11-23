@@ -3,69 +3,28 @@ Récupération d'actualités financières via l'API NewsAPI
 Utilise des appels curl via subprocess plutot que request (contrainte ?)
 """
 
-import subprocess
 import json
 from typing import Dict, Optional
 from datetime import datetime
 
 
-def get_news_articles(
-    api_key: str,
-    category: str = "business",
-    country: str = "us",
-    page_size: int = 10
-) -> Optional[Dict]:
+def get_news_articles_from_file(file_path: str = "saved_json_data/news.json") -> Optional[Dict]:
     """
-    Récupère les top headlines d'une catégorie spécifique
-    
+    Lit les actualités depuis un fichier JSON généré par le script bash
     Args:
-        api_key: Clé API NewsAPI
-        category: Catégorie (business, technology, science, etc.)
-        country: Code pays (us, fr, gb, etc.)
-        page_size: Nombre d'articles à récupérer
-        
+        file_path: Chemin du fichier JSON
     Returns:
         Dict contenant les articles ou None en cas d'erreur
     """
-    if not api_key or api_key.strip() == "":
-        raise ValueError("La clé API NewsAPI est requise")
-    
-    # URL pour les top headlines
-    base_url = "https://newsapi.org/v2/top-headlines"
-    
-    # Paramètres
-    params = [
-        f"category={category}",
-        f"country={country}",
-        f"pageSize={page_size}",
-        f"apiKey={api_key}"
-    ]
-    
-    url = f"{base_url}?{'&'.join(params)}"
-    
     try:
-        result = subprocess.run(
-            ['curl', '-s', url],
-            capture_output=True,
-            text=True,
-            encoding='utf-8',  # Spécifier l'encodage UTF-8
-            timeout=10
-        )
-        
-        if result.returncode != 0:
-            print(f"Erreur curl: code {result.returncode}")
-            return None
-        
-        data = json.loads(result.stdout)
-        
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
         if data.get('status') != 'ok':
             print(f"Erreur API: {data.get('message', 'Erreur inconnue')}")
             return None
-        
         return data
-        
-    except subprocess.TimeoutExpired:
-        print("Timeout: l'API a mis trop de temps à répondre")
+    except FileNotFoundError:
+        print(f"Fichier non trouvé: {file_path}")
         return None
     except json.JSONDecodeError:
         print("Erreur: impossible de parser la réponse JSON")

@@ -5,11 +5,11 @@ Ce module fournit des fonctions pour récupérer des actualités financières
 depuis l'API NewsAPI en utilisant des appels curl.
 """
 
-from .news_fetcher import get_news_articles, format_article, format_published_date
+from .news_fetcher import get_news_articles_from_file, format_article, format_published_date
 from .news_cache import get_cached_business_news
 
 __all__ = [
-    'get_news_articles',
+    'get_news_articles_from_file',
     'format_article',
     'format_published_date',
     'get_cached_business_news'

@@ -48,7 +48,7 @@ def _show_latest_news():
     
     # Fetch business news
     with st.spinner("📡 Fetching news..."):
-        news_data = get_cached_business_news(api_key=api_key, country="us", page_size=10)
+        news_data = get_cached_business_news(file_path="saved_json_data/news.json")
     
     if not news_data:
         st.warning("⚠️ Unable to fetch news. Please try again later.")
