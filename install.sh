@@ -102,5 +102,5 @@ echo -e "${GREEN}║               ✓ Installation terminée avec succès      
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${BLUE}Prochaine étape :${NC}"
-echo "Exécutez 'bash launch.sh' pour démarrer l'application Finview"
+echo "Exécutez 'bash get_news.sh' pour récupérer les actualités financières !"
 echo ""

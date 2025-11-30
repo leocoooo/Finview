@@ -68,3 +68,9 @@ mkdir -p saved_json_data
 echo "$RESPONSE" > saved_json_data/news.json
 
 echo -e "${GREEN}✓ Actualités sauvegardées dans saved_json_data/news.json${NC}"
+echo -e "${BLUE}Prochaine étape :${NC}"
+echo "Exécutez 'bash launch.sh' pour démarrer l'application Finview"
+echo ""
+echo ""
+echo "La réponse à la vie est 42"
+echo ""
