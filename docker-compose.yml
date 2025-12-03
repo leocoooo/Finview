@@ -31,7 +31,7 @@ services:
 
       
     
-    # Variables d'environnement
+    # Variables d'env
     environment:
       # Configuration Streamlit pour le conteneur
       - STREAMLIT_SERVER_HEADLESS=true
@@ -44,9 +44,3 @@ services:
     # Policy de redémarrage
     restart: unless-stopped
     
-    # Ressources limitées (optionnel, à adapter selon votre système)
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '1'
-    #       memory: 2G

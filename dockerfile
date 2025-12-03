@@ -15,7 +15,7 @@ ENV UV_SYSTEM_PYTHON=1
 COPY pyproject.toml uv.lock* README.md ./
 COPY src/ ./src/               
 
-# Maintenant uv sync peut builder ton package
+# Build le package
 RUN uv sync --no-dev --frozen
 
 # Copier le reste
