@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# ============================================================================
 # Script d'installation pour Finview - Docker Setup
-# ============================================================================
 # Ce script :
-# 1. Vérifie que Docker Desktop est installé et en cours d'exécution
-# 2. Vérifie que Docker Compose est disponible
-# 3. Construit l'image Docker
-# 4. Crée les répertoires nécessaires pour la persistance des données
-# ============================================================================
+# - Vérifie que Docker Desktop est installé et en cours d'exécution
+# - Vérifie que Docker Compose est disponible
+# - Construit l'image Docker
+# - Crée les répertoires nécessaires pour la persistance des données
 
 set -e  # Arrêter à la première erreur
 
@@ -24,9 +21,7 @@ echo -e "${BLUE}║     Finview - Installation Docker Setup                     
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# ============================================================================
-# ÉTAPE 1 : Vérifier que Docker est installé
-# ============================================================================
+# Vérifier que Docker est installé
 echo -e "${YELLOW}[1/4]${NC} Vérification de l'installation de Docker..."
 
 if ! command -v docker &> /dev/null; then
@@ -39,9 +34,7 @@ echo -e "${GREEN}✓ Docker est installé${NC}"
 echo "   Version : $(docker --version)"
 echo ""
 
-# ============================================================================
-# ÉTAPE 2 : Vérifier que Docker Desktop est en cours d'exécution
-# ============================================================================
+# Vérifier que Docker Desktop est en cours d'exécution
 echo -e "${YELLOW}[2/4]${NC} Vérification que Docker est en cours d'exécution..."
 
 if ! docker ps &> /dev/null; then
@@ -53,9 +46,8 @@ fi
 echo -e "${GREEN}✓ Docker est en cours d'exécution${NC}"
 echo ""
 
-# ============================================================================
-# ÉTAPE 3 : Vérifier que Docker Compose est disponible
-# ============================================================================
+
+# Vérifier que Docker Compose est disponible
 echo -e "${YELLOW}[3/4]${NC} Vérification de Docker Compose..."
 
 if ! docker-compose --version &> /dev/null; then
@@ -72,9 +64,7 @@ echo -e "${GREEN}✓ Docker Compose est disponible${NC}"
 echo "   Commande : $DOCKER_COMPOSE"
 echo ""
 
-# ============================================================================
-# ÉTAPE 4 : Créer les répertoires nécessaires
-# ============================================================================
+# Créer les répertoires nécessaires
 echo -e "${YELLOW}[4/4]${NC} Création des répertoires de persistance..."
 
 mkdir -p saved_json_data
@@ -87,9 +77,7 @@ echo "   - reports/ (rapports PDF générés)"
 echo "   - .streamlit/ (configuration Streamlit)"
 echo ""
 
-# ============================================================================
-# ÉTAPE 5 : Construire l'image Docker
-# ============================================================================
+# Construire l'image Docker
 echo -e "${YELLOW}Construction de l'image Docker...${NC}"
 echo "Cela peut prendre plusieurs minutes lors du premier lancement."
 echo ""

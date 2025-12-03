@@ -1,18 +1,19 @@
+#!/bin/bash*
+
+# Script de récupération des actualités financières via NewsAPI
+# Ce script :
+# - Charge les variables d'environnement
+# - Récupère les actualités via l'API NewsAPI
+# - Stocke la réponse JSON dans saved_json_data/news.json
+
+set -e  
+
 # Charger les variables d'environnement depuis .env
 if [ -f .env ]; then
 	set -a
 	source .env
 	set +a
 fi
-# ============================================================================
-# Script de récupération des actualités financières via NewsAPI
-# ============================================================================
-# Ce script :
-# 1. Récupère les actualités via l'API NewsAPI
-# 2. Stocke la réponse JSON dans saved_json_data/news.json
-# ============================================================================
-
-set -e  # Arrêter à la première erreur
 
 # Couleurs pour l'affichage
 RED='\033[0;31m'
